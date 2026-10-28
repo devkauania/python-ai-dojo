@@ -65,7 +65,7 @@ html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
 :root { --hdr-h: calc(54px * var(--z) + 2px); }
 body {
   /* a SALA é o fundo de verdade (nativa 3168x1344, 21:9) */
-  background: #241c14 url("../assets/sala.png?v=59") center bottom / cover fixed no-repeat;
+  background: #241c14 url("../assets/sala.png?v=64") center bottom / cover fixed no-repeat;
   image-rendering: pixelated;
   color: var(--ink);
   font: 14px/1.6 var(--mono);
@@ -73,7 +73,7 @@ body {
 /* a tela da TV: a CENA mora DENTRO do buraco do tubo. --cena é trocada por
    tela/ato (js/ui.js): cada ato e o laboratório podem ter o seu cenário, com
    fallback para o papel de parede padrão enquanto a arte não existir. */
-:root { --cena: url("../assets/wallpaper.png?v=59"); }
+:root { --cena: url("../assets/wallpaper.png?v=64"); }
 body::before {
   content: ""; position: fixed; z-index: -1;
   inset: calc(var(--tvy) + 26px) calc(var(--tvx) + 34px) calc(var(--tvy) + 42px);
@@ -96,7 +96,7 @@ body::after {
   inset: var(--tvy) var(--tvx);
   border: 30px solid transparent;
   border-width: 30px 40px 48px 40px;
-  border-image: url("../assets/tv-moldura.png?v=59") 92 168 98 150 / 30px 40px 48px 40px stretch;
+  border-image: url("../assets/tv-moldura.png?v=64") 92 168 98 150 / 30px 40px 48px 40px stretch;
   image-rendering: pixelated;
 }
 /* botões rotativos (sprite separado — não estica com a moldura) e antena */
@@ -104,14 +104,14 @@ html::after {
   content: ""; position: fixed; z-index: 81; pointer-events: none;
   right: calc(var(--tvx) + 2px); bottom: calc(var(--tvy) + 40px);
   width: 36px; height: 70px;
-  background: url("../assets/tv-botoes.png?v=59") center / contain no-repeat;
+  background: url("../assets/tv-botoes.png?v=64") center / contain no-repeat;
   image-rendering: pixelated;
 }
 html::before {
   content: ""; display: none; position: fixed; z-index: 3; pointer-events: none;
   right: calc(var(--tvx) - 290px); bottom: 20px;
   width: 160px; height: 330px;
-  background: url("../assets/tv-antena.png?v=59") center bottom / contain no-repeat;
+  background: url("../assets/tv-antena.png?v=64") center bottom / contain no-repeat;
   image-rendering: pixelated;
 }
 /* antena só quando há sala de sobra dos lados (ultrawide de verdade) */
@@ -142,7 +142,7 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   border: 9px solid transparent;
-  border-image: url("../assets/chrome-11.png?v=59") 16 fill / 9px stretch;
+  border-image: url("../assets/chrome-11.png?v=64") 16 fill / 9px stretch;
   image-rendering: pixelated;
   background: none; color: var(--ink);
   padding: 2px 10px; font-size: 13px; font-weight: 700; cursor: pointer;
@@ -150,7 +150,7 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
 }
 .btn:hover:not(:disabled) { filter: brightness(1.05); }
 .btn:active:not(:disabled), .btn.afundado {
-  border-image-source: url("../assets/chrome-12.png?v=59");
+  border-image-source: url("../assets/chrome-12.png?v=64");
   transform: translateY(1px);
 }
 .btn:disabled { opacity: 0.5; cursor: default; }
@@ -176,7 +176,7 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
   position: relative;
   border: 8px solid transparent;
   border-top-width: 38px;
-  border-image: url("../assets/chrome-07.png?v=59") 58 17 17 17 fill / 38px 8px 8px 8px stretch;
+  border-image: url("../assets/chrome-07.png?v=64") 58 17 17 17 fill / 38px 8px 8px 8px stretch;
   image-rendering: pixelated;
   margin-top: 18px;
   text-align: left;
@@ -192,9 +192,9 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
 .janela-titulo { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .janela-btns { display: inline-flex; gap: 4px; }
 .jbt { width: 22px; height: 22px; display: inline-block; background: center / contain no-repeat; }
-.jbt-min { background-image: url("../assets/chrome-04.png?v=59"); }
-.jbt-max { background-image: url("../assets/chrome-05.png?v=59"); }
-.jbt-x { background-image: url("../assets/chrome-06.png?v=59"); }
+.jbt-min { background-image: url("../assets/chrome-04.png?v=64"); }
+.jbt-max { background-image: url("../assets/chrome-05.png?v=64"); }
+.jbt-x { background-image: url("../assets/chrome-06.png?v=64"); }
 .janela-corpo { padding: 10px 12px; }
 .janela-corpo > :first-child { margin-top: 0; }
 
@@ -215,6 +215,13 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
 .bv-lado { display: flex; flex-direction: column; gap: 12px; }
 .bv-lado .peq { margin: 0; }
 .bv-lado .bv-cta { margin: 0; }
+.bv-lado .bv-idioma { margin: 0; }
+/* seletor de idioma (boas-vindas): o idioma atual usa a skin de botão afundado */
+.seletor-idioma { gap: 6px; }
+.seletor-idioma .btn.ativo {
+  border-image-source: url("../assets/chrome-12.png?v=64");
+  transform: translateY(1px);
+}
 
 /* --------------------------------------------------------------- taskbar */
 .hdr {
@@ -223,7 +230,7 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
   bottom: calc(var(--tvy) + 44px);
   display: flex; align-items: center; gap: 6px;
   height: calc(54px * var(--z)); padding: 4px 8px;
-  background: url("../assets/taskbar-05.png?v=59") repeat-x left center / auto 100%;
+  background: url("../assets/taskbar-05.png?v=64") repeat-x left center / auto 100%;
   image-rendering: pixelated;
   border-top: 2px solid var(--os-marrom-3);
   font-size: 12.5px;
@@ -233,16 +240,16 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
 .tb-start {
   /* proporção nativa da arte (195x72): 114x42 não achata o "Start" */
   flex-shrink: 0; width: 114px; height: 42px; border: 0; cursor: pointer;
-  background: url("../assets/taskbar-01.png?v=59") center / 100% 100% no-repeat;
+  background: url("../assets/taskbar-01.png?v=64") center / 100% 100% no-repeat;
   color: transparent; font-size: 0;
   image-rendering: auto; /* arte reduzida: pixelated perde traços ao reduzir */
 }
-.tb-start:active { background-image: url("../assets/taskbar-02.png?v=59"); }
+.tb-start:active { background-image: url("../assets/taskbar-02.png?v=64"); }
 .tb-app {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   height: 40px; padding: 0 8px; cursor: pointer;
   border: 8px solid transparent;
-  border-image: url("../assets/taskbar-03.png?v=59") 18 fill / 8px stretch;
+  border-image: url("../assets/taskbar-03.png?v=64") 18 fill / 8px stretch;
   image-rendering: pixelated;
   /* reset do <button> do navegador: o ButtonFace cinza vazava pelos cantos
      transparentes do 9-slice (pontinhos nos 4 cantos das abas Ato/Teclado) */
@@ -258,7 +265,7 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
 @media (max-width: 1700px) { .hdr .tb-rotulo { display: none; } }
 .tb-app:hover { filter: brightness(1.12); }
 .tb-app.ativo, .tb-app:active {
-  border-image-source: url("../assets/taskbar-04.png?v=59");
+  border-image-source: url("../assets/taskbar-04.png?v=64");
   transform: translateY(1px);
 }
 .tb-app img { width: 20px; height: 20px; }
@@ -275,13 +282,13 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
   flex-shrink: 0; min-width: 92px; height: 40px;
   display: inline-flex; align-items: center; justify-content: center;
   border: 8px solid transparent;
-  border-image: url("../assets/taskbar-06.png?v=59") 24 fill / 8px stretch;
+  border-image: url("../assets/taskbar-06.png?v=64") 24 fill / 8px stretch;
   image-rendering: pixelated;
   color: #ffd97a; font-weight: 700; letter-spacing: 1px;
   text-shadow: 1px 1px 0 #000;
 }
 .barra-ato { width: 120px; height: 10px; background: var(--os-marrom-3); border: 1px solid var(--os-marrom-2); overflow: hidden; }
-.barra-ato-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=59") repeat-x left center / auto 100%; }
+.barra-ato-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=64") repeat-x left center / auto 100%; }
 .faixa-ico { vertical-align: -4px; }
 
 /* ------------------------------------------------------------------ main
@@ -457,7 +464,7 @@ code.glos:hover .glos-balao, code.glos:focus-visible .glos-balao, code.glos:focu
 .fim-lista { list-style: none; padding: 0; font-size: 13.5px; }
 .fim-lista li { padding: 4px 0; }
 .barra-fim { height: 14px; background: var(--os-marrom-3); border: 1px solid var(--os-marrom-2); overflow: hidden; margin: 16px 0 6px; }
-.barra-fim-fill { display: block; height: 100%; width: 0; background: url("../assets/chrome-22.png?v=59") repeat-x left center / auto 100%; transition: width 600ms steps(12, end); }
+.barra-fim-fill { display: block; height: 100%; width: 0; background: url("../assets/chrome-22.png?v=64") repeat-x left center / auto 100%; transition: width 600ms steps(12, end); }
 .tela-ato h1, .tela-run h1 { margin-top: 3vh; }
 .tela-ato, .tela-run { color: #f6eede; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7); }
 .tela-ato .janela, .tela-run .janela, .tela-preta .janela { color: var(--ink); text-shadow: none; }
@@ -509,7 +516,7 @@ code.glos:hover .glos-balao, code.glos:focus-visible .glos-balao, code.glos:focu
 .livre-ex.completo { color: var(--ok); border-color: var(--ok); }
 .lab-hero { background: var(--os-creme-2); border: 2px solid var(--os-borda); padding: 14px 18px; margin: 12px 0 18px; }
 .lab-prog { height: 12px; background: var(--os-marrom-3); border: 1px solid var(--os-marrom-2); overflow: hidden; margin: 10px 0; }
-.lab-prog-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=59") repeat-x left center / auto 100%; }
+.lab-prog-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=64") repeat-x left center / auto 100%; }
 .lab-hero-info { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .lab-hero-num strong { font-size: 20px; color: var(--num-cor); }
 .lab-selo { color: var(--ok); }
@@ -518,15 +525,15 @@ code.glos:hover .glos-balao, code.glos:focus-visible .glos-balao, code.glos:focu
 .lab-trilha { background: var(--os-creme-2); border: 2px solid var(--os-borda); padding: 11px 14px; }
 .lab-trilha-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .lab-trilha-prog { height: 9px; background: var(--os-marrom-3); border: 1px solid var(--os-marrom-2); overflow: hidden; margin: 8px 0; }
-.lab-trilha-prog > span, .lab-trilha-prog i, .lab-trilha-prog .lab-prog-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=59") repeat-x left center / auto 100%; }
+.lab-trilha-prog > span, .lab-trilha-prog i, .lab-trilha-prog .lab-prog-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=64") repeat-x left center / auto 100%; }
 .lab-exs { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
 .lab-ex { display: flex; align-items: center; gap: 8px; background: none; border: 1px solid transparent; padding: 6px 8px; cursor: pointer; color: var(--ink); text-align: left; font-family: var(--mono); font-size: 13px; }
 .lab-ex:hover { background: var(--os-creme-3); }
 .lab-ex.feito { color: var(--ok); }
 .lab-ex-xp { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--num-cor); }
 /* o CTA também carrega .nivel (contrato de clique): devolve o 9-slice do .btn */
-.btn.lab-continuar { flex-direction: row; border: 9px solid transparent; border-image: url("../assets/chrome-11.png?v=59") 16 fill / 9px stretch; background: none; padding: 2px 10px; }
-.btn.lab-continuar:active { border-image-source: url("../assets/chrome-12.png?v=59"); }
+.btn.lab-continuar { flex-direction: row; border: 9px solid transparent; border-image: url("../assets/chrome-11.png?v=64") 16 fill / 9px stretch; background: none; padding: 2px 10px; }
+.btn.lab-continuar:active { border-image-source: url("../assets/chrome-12.png?v=64"); }
 .web-layout { display: grid; grid-template-columns: minmax(280px, max(400px, 32%)) minmax(460px, 1fr); gap: 22px; align-items: start; }
 /* Sticky SÓ quando a coluna cabe na tela do tubo: com o teclado acoplado ela
    passa de 950px e o "Preview ao vivo" ficava preso fora da tela/atrás da
@@ -548,7 +555,7 @@ code.glos:hover .glos-balao, code.glos:focus-visible .glos-balao, code.glos:focu
 .modal {
   position: relative; zoom: var(--z);
   border: 8px solid transparent; border-top-width: 38px;
-  border-image: url("../assets/chrome-07.png?v=59") 58 17 17 17 fill / 38px 8px 8px 8px stretch;
+  border-image: url("../assets/chrome-07.png?v=64") 58 17 17 17 fill / 38px 8px 8px 8px stretch;
   image-rendering: pixelated;
   padding: 14px 16px; max-width: 500px; width: 100%;
   box-shadow: 8px 8px 0 rgba(30, 18, 8, 0.45);
@@ -568,7 +575,7 @@ code.glos:hover .glos-balao, code.glos:focus-visible .glos-balao, code.glos:focu
 select { background: var(--os-creme); color: var(--ink); border: 2px solid var(--os-borda); padding: 5px 8px; font-size: 13px; font-family: var(--mono); }
 input[type="text"], input[type="number"] {
   border: 8px solid transparent;
-  border-image: url("../assets/chrome-21.png?v=59") 20 fill / 8px stretch;
+  border-image: url("../assets/chrome-21.png?v=64") 20 fill / 8px stretch;
   background: none; font-family: var(--mono); font-size: 13px; color: var(--ink);
 }
 .switch { position: relative; width: 46px; height: 24px; flex-shrink: 0; }
@@ -582,7 +589,7 @@ input[type="text"], input[type="number"] {
 /* ------------------------------------------------------- scrollbars do OS */
 ::-webkit-scrollbar { width: 16px; height: 16px; }
 ::-webkit-scrollbar-track { background: var(--os-creme-3); border-left: 1px solid var(--os-borda); }
-::-webkit-scrollbar-thumb { background: var(--os-creme) url("../assets/chrome-15.png?v=59") center / 10px auto no-repeat; border: 2px solid var(--os-borda); }
+::-webkit-scrollbar-thumb { background: var(--os-creme) url("../assets/chrome-15.png?v=64") center / 10px auto no-repeat; border: 2px solid var(--os-borda); }
 ::-webkit-scrollbar-corner { background: var(--os-creme-3); }
 pre.cod::-webkit-scrollbar-track, .editor::-webkit-scrollbar-track { background: #16100a; border: 0; }
 pre.cod::-webkit-scrollbar-thumb, .editor::-webkit-scrollbar-thumb { background-color: #5d4632; border-color: #16100a; }
@@ -631,7 +638,7 @@ body.vk-aberto .vk-slot #teclado-virtual { display: block; }
 .vk-tecla {
   position: relative; height: 46px; flex: 0 0 var(--vk-u); min-width: 0;
   border: 12px solid transparent;
-  border-image: url("../assets/keycap.png?v=59") 42 / 12px stretch;
+  border-image: url("../assets/keycap.png?v=64") 42 / 12px stretch;
   image-rendering: pixelated;
   background: #e9e2ca; background-clip: padding-box;
   color: var(--ink); font-family: var(--mono); font-size: 13px; font-weight: 700;

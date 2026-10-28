@@ -1,6 +1,9 @@
 // Ponte main-thread <-> Web Worker do Pyodide.
 // Responsável por: spawn/respawn do worker, timeout em 2 estágios
 // (SIGINT via SharedArrayBuffer -> terminate+respawn), pacotes lazy.
+// Idioma: todo payload leva "lang" (o runner/mocks falam o idioma do aluno).
+
+import { t, idioma } from "./i18n.js";
 
 const ESCALADA_MS = 2000; // após o SIGINT, 2s para o worker responder
 
@@ -29,23 +32,23 @@ export class PyBridge {
     if (this.worker) return this.prontoPromise;
     this.erroFatal = null;
     this.prontoPromise = new Promise((res) => (this.prontoResolve = res));
-    this.worker = new Worker("./js/pyworker.js?v=59", { type: "module" });
+    this.worker = new Worker("./js/pyworker.js?v=64", { type: "module" });
     this.worker.onmessage = (ev) => this._aoMensagem(ev.data || {});
     this.worker.onerror = (e) => {
-      this._setFase("erro", String(e.message || "erro no worker"));
-      this._falharPendentes("o ambiente Python caiu; tente rodar de novo");
+      this._setFase("erro", String(e.message || t("py.erroWorker")));
+      this._falharPendentes(t("py.caiu"));
     };
     if (this.sigintDisponivel) {
       this.sab = new SharedArrayBuffer(1);
       this.interrupt = new Uint8Array(this.sab);
     }
-    this.worker.postMessage({ type: "init", interruptBuffer: this.sab });
+    this.worker.postMessage({ type: "init", interruptBuffer: this.sab, lang: idioma() });
     return this.prontoPromise;
   }
 
   _setFase(fase, msg) {
     this.fase = fase;
-    if (fase === "erro") this.erroFatal = msg || "erro desconhecido";
+    if (fase === "erro") this.erroFatal = msg || t("py.erroDesconhecido");
     this.aoMudarFase(fase, msg);
   }
 
@@ -72,7 +75,7 @@ export class PyBridge {
         try {
           resultado = JSON.parse(msg.json);
         } catch {
-          resultado = this._resultadoFatal("resposta ilegível do runner");
+          resultado = this._resultadoFatal(t("py.ilegivel"));
         }
         p.resolve(resultado);
       }
@@ -93,8 +96,7 @@ export class PyBridge {
       erro: {
         tipo: "AmbientePython",
         linha: null,
-        mensagem_didatica:
-          "O ambiente Python teve um problema interno. Tente rodar de novo; se persistir, recarregue a página.",
+        mensagem_didatica: t("py.fatal.didatica"),
         mensagem_original: texto,
       },
       testes: [],
@@ -122,8 +124,8 @@ export class PyBridge {
       erro: {
         tipo: "Timeout",
         linha: null,
-        mensagem_didatica: `Seu código passou de ${timeoutS} s (loop infinito?). Reiniciando o ambiente Python…`,
-        mensagem_original: "Interrompido pelo Dojo após o tempo limite.",
+        mensagem_didatica: t("py.timeout.didatica", { s: timeoutS }),
+        mensagem_original: t("py.timeout.original"),
       },
       testes: [],
     };
@@ -138,7 +140,7 @@ export class PyBridge {
       // promessa pendurada para sempre (soft-lock). 60s cobre numpy/pandas.
       const timer = setTimeout(() => {
         this.pendentesPacotes.delete(reqId);
-        reject(new Error("tempo esgotado ao baixar os pacotes (rede?)"));
+        reject(new Error(t("py.pacotesTimeout")));
       }, 60000);
       this.pendentesPacotes.set(reqId, {
         resolve: () => { clearTimeout(timer); resolve(); },
@@ -154,10 +156,12 @@ export class PyBridge {
   executar(payload) {
     if (this.fase !== "pronto") {
       return Promise.resolve(
-        this._resultadoFatal("o ambiente Python ainda não está pronto")
+        this._resultadoFatal(t("py.naoPronto"))
       );
     }
     const reqId = ++this.reqSeq;
+    // o idioma do runner acompanha a interface (quem chama pode fixar outro)
+    if (!payload.lang) payload = { ...payload, lang: idioma() };
     const timeoutMs = (payload.timeout_s || 5) * 1000;
     return new Promise((resolve) => {
       let timerTimeout = null;
@@ -189,7 +193,7 @@ export class PyBridge {
 
   _respawn() {
     // toda espera de pacote pendente morre com o worker — nunca deixar pendurado
-    for (const [, p] of this.pendentesPacotes) p.reject(new Error("ambiente Python reiniciado"));
+    for (const [, p] of this.pendentesPacotes) p.reject(new Error(t("py.reiniciado")));
     this.pendentesPacotes.clear();
     if (this.worker) {
       this.worker.terminate();

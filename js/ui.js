@@ -1,5 +1,5 @@
 // Renderização das telas + micro-animações. Sem framework, sem imagens,
-// sem webfonts. Ícones = SVG inline minúsculos. Tudo em PT-BR.
+// sem webfonts. Ícones = SVG inline minúsculos. Textos via t() (js/i18n.js).
 
 import * as engine from "./engine.js";
 import { exerciciosDe } from "./content.js";
@@ -9,7 +9,10 @@ import {
   ICONE_SETA_DIR, AVATAR_CUBO, iconeFaixa,
 } from "./icones.js";
 import { cuboPlataforma, cuboSvg } from "./mundo.js";
-import { GLOSSARIO } from "./glossario.js";
+import { t, glossario } from "./i18n.js";
+// alias de t() para escopos onde "t" é variável local (laços sobre testes,
+// map sobre tipos de arquivo html/css/js)
+const tr = t;
 
 // versão de cache dos assets: herda o ?v= com que este módulo foi importado
 // (import map do index.html) — bump lá busta imagens aqui junto.
@@ -51,7 +54,15 @@ const iconeDoNivel = (slug) => ICONE_POR_SLUG[slug] || "icone-24";
 // moldura de janela do Dojo OS (9-slice do chrome-07 via CSS .janela)
 // rótulo curto do custo da dica (o completo vai no title): os 5 botões
 // dica/solução/pular cabem em menos linhas na coluna estreita da aula
-const CUSTO_CURTO = ["", "grátis", "–50%", "XP 0"];
+const custoCurto = (i) => t("custo.curto." + i);
+const custoLongo = (i) => t("custo.longo." + i);
+
+// rótulo de exibição de um conceito (tag estável do conteúdo). O manifest de
+// cada idioma pode trazer "rotulos_conceitos": {tag: rótulo}; sem ele, a tag.
+export function rotuloConceito(conteudo, tag) {
+  const r = conteudo && conteudo.manifest && conteudo.manifest.rotulos_conceitos;
+  return (r && typeof r[tag] === "string" && r[tag]) || tag;
+}
 
 export function janela(titulo, corpo, cls = "") {
   return `<section class="janela ${cls}">
@@ -132,7 +143,7 @@ export function md(texto) {
     const bruto = tok.trim()
       .replaceAll("&amp;", "&").replaceAll("&lt;", "<").replaceAll("&gt;", ">")
       .replaceAll("&quot;", '"').replaceAll("&#39;", "'");
-    const def = GLOSSARIO[bruto];
+    const def = glossario()[bruto];
     if (!def) return m;
     return `<code class="glos" tabindex="0">${tok}<span class="glos-balao" role="tooltip"><strong>${esc(bruto)}</strong>${esc(def)}</span></code>`;
   });
@@ -170,7 +181,7 @@ function estrelas(n, max = 3) {
   for (let i = 0; i < max; i++) {
     s += `<span class="estrela ${i < n ? "cheia" : ""}">${i < n ? "★" : "☆"}</span>`;
   }
-  return `<span class="estrelas" title="${n} de ${max} estrelas">${s}</span>`;
+  return `<span class="estrelas" title="${t("estrelas.title", { n, max })}">${s}</span>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -193,35 +204,35 @@ export function header(ctx) {
   if (ctx.tela && ctx.tela.nome === "mapa") {
     tabsAto = conteudo.manifest.atos.map((ato, i) =>
       `<button class="tb-app tb-ato ${i === ctx.atoTab ? "ativo" : ""}" data-ato-tab="${i}"
-        title="${esc(ato.titulo)}" aria-pressed="${i === ctx.atoTab}">Ato ${i + 1}</button>`).join("");
+        title="${esc(ato.titulo)}" aria-pressed="${i === ctx.atoTab}">${t("hdr.ato", { n: i + 1 })}</button>`).join("");
   } else if (ctx.tela && ctx.tela.nome === "laboratorio") {
     const ativa = ctx.labTab || 0;
     tabsAto = [...conteudo.webPorNivel.keys()].map((nv, i) =>
       `<button class="tb-app tb-ato ${i === ativa ? "ativo" : ""}" data-lab-tab="${i}"
-        title="${esc(NIVEL_WEB[nv] || nv)}" aria-pressed="${i === ativa}">${esc(NIVEL_WEB_CURTO[nv] || nv)}</button>`
+        title="${esc(nomeNivelWeb(nv))}" aria-pressed="${i === ativa}">${esc(nomeNivelWebCurto(nv))}</button>`
     ).join("");
   }
   const hora = new Date().toTimeString().slice(0, 5);
   const tecladoAberto = document.body.classList.contains("vk-aberto");
 
   return `<header class="hdr">
-    <button class="tb-start" id="btn-config" title="Start — Configurações" aria-label="Start — Configurações">Start</button>
-    <a class="tb-app" href="#/mapa" title="Área de trabalho" aria-label="Dojo — área de trabalho"><img src="${assetUrl("taskbar-07")}" alt=""><span class="tb-rotulo">Dojo</span></a>
+    <button class="tb-start" id="btn-config" title="${t("hdr.start.title")}" aria-label="${t("hdr.start.title")}">Start</button>
+    <a class="tb-app" href="#/mapa" title="${t("hdr.dojo.title")}" aria-label="${t("hdr.dojo.aria")}"><img src="${assetUrl("taskbar-07")}" alt=""><span class="tb-rotulo">Dojo</span></a>
     ${tabsAto}
     <div class="hdr-meio">
-      <a class="tb-app" href="#/web" title="Lab Web" aria-label="Lab Web"><img src="${assetUrl("taskbar-10")}" alt=""><span class="tb-rotulo">Lab Web</span></a>
-      <a class="tb-app" href="#/progresso" title="Progresso" aria-label="Progresso"><img src="${assetUrl("taskbar-09")}" alt=""><span class="tb-rotulo">Progresso</span></a>
+      <a class="tb-app" href="#/web" title="${t("hdr.lab")}" aria-label="${t("hdr.lab")}"><img src="${assetUrl("taskbar-10")}" alt=""><span class="tb-rotulo">${t("hdr.lab")}</span></a>
+      <a class="tb-app" href="#/progresso" title="${t("hdr.progresso")}" aria-label="${t("hdr.progresso")}"><img src="${assetUrl("taskbar-09")}" alt=""><span class="tb-rotulo">${t("hdr.progresso")}</span></a>
       ${progressoNivel}
     </div>
     <span class="tb-espaco"></span>
     <div class="hdr-dir">
       <button class="tb-app ${tecladoAberto ? "ativo" : ""}" id="btn-teclado"
-        title="Teclado virtual (teclas que faltam no seu teclado: \\ | { } ~ ...)"
-        aria-label="Alternar teclado virtual" aria-pressed="${tecladoAberto}">
-        <img src="${assetUrl("keycap")}" alt=""><span class="tb-rotulo">Teclado</span></button>
+        title="${esc(t("hdr.teclado.title"))}"
+        aria-label="${t("hdr.teclado.aria")}" aria-pressed="${tecladoAberto}">
+        <img src="${assetUrl("keycap")}" alt=""><span class="tb-rotulo">${t("hdr.teclado")}</span></button>
       ${streak > 0 ? `<span class="hdr-streak" id="hdr-streak">${ICONE_RAIO}${num(streak)}</span>` : ""}
-      ${fila > 0 ? `<a class="hdr-fila" href="#/mapa">${num(fila)} rev</a>` : ""}
-      <span class="hdr-xp" id="hdr-xp" title="XP total"><img src="${assetUrl("taskbar-12")}" alt="">${num(save.xp_total)} XP</span>
+      ${fila > 0 ? `<a class="hdr-fila" href="#/mapa" title="${t("hdr.fila.title")}">${t("hdr.fila", { n: num(fila) })}</a>` : ""}
+      <span class="hdr-xp" id="hdr-xp" title="${t("hdr.xp.title")}"><img src="${assetUrl("taskbar-12")}" alt="">${num(save.xp_total)} XP</span>
       <span class="tb-relogio" id="tb-relogio">${hora.slice(0, 2)}<i class="pisca">:</i>${hora.slice(3)}</span>
     </div>
   </header>`;
@@ -232,42 +243,49 @@ export function header(ctx) {
 // ---------------------------------------------------------------------------
 export function telaErroFatal(msg) {
   return `<div class="tela-centro">
-    ${janela("erro.log", `
-      <p><strong>O ambiente Python não carregou.</strong></p>
-      <p>O jogo precisa de internet no primeiro carregamento (o Python roda no seu
-      navegador, mas é baixado do CDN uma única vez). Verifique a conexão e recarregue.</p>
+    ${janela(t("jan.erro"), `
+      <p><strong>${t("erro.titulo")}</strong></p>
+      <p>${t("erro.texto")}</p>
       <p class="mono peq">${esc(msg || "")}</p>
-      <button class="btn btn-primario" id="btn-recarregar">Recarregar</button>`)}
+      <button class="btn btn-primario" id="btn-recarregar">${t("erro.recarregar")}</button>`)}
   </div>`;
 }
 
 export function telaCorrompido() {
   return `<div class="tela-centro">
-    ${janela("save.dat — erro de leitura", `
-      <p><strong>O save local não pôde ser lido.</strong></p>
-      <p>Você pode começar de novo ou importar um save exportado antes.</p>
+    ${janela(t("jan.corrompido"), `
+      <p><strong>${t("corrompido.titulo")}</strong></p>
+      <p>${t("corrompido.texto")}</p>
       <div class="linha-botoes">
-        <button class="btn btn-primario" id="btn-reset-corrompido">Começar do zero</button>
-        <label class="btn">Importar save<input type="file" id="input-import-corrompido" accept=".json" hidden></label>
+        <button class="btn btn-primario" id="btn-reset-corrompido">${t("corrompido.zero")}</button>
+        <label class="btn">${t("importar.save")}<input type="file" id="input-import-corrompido" accept=".json" hidden></label>
       </div>`)}
   </div>`;
 }
 
-export function telaBoasVindas(novo, recap) {
+// seletor de idioma (boas-vindas e Configurações): botões PT/EN, o atual pressionado
+export function seletorIdioma(atual) {
+  return `<span class="linha-botoes seletor-idioma" role="group" aria-label="${t("idioma.rotulo")}">
+    ${["pt", "en"].map((l) => `<button class="btn btn-peq ${l === atual ? "ativo" : ""}" data-lang="${l}"
+      aria-pressed="${l === atual}" lang="${l === "en" ? "en" : "pt-BR"}">${t("idioma." + l)}</button>`).join("")}
+  </span>`;
+}
+
+export function telaBoasVindas(novo, recap, lang) {
   return `<div class="tela-centro tela-bv">
-    ${janela("bem-vindo.txt — Python AI Dojo", `
+    ${janela(t("jan.bv"), `
       <h1 class="bv-titulo">Python AI Dojo</h1>
       ${novo
-        ? `<p class="sub bv-sub">Python para IA, um exercício de cada vez. Código de verdade rodando no seu navegador, com feedback imediato.</p>`
-        : `<p class="sub bv-sub">Bem-vindo de volta.${recap ? " " + esc(recap) : ""}</p>`}
+        ? `<p class="sub bv-sub">${t("bv.sub.novo")}</p>`
+        : `<p class="sub bv-sub">${t("bv.sub.volta")}${recap ? " " + esc(recap) : ""}</p>`}
       <!-- o botão fica na coluna do Cato (ao lado do retrato), não numa linha
            própria abaixo: a janela termina onde o conteúdo termina -->
       <div class="tutor-fala bv-fala">
-        <img class="tutor-retrato" src="${assetUrl("tutor-gato")}" alt="Cato, seu tutor">
+        <img class="tutor-retrato" src="${assetUrl("tutor-gato")}" alt="${t("bv.cato.alt")}">
         <div class="bv-lado">
-          <p class="peq">O Cato te espera na área de trabalho. Cada nível é um programa:
-          clique duas… não, UMA vez já abre.</p>
-          <p class="bv-cta"><button class="btn btn-primario btn-grande" id="btn-comecar" data-som-proprio>${novo ? "Começar" : "Continuar"}</button></p>
+          <p class="peq">${t("bv.cato.fala")}</p>
+          <p class="bv-cta"><button class="btn btn-primario btn-grande" id="btn-comecar" data-som-proprio>${novo ? t("bv.comecar") : t("bv.continuar")}</button></p>
+          <p class="bv-idioma">${seletorIdioma(lang)}</p>
         </div>
       </div>`, "janela-bv")}
   </div>`;
@@ -276,7 +294,7 @@ export function telaBoasVindas(novo, recap) {
 // ---------------------------------------------------------------------------
 // mapa da trilha
 // ---------------------------------------------------------------------------
-const NOMES_FAIXA = { branca: "Faixa branca", azul: "Faixa azul", roxa: "Faixa roxa", marrom: "Faixa marrom", preta: "Faixa preta" };
+const nomeFaixa = (fx) => t("faixa." + fx);
 
 // Dojo OS: o mapa é a ÁREA DE TRABALHO — wallpaper, ícones .exe por nível,
 // janela leia-me com o hero, e as tabs de Ato ficam na taskbar (header).
@@ -306,45 +324,45 @@ export function telaMapa(ctx) {
     niveisHtml += `<button class="no ${completo ? "feito" : atual ? "atual" : ""}"
       data-slug="${nivel.slug}" data-ato="${atoIdx}" ${bloqueado ? "disabled" : ""}
       style="--i:${iNo++}"
-      title="${esc(ato.titulo)} · ${esc(nivel.titulo)}${bloqueado ? " (bloqueado)" : ""}">
+      title="${esc(ato.titulo)} · ${esc(nivel.titulo)}${bloqueado ? t("bloqueado.parenteses") : ""}">
       <span class="no-icone">
         <img class="no-img" src="${assetUrl(iconeDoNivel(nivel.slug))}" alt="">
-        ${bloqueado ? `<img class="no-cadeado" src="${assetUrl("icone-18")}" alt="bloqueado">` : ""}
-        ${completo ? `<img class="no-badge" src="${assetUrl("icone-20")}" alt="concluído">` : ""}
+        ${bloqueado ? `<img class="no-cadeado" src="${assetUrl("icone-18")}" alt="${t("bloqueado")}">` : ""}
+        ${completo ? `<img class="no-badge" src="${assetUrl("icone-20")}" alt="${t("concluido")}">` : ""}
       </span>
       <span class="no-etiqueta">
         <span class="no-nome"><span class="no-rotulo">${esc(nivel.titulo)}</span></span>
-        <span class="no-sub">${completo ? "concluído" : bloqueado ? "bloqueado" : `${p.feitos}/${p.total}`}</span>
+        <span class="no-sub">${completo ? t("concluido") : bloqueado ? t("bloqueado") : `${p.feitos}/${p.total}`}</span>
       </span>
     </button>`;
   }
   const atosHtml = `<section class="mapa-ato">
-    <h2>Ato ${atoIdx + 1} — ${esc(ato.titulo)}</h2>
+    <h2>${t("mapa.ato", { n: atoIdx + 1, titulo: esc(ato.titulo) })}</h2>
     <div class="mapa-niveis">${niveisHtml}</div></section>`;
 
   let resto = "";
   if (fx === "marrom") {
     const chk = engine.checklistPreta(save, conteudo);
-    resto += `<div class="painel"><h3>Checklist da faixa preta</h3>
+    resto += `<div class="painel"><h3>${t("mapa.checklist")}</h3>
       <ul class="checklist">
-        <li class="${chk.boss5T3 ? "ok" : ""}">Vencer o BOSS FINAL no tier 3</li>
-        <li class="${chk.conceitosOk ? "ok" : ""}">≥ 80% dos conceitos com 3 estrelas (hoje: ${Math.round(chk.pctConceitos * 100)}%)</li>
-        <li class="${chk.filaVazia ? "ok" : ""}">Fila de revisão vazia (hoje: ${chk.filaTamanho})</li>
+        <li class="${chk.boss5T3 ? "ok" : ""}">${t("mapa.chk.boss")}</li>
+        <li class="${chk.conceitosOk ? "ok" : ""}">${t("mapa.chk.conceitos", { pct: Math.round(chk.pctConceitos * 100) })}</li>
+        <li class="${chk.filaVazia ? "ok" : ""}">${t("mapa.chk.fila", { n: num(chk.filaTamanho) })}</li>
       </ul></div>`;
   }
   if (fx === "preta") {
-    resto += `<div class="linha-botoes"><button class="btn" id="btn-certificado">Certificado imprimível</button>
-      <button class="btn btn-fantasma" id="btn-modo-dan">Modo Dan</button>
-      <button class="btn btn-fantasma" id="btn-modo-livre">Modo Livre</button></div>`;
+    resto += `<div class="linha-botoes"><button class="btn" id="btn-certificado">${t("certificado.botao")}</button>
+      <button class="btn btn-fantasma" id="btn-modo-dan">${t("modo.dan")}</button>
+      <button class="btn btn-fantasma" id="btn-modo-livre">${t("modo.livre")}</button></div>`;
   }
 
-  const leiame = janela("leia-me.txt", `
+  const leiame = janela(t("jan.leiame"), `
     <h1>Python AI Dojo</h1>
-    <p class="sub">Run ${num(save.run_atual.numero)} · ${esc(NOMES_FAIXA[fx])} · ${num(save.xp_total)} XP</p>
+    <p class="sub">${t("mapa.sub", { run: num(save.run_atual.numero), faixa: esc(nomeFaixa(fx)), xp: num(save.xp_total) })}</p>
     <div class="linha-botoes">
-      ${proximo ? `<button class="btn btn-primario" id="btn-continuar">Continuar: ${esc(proxNode.titulo)}</button>` : ""}
-      <button class="btn btn-peq" id="btn-progresso">Progresso</button>
-      <button class="btn btn-peq" id="btn-laboratorio">Lab Web · ${feitosWeb}/${(conteudo.webLab || []).length}</button>
+      ${proximo ? `<button class="btn btn-primario" id="btn-continuar">${t("continuar.alvo", { titulo: esc(proxNode.titulo) })}</button>` : ""}
+      <button class="btn btn-peq" id="btn-progresso">${t("hdr.progresso")}</button>
+      <button class="btn btn-peq" id="btn-laboratorio">${t("mapa.lab", { feitos: feitosWeb, total: (conteudo.webLab || []).length })}</button>
     </div>
     ${resto}`, "janela-leiame");
 
@@ -386,21 +404,21 @@ export function telaProgresso(ctx) {
   }
   evol.sort((a, b) => (b.rec.t || 0) - (a.rec.t || 0));
 
-  let html = `<div class="trilha-topo reveal"><div class="trilha-titulo"><h1>Seu progresso</h1>
-    <p class="sub">Como você evolui pela prática.</p></div><a class="btn btn-fantasma" href="#/mapa">‹ Voltar</a></div>`;
+  let html = `<div class="trilha-topo reveal"><div class="trilha-titulo"><h1>${t("prog.titulo")}</h1>
+    <p class="sub">${t("prog.sub")}</p></div><a class="btn btn-fantasma" href="#/mapa">${t("voltar.seta")}</a></div>`;
 
   html += `<div class="progresso-grade reveal">
-    <div class="stat-card"><div class="num">${num(save.xp_total)}</div><div class="lab">XP total</div></div>
-    <div class="stat-card"><div class="num">${resolvidos}</div><div class="lab">exercícios resolvidos</div></div>
-    <div class="stat-card"><div class="num">${resolvidos ? Math.round((semDica / resolvidos) * 100) : 0}%</div><div class="lab">sem dica</div></div>
-    <div class="stat-card"><div class="num">${num(save.streak.melhor)}</div><div class="lab">melhor streak</div></div>
-    <div class="stat-card"><div class="num">${conceitosTres}/${totalConceitos}</div><div class="lab">conceitos ★★★</div></div>
-    <div class="stat-card"><div class="num">${num(dias)}</div><div class="lab">dias praticados</div></div>
+    <div class="stat-card"><div class="num">${num(save.xp_total)}</div><div class="lab">${t("prog.xp")}</div></div>
+    <div class="stat-card"><div class="num">${resolvidos}</div><div class="lab">${t("prog.resolvidos")}</div></div>
+    <div class="stat-card"><div class="num">${resolvidos ? Math.round((semDica / resolvidos) * 100) : 0}%</div><div class="lab">${t("prog.semDica")}</div></div>
+    <div class="stat-card"><div class="num">${num(save.streak.melhor)}</div><div class="lab">${t("prog.melhorStreak")}</div></div>
+    <div class="stat-card"><div class="num">${conceitosTres}/${totalConceitos}</div><div class="lab">${t("prog.conceitos")}</div></div>
+    <div class="stat-card"><div class="num">${num(dias)}</div><div class="lab">${t("prog.dias")}</div></div>
   </div>`;
 
-  html += `<h3 class="reveal">Evolução dos seus tempos <span class="peq">— comparando as duas resoluções mais recentes</span></h3>`;
+  html += `<h3 class="reveal">${t("prog.evolucao")} <span class="peq">${t("prog.evolucao.sub")}</span></h3>`;
   if (!evol.length) {
-    html += `<p class="sub">Resolva um exercício mais de uma vez (na fila de revisão ou no modo livre) para ver aqui o quanto você acelerou.</p>`;
+    html += `<p class="sub">${t("prog.vazio")}</p>`;
   } else {
     html += `<div class="evolucao">`;
     for (const e of evol.slice(0, 20)) {
@@ -409,13 +427,13 @@ export function telaProgresso(ctx) {
       html += `<div class="evo-linha">
         <span class="evo-nome">${esc(e.titulo)}</span>
         <span class="evo-tempos">${fmtTempo(e.ant.t)} → ${fmtTempo(e.rec.t)}</span>
-        <span class="${melhorou ? "tempo-melhora" : "tempo-piora"}">${melhorou ? "▼ " + fmtTempo(Math.abs(delta)) + " mais rápido" : delta === 0 ? "igual" : "▲ " + fmtTempo(Math.abs(delta))}</span>
-        <span class="peq" title="seu recorde">recorde ${fmtTempo(e.best)}</span>
+        <span class="${melhorou ? "tempo-melhora" : "tempo-piora"}">${melhorou ? t("prog.maisRapido", { t: fmtTempo(Math.abs(delta)) }) : delta === 0 ? t("prog.igual") : "▲ " + fmtTempo(Math.abs(delta))}</span>
+        <span class="peq" title="${t("prog.recorde.title")}">${t("prog.recorde", { t: fmtTempo(e.best) })}</span>
       </div>`;
     }
     html += `</div>`;
   }
-  return `<div class="mapa">${janela("progresso.log", html)}</div>`;
+  return `<div class="mapa">${janela(t("jan.progresso"), html)}</div>`;
 }
 
 // dicas reveladas: o Cato fala DENTRO da própria janela, logo abaixo dos botões
@@ -445,29 +463,28 @@ export function telaExercicio(ctx) {
   } else {
     const primeira = exsNivel.find((e) => e.explicacao_md);
     if (primeira) {
-      explicacao = `<details class="explicacao-rever"><summary>Rever a explicação do nível</summary>
+      explicacao = `<details class="explicacao-rever"><summary>${t("ex.rever")}</summary>
         <div class="explicacao">${md(primeira.explicacao_md)}</div></details>`;
     }
   }
 
-  const custoDica = ["Grátis", "Grátis", "–50% XP", "XP = 0"];
   let dicasHtml = "";
   for (let i = 1; i <= 3; i++) {
     if (sessao.dicaRevelada >= i) {
-      dicasHtml += `<div class="dica"><span class="dica-num">Dica ${i}</span> ${md(ex.dicas[i - 1])}</div>`;
+      dicasHtml += `<div class="dica"><span class="dica-num">${t("dica.n", { i })}</span> ${md(ex.dicas[i - 1])}</div>`;
     }
   }
   const botoesDica = [];
   for (let i = sessao.dicaRevelada + 1; i <= 3; i++) {
-    botoesDica.push(`<button class="btn btn-peq" data-dica="${i}" id="btn-dica-${i}" title="Dica ${i}: ${custoDica[i]}">Dica ${i} · ${CUSTO_CURTO[i]}</button>`);
+    botoesDica.push(`<button class="btn btn-peq" data-dica="${i}" id="btn-dica-${i}" title="${t("dica.title", { i, custo: custoLongo(i) })}">${t("dica.n", { i })} · ${custoCurto(i)}</button>`);
   }
 
   const contexto = sessao.emRevisao
-    ? `<span class="chip chip-rev">Revisão · caixa ${sessao.emRevisao.caixaAtual || "?"}</span>`
+    ? `<span class="chip chip-rev">${t("ex.chip.revisao", { c: sessao.emRevisao.caixaAtual || "?" })}</span>`
     : sessao.modoLivre
-      ? `<span class="chip">Modo livre · sem XP em rejogada</span>`
+      ? `<span class="chip">${t("ex.chip.livre")}</span>`
       : sessao.modoDan
-        ? `<span class="chip">Modo Dan</span>`
+        ? `<span class="chip">${t("ex.chip.dan")}</span>`
         : "";
 
   return `<div class="ex-layout">
@@ -485,42 +502,42 @@ export function telaExercicio(ctx) {
       }).join("")}
     </aside>
     <section class="ex-enunciado">
-      ${janela("leia-me.txt — aula do Cato", `
+      ${janela(t("jan.aula"), `
         <div class="ex-cab">
-          <a class="btn btn-fantasma btn-peq" href="#/mapa">‹ Área de trabalho</a>
+          <a class="btn btn-fantasma btn-peq" href="#/mapa">${t("ex.areaTrabalho")}</a>
           ${contexto}
         </div>
         <div class="aula-cab">
-          <img class="tutor-retrato tutor-mini" src="${assetUrl("tutor-gato")}" alt="Cato, o professor">
-          <div><h2>${esc(ex.titulo)}</h2><p class="peq aula-fala">${node ? `${esc(node.atoTitulo)} · ${esc(node.titulo)} · ` : ""}tier ${ex.tier} · ${idx + 1}/${exsNivel.length}</p></div>
+          <img class="tutor-retrato tutor-mini" src="${assetUrl("tutor-gato")}" alt="${t("ex.cato.alt")}">
+          <div><h2>${esc(ex.titulo)}</h2><p class="peq aula-fala">${node ? `${esc(node.atoTitulo)} · ${esc(node.titulo)} · ` : ""}${t("ex.posicao", { tier: ex.tier, i: idx + 1, n: exsNivel.length })}</p></div>
         </div>
         <div class="linha-botoes dicas-botoes">
           ${botoesDica.join("")}
-          <button class="btn btn-peq" id="btn-solucao" title="Ver a solução: o XP deste exercício vira 0 e ele entra na fila de revisão">Solução · XP 0</button>
-          <button class="btn btn-peq" id="btn-pular" title="Pular: XP 0 neste exercício e ele entra na fila de revisão">Pular · XP 0</button>
+          <button class="btn btn-peq" id="btn-solucao" title="${t("ex.solucao.title")}">${t("ex.solucao")}</button>
+          <button class="btn btn-peq" id="btn-pular" title="${t("ex.pular.title")}">${t("ex.pular")}</button>
         </div>
         ${dicasArea(dicasHtml)}
         ${explicacao}
         <div class="enunciado">${md(ex.enunciado_md)}</div>`)}
     </section>
     <section class="ex-editor">
-      ${janela("resolucao.py — Billy", `
+      ${janela(t("jan.resolucao"), `
       <div class="cao-codigo">
         <img class="tutor-retrato tutor-mini" src="${assetUrl("tutor-cao")}"
-          alt="Billy, seu parceiro de código"
-          title="Billy — o código é o balão dele; de vez em quando ele solta uma linha">
+          alt="${t("ex.billy.alt")}"
+          title="${t("ex.billy.title")}">
         <div class="editor-caixa">
           <div class="editor-gutter" id="editor-gutter">1</div>
           <textarea id="editor" class="editor" spellcheck="false" autocomplete="off"
-            autocapitalize="off" aria-label="Editor de código Python">${esc(codigo)}</textarea>
+            autocapitalize="off" aria-label="${t("ex.editor.aria")}">${esc(codigo)}</textarea>
         </div>
       </div>
       <div id="vk-slot" class="vk-slot"></div>
       <div class="editor-acoes">
-        <button class="btn btn-primario" id="btn-rodar">Rodar <span class="atalho">Ctrl+Enter</span></button>
-        <button class="btn btn-fantasma btn-peq" id="btn-restaurar">Restaurar código inicial</button>
+        <button class="btn btn-primario" id="btn-rodar">${t("rodar")} <span class="atalho">Ctrl+Enter</span></button>
+        <button class="btn btn-fantasma btn-peq" id="btn-restaurar">${t("ex.restaurar")}</button>
         <span class="pkg-status peq" id="pkg-status"></span>
-        <button class="btn btn-primario oculto" id="btn-proximo">Próximo <span class="atalho">Enter</span></button>
+        <button class="btn btn-primario oculto" id="btn-proximo">${t("proximo")} <span class="atalho">Enter</span></button>
       </div>
       <!-- a microfala do Billy vem DEPOIS do Rodar: ela aparecia entre o
            editor e o botão e o empurrava 40px para baixo da taskbar -->
@@ -536,26 +553,26 @@ export function painelResultado(resultado, ex, xpGanho) {
   if (r.status === "erro_sintaxe") {
     const e = r.erro || {};
     return `<div class="res res-sintaxe">
-      <p class="res-titulo">Erro de sintaxe na linha ${e.linha ?? "?"}</p>
+      <p class="res-titulo">${t("res.sintaxe", { linha: e.linha ?? "?" })}</p>
       <p>${esc(e.mensagem_didatica)}</p>
       ${e.trecho ? `<pre class="cod"><code>${esc(e.trecho)}</code></pre>` : ""}
-      <details><summary>ver erro completo</summary><p class="mono peq">${esc(e.mensagem_original)}</p></details>
+      <details><summary>${t("ver.erro.completo")}</summary><p class="mono peq">${esc(e.mensagem_original)}</p></details>
     </div>`;
   }
   if (r.status === "erro_execucao") {
     const e = r.erro || {};
     return `<div class="res res-erro">
-      <p class="res-titulo">Erro na execução${e.linha ? ` (linha ${e.linha})` : ""}</p>
+      <p class="res-titulo">${t("res.execucao")}${e.linha ? t("res.execucao.linha", { linha: e.linha }) : ""}</p>
       <p>${esc(e.mensagem_didatica)}</p>
-      <details><summary>ver erro completo</summary><p class="mono peq">${esc(e.mensagem_original)}</p></details>
-      ${r.stdout ? `<details><summary>saída até o erro</summary><pre class="cod"><code>${esc(r.stdout)}</code></pre></details>` : ""}
+      <details><summary>${t("ver.erro.completo")}</summary><p class="mono peq">${esc(e.mensagem_original)}</p></details>
+      ${r.stdout ? `<details><summary>${t("res.saidaAteErro")}</summary><pre class="cod"><code>${esc(r.stdout)}</code></pre></details>` : ""}
     </div>`;
   }
   if (r.status === "timeout") {
     const e = r.erro || {};
     return `<div class="res res-erro">
-      <p class="res-titulo">Tempo esgotado</p>
-      <p>${esc(e.mensagem_didatica || "Seu código passou do tempo limite.")}</p>
+      <p class="res-titulo">${t("res.timeout")}</p>
+      <p>${esc(e.mensagem_didatica || t("res.timeout.padrao"))}</p>
     </div>`;
   }
   // ok ou falha_teste: lista de testes
@@ -565,11 +582,11 @@ export function painelResultado(resultado, ex, xpGanho) {
   if (r.status === "ok") {
     html += `<div class="res res-ok">
       <span class="check-svg"><svg viewBox="0 0 32 32"><path class="check-path" d="M6 17l7 7 13-15" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg></span>
-      <span class="res-titulo">Todos os testes passaram!</span>
+      <span class="res-titulo">${t("res.ok")}</span>
       ${xpGanho > 0 ? `<span class="xp-badge" id="xp-badge">+${num(xpGanho)} XP</span>` : ""}
     </div>`;
   } else {
-    html += `<div class="res res-falha"><p class="res-titulo">${falhas.length} de ${r.testes.length} teste(s) falharam — sem penalidade, ajuste e rode de novo.</p></div>`;
+    html += `<div class="res res-falha"><p class="res-titulo">${t("res.falha", { falhas: falhas.length, total: r.testes.length })}</p></div>`;
   }
   let primeiraFalha = true;
   for (const t of r.testes) {
@@ -577,23 +594,23 @@ export function painelResultado(resultado, ex, xpGanho) {
     const aberto = primeiraFalha;
     primeiraFalha = false;
     html += `<details class="teste teste-falha" ${aberto ? "open" : ""}>
-      <summary>✗ ${esc(t.nome)}${t.oculto ? ' <span class="peq">(teste oculto)</span>' : ""}</summary>
+      <summary>✗ ${esc(t.nome)}${t.oculto ? ` <span class="peq">${tr("res.oculto")}</span>` : ""}</summary>
       ${t.mensagem ? `<p>${esc(t.mensagem)}</p>` : ""}
       ${t.esperado !== null ? `<div class="esp-obt">
-        <div><span class="rotulo">esperado</span><pre class="cod"><code>${esc(t.esperado)}</code></pre></div>
-        <div><span class="rotulo">obtido</span><pre class="cod"><code>${esc(t.obtido)}</code></pre></div>
+        <div><span class="rotulo">${tr("esperado")}</span><pre class="cod"><code>${esc(t.esperado)}</code></pre></div>
+        <div><span class="rotulo">${tr("obtido")}</span><pre class="cod"><code>${esc(t.obtido)}</code></pre></div>
       </div>` : ""}
       ${t.diff ? `<details><summary>diff</summary><pre class="cod diff"><code>${esc(t.diff)}</code></pre></details>` : ""}
     </details>`;
   }
   const visiveisOk = r.testes.filter((t) => !t.oculto && t.passou);
   if (visiveisOk.length) {
-    html += `<details class="teste"><summary>✓ ${visiveisOk.length} teste(s) visível(is) passaram</summary>
+    html += `<details class="teste"><summary>${t("res.visiveisOk", { n: visiveisOk.length })}</summary>
       <ul>${visiveisOk.map((t) => `<li>✓ ${esc(t.nome)}</li>`).join("")}</ul></details>`;
   }
-  if (ocultosOk) html += `<p class="peq">✓ ${ocultosOk} teste(s) oculto(s) passaram.</p>`;
+  if (ocultosOk) html += `<p class="peq">${t("res.ocultosOk", { n: ocultosOk })}</p>`;
   if (r.stdout) {
-    html += `<details class="teste"><summary>saída (print)</summary><pre class="cod"><code>${esc(r.stdout)}</code></pre></details>`;
+    html += `<details class="teste"><summary>${t("res.saida")}</summary><pre class="cod"><code>${esc(r.stdout)}</code></pre></details>`;
   }
   return html;
 }
@@ -607,28 +624,28 @@ export function telaFimNivel(ctx, slug, revisoesDevidas) {
   const tier = sessao.tierFechamento || save.run_atual.tier;
   const exs = exerciciosDe(conteudo, slug, tier);
   const xpNivel = exs.reduce((s, e) => s + (save.historico[e.id]?.xp_ganho || 0), 0);
-  const resumoConceitos = node.conceitos.slice(0, 4).join(", ");
+  const resumoConceitos = node.conceitos.slice(0, 4).map((c) => rotuloConceito(conteudo, c)).join(", ");
   return `<div class="tela-centro">
     <div class="cer-cubos" id="cer-cubos" aria-hidden="true"></div>
-    ${janela("nivel_concluido.txt", `<div class="painel-fim">
+    ${janela(t("jan.fimNivel"), `<div class="painel-fim">
       <p class="peq">${esc(node.atoTitulo)}</p>
-      <h2>Nível concluído: ${esc(node.titulo)}</h2>
+      <h2>${t("fim.nivel", { titulo: esc(node.titulo) })}</h2>
       <ul class="fim-lista">
         ${exs.map((e) => {
           const h = save.historico[e.id] || {};
           const semDica = h.resolvido && !h.dicas_usadas && !h.solucao_vista && !h.pulado;
-          return `<li>${h.resolvido ? "✓" : "·"} ${esc(e.titulo)} ${semDica ? '<span class="peq">sem dica</span>' : ""}</li>`;
+          return `<li>${h.resolvido ? "✓" : "·"} ${esc(e.titulo)} ${semDica ? `<span class="peq">${t("fim.semDica")}</span>` : ""}</li>`;
         }).join("")}
       </ul>
-      <p>${num(xpNivel)} XP neste nível · streak ${num(save.streak.atual)}</p>
-      <p><strong>Você agora sabe:</strong> ${esc(resumoConceitos)}.</p>
+      <p>${t("fim.xpNivel", { xp: num(xpNivel), streak: num(save.streak.atual) })}</p>
+      <p>${t("fim.sabe", { conceitos: esc(resumoConceitos) })}</p>
       <div class="barra-fim"><span class="barra-fim-fill" id="barra-fim"></span></div>
       <div class="linha-botoes">
-        <button class="btn btn-primario" id="btn-fim-continuar">Continuar</button>
-        ${revisoesDevidas.length ? `<button class="btn" id="btn-fim-revisar">Revisar agora (${revisoesDevidas.length}) · ~${revisoesDevidas.length + 1} min</button>` : ""}
-        <button class="btn btn-fantasma" id="btn-fim-parar">Parar por aqui</button>
+        <button class="btn btn-primario" id="btn-fim-continuar">${t("continuar")}</button>
+        ${revisoesDevidas.length ? `<button class="btn" id="btn-fim-revisar">${t("fim.revisar", { n: revisoesDevidas.length, min: revisoesDevidas.length + 1 })}</button>` : ""}
+        <button class="btn btn-fantasma" id="btn-fim-parar">${t("fim.parar")}</button>
       </div>
-      <p class="peq oculto" id="msg-parar">Bom ponto para pausar — tudo está salvo.</p>
+      <p class="peq oculto" id="msg-parar">${t("fim.msgParar")}</p>
     </div>`)}
   </div>`;
 }
@@ -646,17 +663,17 @@ export function telaFimAto(ctx, atoId) {
   const conceitos = [...new Set(conteudo.trilha.filter((n) => n.atoIdx === atoIdx).flatMap((n) => n.conceitos))];
   return `<div class="tela-centro tela-ato">
     <div class="cer-cubos" id="cer-cubos" aria-hidden="true"></div>
-    ${janela("ato_concluido.txt", `
-    <h1>Ato concluído</h1>
+    ${janela(t("jan.fimAto"), `
+    <h1>${t("fim.ato")}</h1>
     <h2>${esc(ato.titulo)}</h2>
     <div class="grade-conceitos reveal">
-      ${conceitos.map((c) => `<div class="conceito-card"><span>${esc(c)}</span>${estrelas(save.maestria[c] || 0)}</div>`).join("")}
+      ${conceitos.map((c) => `<div class="conceito-card"><span>${esc(rotuloConceito(conteudo, c))}</span>${estrelas(save.maestria[c] || 0)}</div>`).join("")}
     </div>
-    <p>${xpAto} XP no ato · boss vencido</p>
+    <p>${t("fim.xpAto", { xp: num(xpAto) })}</p>
     <div class="mapa-mini">${conteudo.manifest.atos.map((a, i) =>
       `<span class="mapa-mini-ato ${i <= atoIdx ? "feito" : ""}">${i + 1}</span>`).join("")}</div>
     <button class="btn btn-primario btn-grande" id="btn-fim-ato">
-      ${proximoAto ? `Seguir para ${esc(proximoAto.titulo)}` : "Seguir"}</button>`)}
+      ${proximoAto ? t("fim.seguirPara", { titulo: esc(proximoAto.titulo) }) : t("fim.seguir")}</button>`)}
   </div>`;
 }
 
@@ -672,22 +689,21 @@ export function telaFimRun(ctx) {
   const exProx = exerciciosDe(conteudo, "variaveis", proximoTier)[0];
   const piso = engine.pisoXp(conteudo, tier);
   return `<div class="tela-centro tela-run">
-    ${janela("run_completa.txt", `
-    <h1>Run ${tier} completa</h1>
+    ${janela(t("jan.fimRun"), `
+    <h1>${t("fim.run", { n: tier })}</h1>
     <div class="faixa-cerimonia">${iconeFaixa(fxNova, 120)}<div class="brilho"></div></div>
-    <h2>Faixa ${fxNova}</h2>
-    <p>${st.xp} XP na run · ${Math.round(st.pctSemDica * 100)}% sem dica · ${st.resolvidos} exercícios</p>
-    ${!desbloqueou && tier < 3 ? `<p class="peq">Para destravar a run ${proximoTier}, alcance ${piso} XP
-      (você tem ${num(save.xp_total)}) — a fila de revisão recupera XP.</p>` : ""}
+    <h2>${esc(nomeFaixa(fxNova))}</h2>
+    <p>${t("fim.runStats", { xp: num(st.xp), pct: Math.round(st.pctSemDica * 100), n: num(st.resolvidos) })}</p>
+    ${!desbloqueou && tier < 3 ? `<p class="peq">${t("fim.destravar", { run: proximoTier, piso: num(piso), xp: num(save.xp_total) })}</p>` : ""}
     ${tier < 3 && exAtual && exProx ? `<div class="preview-tier">
-      <p class="peq">O mesmo problema, no próximo tier:</p>
+      <p class="peq">${t("fim.preview")}</p>
       <div class="preview-lado-a-lado">
-        <div><span class="rotulo">tier ${tier}</span><div class="preview-md">${md(exAtual.enunciado_md.slice(0, 280))}</div></div>
-        <div><span class="rotulo">tier ${proximoTier}</span><div class="preview-md">${md(exProx.enunciado_md.slice(0, 280))}</div></div>
+        <div><span class="rotulo">${t("fim.tier", { t: tier })}</span><div class="preview-md">${md(exAtual.enunciado_md.slice(0, 280))}</div></div>
+        <div><span class="rotulo">${t("fim.tier", { t: proximoTier })}</span><div class="preview-md">${md(exProx.enunciado_md.slice(0, 280))}</div></div>
       </div></div>` : ""}
     <div class="linha-botoes">
-      ${tier < 3 && desbloqueou ? `<button class="btn btn-primario btn-grande" id="btn-comecar-run">Começar run ${proximoTier}</button>` : ""}
-      <button class="btn" id="btn-run-mapa">Voltar ao mapa</button>
+      ${tier < 3 && desbloqueou ? `<button class="btn btn-primario btn-grande" id="btn-comecar-run">${t("fim.comecarRun", { n: proximoTier })}</button>` : ""}
+      <button class="btn" id="btn-run-mapa">${t("voltar.mapa")}</button>
     </div>`)}
   </div>`;
 }
@@ -699,19 +715,19 @@ export function telaFaixaPreta(ctx) {
   const st3 = engine.estatisticasRun(save, conteudo, 3);
   const total = st1.resolvidos + st2.resolvidos + st3.resolvidos;
   return `<div class="tela-preta">
-    <h1>Faixa preta</h1>
-    <p class="preta-sub">Dojo concluído — Python para IA</p>
+    <h1>${t("preta.titulo")}</h1>
+    <p class="preta-sub">${t("preta.sub")}</p>
     <div class="preta-stats">
       <div><span class="num">${num(save.xp_total)}</span><span>XP</span></div>
-      <div><span class="num">${total}</span><span>exercícios</span></div>
-      <div><span class="num">${num(save.streak.melhor)}</span><span>melhor streak</span></div>
-      <div><span class="num">${Math.round(engine.pctConceitos3Estrelas(save, conteudo) * 100)}%</span><span>conceitos ★★★</span></div>
+      <div><span class="num">${total}</span><span>${t("preta.exercicios")}</span></div>
+      <div><span class="num">${num(save.streak.melhor)}</span><span>${t("preta.melhorStreak")}</span></div>
+      <div><span class="num">${Math.round(engine.pctConceitos3Estrelas(save, conteudo) * 100)}%</span><span>${t("preta.conceitos")}</span></div>
     </div>
     <div class="linha-botoes">
-      <button class="btn" id="btn-certificado">Certificado imprimível</button>
-      <button class="btn btn-fantasma" id="btn-modo-dan">Modo Dan</button>
-      <button class="btn btn-fantasma" id="btn-modo-livre">Modo Livre</button>
-      <button class="btn btn-fantasma" id="btn-preta-mapa">Voltar ao mapa</button>
+      <button class="btn" id="btn-certificado">${t("certificado.botao")}</button>
+      <button class="btn btn-fantasma" id="btn-modo-dan">${t("modo.dan")}</button>
+      <button class="btn btn-fantasma" id="btn-modo-livre">${t("modo.livre")}</button>
+      <button class="btn btn-fantasma" id="btn-preta-mapa">${t("voltar.mapa")}</button>
     </div>
   </div>`;
 }
@@ -722,25 +738,25 @@ export function telaFaixaPreta(ctx) {
 // ---------------------------------------------------------------------------
 export function telaLivre(ctx) {
   const { save, conteudo } = ctx;
-  let html = `<div class="mapa-topo reveal"><h1>Modo Livre</h1>
-    <a class="btn" href="#/mapa">Voltar</a></div>
-    <p class="sub reveal">Qualquer exercício, qualquer tier. Rejogadas não dão XP.</p>`;
+  let html = `<div class="mapa-topo reveal"><h1>${t("livre.titulo")}</h1>
+    <a class="btn" href="#/mapa">${t("voltar")}</a></div>
+    <p class="sub reveal">${t("livre.sub")}</p>`;
   for (const [atoIdx, ato] of conteudo.manifest.atos.entries()) {
     html += `<section class="ato"><h2>${esc(ato.titulo)}</h2>`;
     for (const nivel of ato.niveis) {
       html += `<h3 class="livre-nivel">${esc(nivel.titulo)}</h3><div class="livre-grade">`;
-      for (const t of [1, 2, 3]) {
-        for (const ex of exerciciosDe(conteudo, nivel.slug, t)) {
+      for (const tier of [1, 2, 3]) {
+        for (const ex of exerciciosDe(conteudo, nivel.slug, tier)) {
           const feito = save.historico[ex.id]?.resolvido;
           html += `<button class="livre-ex ${feito ? "completo" : ""}" data-exid="${ex.id}"
-            title="${esc(ex.titulo)}">T${t}·${ex.id.slice(-2)}</button>`;
+            title="${esc(ex.titulo)}">T${tier}·${ex.id.slice(-2)}</button>`;
         }
       }
       html += `</div>`;
     }
     html += `</section>`;
   }
-  return `<div class="mapa">${janela("modo_livre.exe", html)}</div>`;
+  return `<div class="mapa">${janela(t("jan.livre"), html)}</div>`;
 }
 
 export function telaDan(ctx) {
@@ -750,10 +766,9 @@ export function telaDan(ctx) {
   const dans = Math.floor(save.dan.vencidos / 3);
   let listras = "";
   for (let i = 0; i < Math.min(dans, 6); i++) listras += "▮";
-  return `<div class="mapa">${janela("modo_dan.exe", `<div class="mapa-topo"><h1>Modo Dan ${listras ? `<span class="chip">${listras}</span>` : ""}</h1>
-    <a class="btn" href="#/mapa">Voltar</a></div>
-    <p class="sub">Boss dan #${bossIdx + 1}: três desafios tier 3 de atos diferentes, em sequência.
-    Cada 3 bosses vencidos = 1 dan. A recompensa é o desafio — sem XP.</p>
+  return `<div class="mapa">${janela(t("jan.dan"), `<div class="mapa-topo"><h1>${t("dan.titulo")} ${listras ? `<span class="chip">${listras}</span>` : ""}</h1>
+    <a class="btn" href="#/mapa">${t("voltar")}</a></div>
+    <p class="sub">${t("dan.sub", { n: num(bossIdx + 1) })}</p>
     <div class="niveis">
       ${desafios.map((ex, i) => {
         const node = conteudo.trilhaPorSlug.get(ex.nivel);
@@ -769,22 +784,17 @@ export function telaDan(ctx) {
 // ---------------------------------------------------------------------------
 // Laboratório Web (exercícios interativos)
 // ---------------------------------------------------------------------------
-const ROTULO_CATEGORIA = {
-  "conserte-back": "Consertar o back-end",
-  "conserte-front": "Consertar o front-end",
-  "construa-front": "Construir o front-end",
-  "ligue": "Ligar front ↔ back",
+// rótulos traduzidos (js/i18n.js): categoria, trilha e trilha curta. Chave
+// desconhecida (conteúdo novo sem rótulo) cai no próprio slug.
+const comFallback = (chave, bruto) => {
+  const r = t(chave);
+  return r === chave ? bruto : r;
 };
-const NIVEL_WEB = {
-  eventos: "Eventos & DOM", css: "CSS & Layout", dom: "Manipulação do DOM", js: "Lógica JavaScript",
-  dados: "Renderizar Dados", forms: "Formulários & Validação", ui: "Estado & Componentes",
-};
+const rotuloCategoria = (cat) => comFallback("cat." + cat, cat);
+const nomeNivelWeb = (nv) => comFallback("web.nivel." + nv, nv);
 // rótulos curtos p/ as tabs da taskbar (os longos empurravam Lab Web/Progresso
 // para fora da barra)
-const NIVEL_WEB_CURTO = {
-  eventos: "Eventos", css: "CSS", dom: "DOM", js: "JS",
-  dados: "Dados", forms: "Forms", ui: "Estado",
-};
+const nomeNivelWebCurto = (nv) => comFallback("web.curto." + nv, nv);
 
 // Resumo rastreável do Laboratório Web: quantos exercícios foram concluídos,
 // quanto XP já foi ganho neles e qual é o PRÓXIMO exercício não resolvido
@@ -827,22 +837,22 @@ export function telaLaboratorio(ctx) {
   const trilhas = [...conteudo.webPorNivel.entries()];
   const idx = Math.min(Math.max(ctx.labTab || 0, 0), Math.max(trilhas.length - 1, 0));
   const [nivel, exs] = trilhas[idx] || ["", []];
-  const nome = NIVEL_WEB[nivel] || nivel;
+  const nome = nomeNivelWeb(nivel);
   const feitosTrilha = exs.filter((e) => save.historico[e.id]?.resolvido).length;
 
   let icones = "";
   exs.forEach((ex, i) => {
     const h = save.historico[ex.id];
     const feito = !!(h && h.resolvido);
-    const cat = ROTULO_CATEGORIA[ex.categoria] || ex.categoria;
+    const cat = rotuloCategoria(ex.categoria);
     const rotulo = feito
-      ? `${ex.titulo} — ${cat}, concluído, ${num(h.xp_ganho)} XP ganho`
-      : `${ex.titulo} — ${cat}, não concluído, vale ${ex.xp} XP`;
+      ? t("lab.rotulo.feito", { titulo: ex.titulo, cat, xp: num(h.xp_ganho) })
+      : t("lab.rotulo.aberto", { titulo: ex.titulo, cat, xp: num(ex.xp) });
     icones += `<button class="no nivel ${feito ? "feito" : ""}" data-webid="${esc(ex.id)}"
       style="--i:${i}" title="${esc(cat)} · ${esc(ex.titulo)}" aria-label="${esc(rotulo)}">
       <span class="no-icone">
         <img class="no-img" src="${assetUrl(ICONE_CATEGORIA_WEB[ex.categoria] || "icone-24")}" alt="">
-        ${feito ? `<img class="no-badge" src="${assetUrl("icone-20")}" alt="concluído">` : ""}
+        ${feito ? `<img class="no-badge" src="${assetUrl("icone-20")}" alt="${t("concluido")}">` : ""}
       </span>
       <span class="no-etiqueta">
         <span class="no-nome"><span class="no-rotulo">${esc(ex.titulo)}</span></span>
@@ -852,25 +862,25 @@ export function telaLaboratorio(ctx) {
   });
 
   const cta = completo
-    ? `<p class="chip lab-selo" role="status">${ICONE_CHECK} Laboratório completo — ${total} de ${total} exercícios</p>`
+    ? `<p class="chip lab-selo" role="status">${ICONE_CHECK} ${t("lab.completo", { total })}</p>`
     : proximo
       ? `<button class="btn btn-primario nivel lab-continuar" data-webid="${esc(proximo.id)}"
-          aria-label="Continuar o laboratório no próximo exercício não concluído: ${esc(proximo.titulo)}">
-          Continuar: ${esc(proximo.titulo)}</button>`
+          aria-label="${t("lab.continuar.aria", { titulo: esc(proximo.titulo) })}">
+          ${t("continuar.alvo", { titulo: esc(proximo.titulo) })}</button>`
       : "";
 
-  const leiame = janela("laboratorio.txt", `
-    <h1>Laboratório Web</h1>
-    <p class="sub">Conserte e construa telas de verdade, com preview ao vivo.</p>
-    <p class="lab-hero-num"><strong>${feitos}</strong> de ${total} concluídos
-      <span class="peq">· ${num(xpGanho)} XP no laboratório</span></p>
+  const leiame = janela(t("jan.lab"), `
+    <h1>${t("lab.titulo")}</h1>
+    <p class="sub">${t("lab.sub")}</p>
+    <p class="lab-hero-num">${t("lab.num", { feitos, total })}
+      <span class="peq">${t("lab.xp", { xp: num(xpGanho) })}</span></p>
     <div class="lab-prog" role="progressbar" aria-valuemin="0" aria-valuemax="${total}"
       aria-valuenow="${feitos}"
-      aria-label="Progresso geral do laboratório: ${feitos} de ${total} exercícios concluídos">
+      aria-label="${t("lab.prog.aria", { feitos, total })}">
       <div class="lab-prog-fill" style="width:${pct}%"></div>
     </div>
     <div class="linha-botoes">${cta}
-      <a class="btn btn-peq" href="#/mapa">Área de trabalho</a></div>`, "janela-leiame");
+      <a class="btn btn-peq" href="#/mapa">${t("lab.areaTrabalho")}</a></div>`, "janela-leiame");
 
   return `<div class="mapa desktop">
     ${leiame}
@@ -897,13 +907,12 @@ export function telaExercicioWeb(ctx) {
   let dicasHtml = "";
   for (let i = 1; i <= 3; i++) {
     if (sessao.dicaRevelada >= i) {
-      dicasHtml += `<div class="dica"><span class="dica-num">Dica ${i}</span> ${md(ex.dicas[i - 1])}</div>`;
+      dicasHtml += `<div class="dica"><span class="dica-num">${t("dica.n", { i })}</span> ${md(ex.dicas[i - 1])}</div>`;
     }
   }
-  const custoDica = ["", "Grátis", "–50% XP", "XP = 0"];
   const botoesDica = [];
   for (let i = sessao.dicaRevelada + 1; i <= 3; i++) {
-    botoesDica.push(`<button class="btn btn-peq" data-dica="${i}" id="btn-dica-${i}" title="Dica ${i}: ${custoDica[i]}">Dica ${i} · ${CUSTO_CURTO[i]}</button>`);
+    botoesDica.push(`<button class="btn btn-peq" data-dica="${i}" id="btn-dica-${i}" title="${t("dica.title", { i, custo: custoLongo(i) })}">${t("dica.n", { i })} · ${custoCurto(i)}</button>`);
   }
 
   // editores só para arquivos editáveis; fixos ficam como referência colapsada
@@ -912,30 +921,30 @@ export function telaExercicioWeb(ctx) {
     const val = (codigoSalvo && codigoSalvo[t] != null) ? codigoSalvo[t] : (ex["web_" + t] || "");
     return `<div class="web-arquivo">
       <div class="web-arquivo-cab"><span class="rotulo">${ROTULO_ARQ[t]}</span>
-        <button class="btn btn-peq btn-fantasma" data-restaurar="${t}">restaurar</button></div>
+        <button class="btn btn-peq btn-fantasma" data-restaurar="${t}">${tr("restaurar")}</button></div>
       <div class="editor-caixa"><textarea id="web-ed-${t}" class="editor web-editor" spellcheck="false"
-        autocomplete="off" autocapitalize="off" data-arq="${t}" aria-label="Editor ${ROTULO_ARQ[t]}">${esc(val)}</textarea></div>
+        autocomplete="off" autocapitalize="off" data-arq="${t}" aria-label="${tr("web.editor.aria", { arq: ROTULO_ARQ[t] })}">${esc(val)}</textarea></div>
     </div>`;
   }).join("");
 
-  const fixosHtml = fixos.length ? `<details class="web-fixos"><summary>Ver arquivos fixos (${fixos.map((t) => ROTULO_ARQ[t]).join(", ")}) — você não precisa editá-los</summary>
+  const fixosHtml = fixos.length ? `<details class="web-fixos"><summary>${t("web.fixos", { lista: fixos.map((a) => ROTULO_ARQ[a]).join(", ") })}</summary>
     ${fixos.map((t) => `<div class="rotulo">${ROTULO_ARQ[t]}</div><pre class="cod"><code>${esc(ex["web_" + t] || "")}</code></pre>`).join("")}</details>` : "";
 
   return `<div class="web-layout">
     <section class="ex-enunciado">
-      ${janela("briefing.txt — aula do Cato", `
+      ${janela(t("jan.briefing"), `
         <div class="ex-cab">
-          <a class="btn btn-fantasma btn-peq" href="#/web">‹ Laboratório</a>
-          <span class="chip">${esc(ROTULO_CATEGORIA[ex.categoria] || ex.categoria)}</span>
+          <a class="btn btn-fantasma btn-peq" href="#/web">${t("web.voltarLab")}</a>
+          <span class="chip">${esc(rotuloCategoria(ex.categoria))}</span>
         </div>
         <div class="aula-cab">
-          <img class="tutor-retrato tutor-mini" src="${assetUrl("tutor-gato")}" alt="Cato, o professor">
-          <div><h2>${esc(ex.titulo)}</h2><p class="peq aula-fala">${esc(NIVEL_WEB[ex.nivel] || ex.nivel)}</p></div>
+          <img class="tutor-retrato tutor-mini" src="${assetUrl("tutor-gato")}" alt="${t("ex.cato.alt")}">
+          <div><h2>${esc(ex.titulo)}</h2><p class="peq aula-fala">${esc(nomeNivelWeb(ex.nivel))}</p></div>
         </div>
         <div class="linha-botoes dicas-botoes">
           ${botoesDica.join("")}
-          <button class="btn btn-peq" id="btn-solucao" title="Ver a solução: o XP deste exercício vira 0">Solução · XP 0</button>
-          <button class="btn btn-peq" id="btn-pular" title="Pular este exercício">Pular</button>
+          <button class="btn btn-peq" id="btn-solucao" title="${t("web.solucao.title")}">${t("ex.solucao")}</button>
+          <button class="btn btn-peq" id="btn-pular" title="${t("web.pular.title")}">${t("web.pular")}</button>
         </div>
         ${dicasArea(dicasHtml)}
         ${explicacao}
@@ -943,26 +952,26 @@ export function telaExercicioWeb(ctx) {
         ${fixosHtml}`)}
     </section>
     <section class="web-trabalho">
-      ${janela("editor.web — Billy", `
+      ${janela(t("jan.editorWeb"), `
       <div class="cao-codigo">
         <img class="tutor-retrato tutor-mini" src="${assetUrl("tutor-cao")}"
-          alt="Billy, seu parceiro de código"
-          title="Billy — o código é o balão dele; de vez em quando ele solta uma linha">
+          alt="${t("ex.billy.alt")}"
+          title="${t("ex.billy.title")}">
         <div class="web-editores">${editores}</div>
       </div>
       <div id="vk-slot" class="vk-slot"></div>
       <div class="editor-acoes">
-        <button class="btn btn-primario" id="btn-rodar">Rodar testes <span class="atalho">Ctrl+Enter</span></button>
-        <button class="btn btn-primario oculto" id="btn-proximo">Próximo <span class="atalho">Enter</span></button>
+        <button class="btn btn-primario" id="btn-rodar">${t("rodar.testes")} <span class="atalho">Ctrl+Enter</span></button>
+        <button class="btn btn-primario oculto" id="btn-proximo">${t("proximo")} <span class="atalho">Enter</span></button>
       </div>
       <!-- a microfala do Billy vem DEPOIS do Rodar: ela aparecia entre o
            editor e o botão e o empurrava 40px para baixo da taskbar -->
       <p class="billy-fala oculto" id="billy-fala" aria-live="polite"></p>
       <div class="resultados" id="resultados" aria-live="polite"></div>`)}
-      ${janela("preview.exe", `
+      ${janela(t("jan.preview"), `
       <div class="web-preview-caixa">
-        <div class="web-preview-cab"><span class="rotulo">Preview ao vivo</span><span class="peq">atualiza enquanto você digita</span></div>
-        <iframe id="web-preview" class="web-preview" sandbox="allow-scripts allow-forms" title="Preview"></iframe>
+        <div class="web-preview-cab"><span class="rotulo">${t("web.preview")}</span><span class="peq">${t("web.preview.sub")}</span></div>
+        <iframe id="web-preview" class="web-preview" sandbox="allow-scripts allow-forms" title="${t("web.preview.title")}"></iframe>
       </div>`)}
     </section>
   </div>`;
@@ -971,18 +980,18 @@ export function telaExercicioWeb(ctx) {
 export function painelResultadoWeb(resultado, xpGanho) {
   const r = resultado;
   if (r.status === "erro") {
-    return `<div class="res res-erro"><p class="res-titulo">Algo travou ao rodar os testes</p><p class="mono peq">${esc(r.erroPagina || "")}</p></div>`;
+    return `<div class="res res-erro"><p class="res-titulo">${t("res.web.travou")}</p><p class="mono peq">${esc(r.erroPagina || "")}</p></div>`;
   }
   let html = "";
   const falhas = r.testes.filter((t) => !t.passou);
   if (r.status === "ok") {
     html += `<div class="res res-ok">
       <span class="check-svg"><svg viewBox="0 0 32 32"><path class="check-path" d="M6 17l7 7 13-15" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg></span>
-      <span class="res-titulo">Funcionou! Todos os testes passaram.</span>
+      <span class="res-titulo">${t("res.web.ok")}</span>
       ${xpGanho > 0 ? `<span class="xp-badge" id="xp-badge">+${num(xpGanho)} XP</span>` : ""}
     </div>`;
   } else {
-    html += `<div class="res res-falha"><p class="res-titulo">${falhas.length} de ${r.testes.length} teste(s) ainda falham — ajuste e rode de novo.</p>
+    html += `<div class="res res-falha"><p class="res-titulo">${t("res.web.falha", { falhas: falhas.length, total: r.testes.length })}</p>
       ${r.erroPagina ? `<p class="peq" style="color:var(--erro)">${esc(r.erroPagina)}</p>` : ""}</div>`;
   }
   let primeira = true;
@@ -993,13 +1002,13 @@ export function painelResultadoWeb(resultado, xpGanho) {
       <summary>✗ ${esc(t.nome)}</summary>
       ${t.mensagem ? `<p>${esc(t.mensagem)}</p>` : ""}
       ${t.esperado !== null ? `<div class="esp-obt">
-        <div><span class="rotulo">esperado</span><pre class="cod"><code>${esc(t.esperado)}</code></pre></div>
-        <div><span class="rotulo">obtido</span><pre class="cod"><code>${esc(t.obtido)}</code></pre></div></div>` : ""}
+        <div><span class="rotulo">${tr("esperado")}</span><pre class="cod"><code>${esc(t.esperado)}</code></pre></div>
+        <div><span class="rotulo">${tr("obtido")}</span><pre class="cod"><code>${esc(t.obtido)}</code></pre></div></div>` : ""}
     </details>`;
   }
   const oks = r.testes.filter((t) => t.passou);
   if (oks.length && r.status !== "ok") {
-    html += `<details class="teste"><summary>✓ ${oks.length} teste(s) já passam</summary><ul>${oks.map((t) => `<li>✓ ${esc(t.nome)}</li>`).join("")}</ul></details>`;
+    html += `<details class="teste"><summary>${t("res.web.jaPassam", { n: oks.length })}</summary><ul>${oks.map((t) => `<li>✓ ${esc(t.nome)}</li>`).join("")}</ul></details>`;
   }
   return html;
 }
@@ -1010,12 +1019,11 @@ export function painelResultadoWeb(resultado, xpGanho) {
 export function modalSolucao(ex) {
   return `<div class="modal-fundo" id="modal-fundo">
     <div class="modal" role="dialog" aria-modal="true">
-      <h3>Ver a solução?</h3>
-      <p>Ver a solução zera o XP deste exercício e o coloca na fila de revisão.
-      Você poderá recuperar o XP ao resolvê-lo sozinho depois. Ver mesmo assim?</p>
+      <h3>${t("modal.solucao.titulo")}</h3>
+      <p>${t("modal.solucao.texto")}</p>
       <div class="linha-botoes">
-        <button class="btn" id="btn-modal-cancelar">Voltar ao exercício</button>
-        <button class="btn btn-primario" id="btn-modal-confirmar">Ver a solução</button>
+        <button class="btn" id="btn-modal-cancelar">${t("modal.solucao.cancelar")}</button>
+        <button class="btn btn-primario" id="btn-modal-confirmar">${t("modal.solucao.confirmar")}</button>
       </div>
     </div>
   </div>`;
@@ -1030,10 +1038,10 @@ function aparar(codigo) {
 export function modalSolucaoCorpo(ex) {
   return `<div class="modal-fundo" id="modal-fundo">
     <div class="modal modal-larga" role="dialog" aria-modal="true">
-      <h3>Solução — ${esc(ex.titulo)}</h3>
+      <h3>${t("modal.solucao.corpo.titulo", { titulo: esc(ex.titulo) })}</h3>
       <pre class="cod"><code>${esc(aparar(ex.solucao_referencia))}</code></pre>
-      <p class="peq">O exercício foi marcado como concluído e entrou na fila de revisão.</p>
-      <div class="linha-botoes"><button class="btn btn-primario" id="btn-modal-fechar">Entendi</button></div>
+      <p class="peq">${t("modal.solucao.corpo.nota")}</p>
+      <div class="linha-botoes"><button class="btn btn-primario" id="btn-modal-fechar">${t("modal.entendi")}</button></div>
     </div>
   </div>`;
 }
@@ -1045,29 +1053,34 @@ export function modalConfig(ctx) {
   const part = c.particulas !== false;
   return `<div class="modal-fundo" id="modal-fundo">
     <div class="modal" role="dialog" aria-modal="true">
-      <h3>Configurações</h3>
-      <div class="config-linha"><span>Tema</span>
-        <select id="sel-tema">
-          <option value="claro" ${tema === "claro" ? "selected" : ""}>Claro (pastel)</option>
-          <option value="escuro" ${tema === "escuro" ? "selected" : ""}>Escuro</option>
-          <option value="auto" ${tema === "auto" ? "selected" : ""}>Automático</option>
+      <h3>${t("cfg.titulo")}</h3>
+      <div class="config-linha"><span>${t("idioma.rotulo")}</span>
+        <select id="sel-idioma" aria-label="${t("idioma.rotulo")}">
+          <option value="pt" lang="pt-BR" ${ctx.lang === "pt" ? "selected" : ""}>${t("idioma.pt")}</option>
+          <option value="en" lang="en" ${ctx.lang === "en" ? "selected" : ""}>${t("idioma.en")}</option>
         </select></div>
-      <div class="config-linha"><span>Som</span>
+      <div class="config-linha"><span>${t("cfg.tema")}</span>
+        <select id="sel-tema">
+          <option value="claro" ${tema === "claro" ? "selected" : ""}>${t("cfg.tema.claro")}</option>
+          <option value="escuro" ${tema === "escuro" ? "selected" : ""}>${t("cfg.tema.escuro")}</option>
+          <option value="auto" ${tema === "auto" ? "selected" : ""}>${t("cfg.tema.auto")}</option>
+        </select></div>
+      <div class="config-linha"><span>${t("cfg.som")}</span>
         <label class="switch"><input type="checkbox" id="chk-som" ${som ? "checked" : ""}><span class="trilho"></span></label></div>
-      <div class="config-linha"><span>Partículas</span>
+      <div class="config-linha"><span>${t("cfg.particulas")}</span>
         <label class="switch"><input type="checkbox" id="chk-part" ${part ? "checked" : ""}><span class="trilho"></span></label></div>
-      <div class="config-linha"><span>Reduzir animações</span>
+      <div class="config-linha"><span>${t("cfg.reduzir")}</span>
         <label class="switch"><input type="checkbox" id="chk-reduz" ${c.reduzir === true ? "checked" : ""}><span class="trilho"></span></label></div>
-      <div class="config-linha"><span>Estímulos</span>
-        <button class="btn btn-peq" id="btn-testar-estimulos" data-som-proprio>Testar som e partículas</button></div>
-      <div class="config-linha"><span>Save</span>
+      <div class="config-linha"><span>${t("cfg.estimulos")}</span>
+        <button class="btn btn-peq" id="btn-testar-estimulos" data-som-proprio>${t("cfg.testar")}</button></div>
+      <div class="config-linha"><span>${t("cfg.save")}</span>
         <span class="linha-botoes">
-          <button class="btn btn-peq" id="btn-exportar">Exportar</button>
-          <label class="btn btn-peq">Importar<input type="file" id="input-importar" accept=".json" hidden></label>
-          <button class="btn btn-peq btn-perigo" id="btn-resetar">Zerar progresso</button>
+          <button class="btn btn-peq" id="btn-exportar">${t("cfg.exportar")}</button>
+          <label class="btn btn-peq">${t("cfg.importar")}<input type="file" id="input-importar" accept=".json" hidden></label>
+          <button class="btn btn-peq btn-perigo" id="btn-resetar">${t("cfg.zerar")}</button>
         </span></div>
-      <p class="peq">Python AI Dojo · Pyodide 0.27.7 (Python 3.12) · seu código roda 100% no navegador.</p>
-      <div class="linha-botoes"><button class="btn" id="btn-modal-fechar">Fechar</button></div>
+      <p class="peq">${t("cfg.rodape")}</p>
+      <div class="linha-botoes"><button class="btn" id="btn-modal-fechar">${t("fechar")}</button></div>
     </div>
   </div>`;
 }
@@ -1080,8 +1093,8 @@ export function abrirCertificado(ctx) {
   const total = Object.values(save.historico).filter((h) => h.resolvido).length;
   const w = window.open("", "_blank");
   if (!w) return;
-  w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-    <title>Certificado — Python AI Dojo</title>
+  w.document.write(`<!doctype html><html lang="${t("cert.lang")}"><head><meta charset="utf-8">
+    <title>${t("cert.title")}</title>
     <style>
       body{font-family:Georgia,serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f5f2ea;color:#222}
       .cert{border:6px double #8a7040;padding:60px 80px;text-align:center;background:#fffdf7;max-width:640px}
@@ -1089,12 +1102,12 @@ export function abrirCertificado(ctx) {
       .stats{margin-top:24px;font-size:14px;color:#555} .faixa{font-size:20px;margin-top:16px}
       @media print{body{background:#fff}}
     </style></head><body><div class="cert">
-    <p class="sub">Certificado</p>
-    <h1>Dojo concluído — Python para IA</h1>
-    <p>Trilha completa: fundamentos, dados e robustez, APIs e números, engenharia de IA.</p>
-    <p class="faixa">Faixa preta</p>
-    <p class="stats">${num(total)} exercícios resolvidos · ${num(save.xp_total)} XP · melhor streak ${num(save.streak.melhor)}</p>
-    <p class="stats">Python AI Dojo — jogo local, código real, zero atalhos.</p>
+    <p class="sub">${t("cert.sub")}</p>
+    <h1>${t("cert.h1")}</h1>
+    <p>${t("cert.trilha")}</p>
+    <p class="faixa">${t("cert.faixa")}</p>
+    <p class="stats">${t("cert.stats", { n: num(total), xp: num(save.xp_total), streak: num(save.streak.melhor) })}</p>
+    <p class="stats">${t("cert.rodape")}</p>
     </div><script>window.print()<\/script></body></html>`);
   w.document.close();
 }

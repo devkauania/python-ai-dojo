@@ -6,22 +6,27 @@
 //   npm install
 //   node tools/parity_pyodide.js            # tudo
 //   node tools/parity_pyodide.js ato4       # filtra por prefixo de id
+//   DOJO_LANG=en node tools/parity_pyodide.js   # conteúdo content/en + runner em inglês
 const { chromium } = require("playwright-core");
 
 const BASE = process.env.DOJO_URL || "http://localhost:8321";
 const FILTRO = process.argv[2] || "";
+const LANG = process.env.DOJO_LANG === "en" ? "en" : "pt";
 
 (async () => {
   const browser = await chromium.launch({ channel: "chrome", headless: true });
   const page = await (await browser.newContext()).newPage();
   const erros = [];
   page.on("pageerror", (e) => erros.push(`[pageerror] ${e.message}`));
-  await page.goto(BASE + "/", { waitUntil: "domcontentloaded" });
+  await page.goto(BASE + "/?lang=" + LANG, { waitUntil: "domcontentloaded" });
+  if (LANG !== "pt") console.log("Idioma:", LANG);
 
-  const resultado = await page.evaluate(async (filtro) => {
+  const resultado = await page.evaluate(async ([filtro, lang]) => {
+    const { definirIdioma } = await import("/js/i18n.js");
+    definirIdioma(lang); // antes do worker: init e payloads levam o idioma
     const { carregarConteudo } = await import("/js/content.js");
     const { PyBridge } = await import("/js/pybridge.js");
-    const c = await carregarConteudo();
+    const c = await carregarConteudo(lang);
     const bridge = new PyBridge();
     await bridge.iniciar();
     const rodar = async (ex, codigo) => {
@@ -33,6 +38,7 @@ const FILTRO = process.argv[2] || "";
         mocks: ex.mocks || [],
         arquivos: ex.arquivos || {},
         timeout_s: ex.timeout_s || (ex.pacotes?.length ? 15 : 5),
+        lang,
       });
       return r.status;
     };
@@ -45,7 +51,7 @@ const FILTRO = process.argv[2] || "";
       saida.push({ id: ex.id, sol, starter });
     }
     return saida;
-  }, FILTRO);
+  }, [FILTRO, LANG]);
 
   let falhas = 0;
   for (const r of resultado) {

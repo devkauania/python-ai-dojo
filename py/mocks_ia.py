@@ -27,8 +27,26 @@ API pública (usada pelo runner e pelos testes via `_mocks`):
                              -- eventos por chamada de LLM: None = normal,
                                 "rate_limit" = levanta RateLimitError,
                                 "args_invalidos" = tool_call com JSON quebrado,
-                                "multi_blocos" = resposta Anthropic em 2 blocos
+                                "multi_blocos" = resposta Anthropic em 2 blocos,
+                                "vetor_zero" = embeddings.create devolve vetor
+                                de norma zero (testa cosseno blindado)
+                                (aliases en: "invalid_args", "multi_block",
+                                "zero_vector")
   embed_texto(texto, dim=16) -- embedding determinístico (mesmo dos clientes)
+  definir_idioma(lang)       -- "pt" (padrão) | "en": idioma das ROTAS, CAMPOS,
+                                DADOS e MENSAGENS dos mocks (o runner chama a
+                                partir de payload["lang"]). As tabelas abaixo são
+                                as do "pt"; as do "en" estão em _IDIOMAS["en"]
+                                (rotas /users /products /secret /error500
+                                /models, campos error/data/page/name/price...,
+                                LLM em inglês, tools add/weather/search_docs).
+                                A API pública (_mocks.*, chaves de
+                                historico_http) é a MESMA nos dois idiomas;
+                                o en ganha ALIASES: http_history, clock,
+                                advance_clock, script_failures,
+                                script_llm_errors, embed_text, client.calls,
+                                os eventos invalid_args/multi_block/zero_vector e, nos
+                                registros http, method/path/clock.
 
 =====================================================================
 TABELA DE ROTAS DO `requests` FAKE (exercícios SÓ usam estas rotas)
@@ -126,6 +144,96 @@ _roteiros: dict[str, list] = {}
 _retry_after: dict[str, int] = {}
 _erros_llm: list = []
 
+# ---------------------------------------------------------------------------
+# Idioma dos mocks. "pt" reproduz byte a byte o comportamento monolíngue.
+# ---------------------------------------------------------------------------
+IDIOMA = "pt"
+
+_IDIOMAS = {
+    "pt": {
+        # rotas e parâmetros
+        "r_status": "/status", "r_usuarios": "/usuarios", "r_produtos": "/produtos/",
+        "r_segredo": "/segredo", "r_erro500": "/erro500", "r_timeout": "/timeout",
+        "r_echo": "/echo", "r_login": "/login", "r_modelos": "/modelos",
+        "p_pagina": "pagina",
+        # campos
+        "f_erro": "erro", "f_dados": "dados", "f_pagina": "pagina",
+        "f_total_paginas": "total_paginas", "f_segredo": "segredo",
+        "f_recebido": "recebido", "f_metodo": "metodo", "f_senha": "senha",
+        "f_modelos": "modelos", "f_proximo_cursor": "proximo_cursor",
+        "f_resposta": "resposta", "f_fontes": "fontes",
+        # valores
+        "v_rate_limit": "rate limit excedido", "v_erro_interno": "erro interno",
+        "v_nao_autorizado": "não autorizado", "v_requisicao_invalida": "requisição inválida",
+        "v_erro_status": "erro {status}", "v_cursor_invalido": "cursor inválido",
+        "v_pagina_invalida": "página inválida", "v_produto_404": "produto não encontrado",
+        "v_segredo": "o dojo é o caminho", "v_credenciais": "credenciais inválidas",
+        "v_rota_404": "rota não encontrada",
+        # mensagens de exceção
+        "e_conexao": ("Não foi possível conectar a {host} — "
+                      "no Dojo, só a API mockada https://api.dojo.dev existe."),
+        "e_timeout": "A requisição excedeu o tempo limite (mock).",
+        "e_json": "O corpo da resposta não é JSON válido: {trecho}",
+        "e_http": "{status} Erro para a url: {url}",
+        "e_rate_limit": "Erro 429: limite de requisições excedido (mock). Tente de novo.",
+        # LLM
+        "llm_capital_br": "capital do brasil", "llm_capital_fr": "capital da frança",
+        "llm_saudacoes": {"olá", "ola", "oi"}, "llm_ola": "Olá! Como posso ajudar?",
+        "llm_python": "Python é uma linguagem de programação.",
+        "llm_disse": "Você disse: {texto}", "llm_resultado": "O resultado é {conteudo}.",
+        "llm_pirata": ("pirata",), "llm_maiusculas": ("maiúsculas", "maiusculas"),
+        "rag_pergunta": "pergunta:", "rag_nao_sei": "não sei",
+        # tools
+        "t_somar": "somar", "t_somar_re": r"some\s+(-?\d+)\s+(?:e|com)\s+(-?\d+)",
+        "t_clima": "clima", "t_clima_re": r"clima em ([\wà-ú]+)", "t_clima_arg": "cidade",
+        "t_buscar": "buscar_docs", "t_buscar_re": r"busq?u?e?a?\s+sobre\s+(.+)",
+        "t_buscar_arg": "consulta",
+    },
+    "en": {
+        "r_status": "/status", "r_usuarios": "/users", "r_produtos": "/products/",
+        "r_segredo": "/secret", "r_erro500": "/error500", "r_timeout": "/timeout",
+        "r_echo": "/echo", "r_login": "/login", "r_modelos": "/models",
+        "p_pagina": "page",
+        "f_erro": "error", "f_dados": "data", "f_pagina": "page",
+        "f_total_paginas": "total_pages", "f_segredo": "secret",
+        "f_recebido": "received", "f_metodo": "method", "f_senha": "password",
+        "f_modelos": "models", "f_proximo_cursor": "next_cursor",
+        "f_resposta": "answer", "f_fontes": "sources",
+        "v_rate_limit": "rate limit exceeded", "v_erro_interno": "internal error",
+        "v_nao_autorizado": "unauthorized", "v_requisicao_invalida": "bad request",
+        "v_erro_status": "error {status}", "v_cursor_invalido": "invalid cursor",
+        "v_pagina_invalida": "invalid page", "v_produto_404": "product not found",
+        "v_segredo": "the dojo is the way", "v_credenciais": "invalid credentials",
+        "v_rota_404": "route not found",
+        "e_conexao": ("Couldn't connect to {host} — "
+                      "in the Dojo, only the mocked API https://api.dojo.dev exists."),
+        "e_timeout": "The request exceeded the time limit (mock).",
+        "e_json": "The response body is not valid JSON: {trecho}",
+        "e_http": "{status} Error for url: {url}",
+        "e_rate_limit": "Error 429: request limit exceeded (mock). Try again.",
+        "llm_capital_br": "capital of brazil", "llm_capital_fr": "capital of france",
+        "llm_saudacoes": {"hello", "hi", "hey"}, "llm_ola": "Hello! How can I help?",
+        "llm_python": "Python is a programming language.",
+        "llm_disse": "You said: {texto}", "llm_resultado": "The result is {conteudo}.",
+        "llm_pirata": ("pirate",), "llm_maiusculas": ("uppercase", "all caps"),
+        "rag_pergunta": "question:", "rag_nao_sei": "I don't know",
+        "t_somar": "add", "t_somar_re": r"add\s+(-?\d+)\s+(?:and|to)\s+(-?\d+)",
+        "t_clima": "weather", "t_clima_re": r"weather in ([\wà-ú]+)", "t_clima_arg": "city",
+        "t_buscar": "search_docs", "t_buscar_re": r"search\s+(?:for|about)\s+(.+)",
+        "t_buscar_arg": "query",
+    },
+}
+
+
+def definir_idioma(lang: str) -> None:
+    """Idioma dos mocks: "pt" (padrão) ou "en". Desconhecido -> "pt"."""
+    global IDIOMA
+    IDIOMA = lang if lang in _IDIOMAS else "pt"
+
+
+def _L(chave: str):
+    return _IDIOMAS[IDIOMA][chave]
+
 
 def relogio() -> float:
     """Segundos VIRTUAIS decorridos desde o início da execução."""
@@ -192,10 +300,19 @@ def roteirizar_falhas(caminho: str, respostas: list, retry_after: int = 1) -> No
     _retry_after[caminho] = retry_after
 
 
+# nomes en dos eventos (conteúdo en) -> nome canônico pt usado internamente
+_ALIASES_EVENTOS_LLM = {"invalid_args": "args_invalidos", "multi_block": "multi_blocos",
+                        "zero_vector": "vetor_zero"}
+
+
 def roteirizar_erros_llm(eventos: list) -> None:
-    """Roteiriza eventos por chamada de LLM (compartilhado openai/anthropic)."""
+    """Roteiriza eventos por chamada de LLM (compartilhado openai/anthropic).
+
+    Aceita os nomes pt ("args_invalidos", "multi_blocos", "vetor_zero") e os
+    aliases en ("invalid_args", "multi_block", "zero_vector")."""
     global _erros_llm
-    _erros_llm = list(eventos)
+    _erros_llm = [_ALIASES_EVENTOS_LLM.get(e, e) if isinstance(e, str) else e
+                  for e in eventos]
 
 
 def _proximo_erro_llm():
@@ -222,6 +339,18 @@ def embed_texto(texto: str, dim: int = 16) -> list[float]:
     return [x / n for x in vec]
 
 
+# ---------------------------------------------------------------------------
+# Aliases em inglês da API pública (conteúdo en). São os MESMOS objetos:
+# http_history É historico_http (reset_estado faz .clear(), nunca reatribui).
+# ---------------------------------------------------------------------------
+http_history = historico_http
+clock = relogio
+advance_clock = avancar_relogio
+script_failures = roteirizar_falhas
+script_llm_errors = roteirizar_erros_llm
+embed_text = embed_texto
+
+
 def _sha8(obj) -> str:
     bruto = _json.dumps(obj, ensure_ascii=False, sort_keys=True, default=str)
     return hashlib.sha1(bruto.encode("utf-8")).hexdigest()[:8]
@@ -246,36 +375,47 @@ _STOPWORDS = {
 }
 
 
+_STOPWORDS_EN = {
+    "the", "a", "an", "of", "in", "on", "at", "to", "for", "from", "by", "with",
+    "and", "or", "is", "are", "was", "were", "be", "it", "its", "this", "that",
+    "these", "those", "what", "which", "who", "how", "do", "does", "did", "not",
+    "yes", "more", "less", "about", "between", "me", "tell", "answer", "question",
+    "context", "according", "based", "your", "there", "as",
+}
+
+
 def _palavras_conteudo(texto: str) -> set[str]:
-    return {p for p in re.findall(r"\w+", texto.casefold()) if p not in _STOPWORDS}
+    stop = _STOPWORDS_EN if IDIOMA == "en" else _STOPWORDS
+    return {p for p in re.findall(r"\w+", texto.casefold()) if p not in stop}
 
 
 def _resposta_tabela(t: str):
     """Tabela fixa de palavras-chave. t já vem em casefold."""
-    if "capital do brasil" in t:
+    if _L("llm_capital_br") in t:
         return "Brasília"
-    if "capital da frança" in t:
+    if _L("llm_capital_fr") in t:
         return "Paris"
     if "2 + 2" in t or "2+2" in t:
         return "4"
     tokens = set(re.findall(r"\w+", t))
-    if tokens & {"olá", "ola", "oi"}:
-        return "Olá! Como posso ajudar?"
+    if tokens & _L("llm_saudacoes"):
+        return _L("llm_ola")
     if "python" in t:
-        return "Python é uma linguagem de programação."
+        return _L("llm_python")
     return None
 
 
 def _modo_rag(conteudo: str):
     """Se a mensagem tem contextos numerados + 'pergunta:', responde JSON cercado."""
     t = conteudo.casefold()
-    if "[1]" not in conteudo or "pergunta:" not in t:
+    marca = _L("rag_pergunta")
+    if "[1]" not in conteudo or marca not in t:
         return None
     contextos = {}
     for m in re.finditer(r"^\s*\[(\d+)\]\s*(.+)$", conteudo, re.MULTILINE):
         contextos[int(m.group(1))] = m.group(2).strip()
-    pos = t.rfind("pergunta:")
-    pergunta = conteudo[pos + len("pergunta:"):].strip()
+    pos = t.rfind(marca)
+    pergunta = conteudo[pos + len(marca):].strip()
     palavras_pergunta = _palavras_conteudo(pergunta)
     pontuados = []
     for n, texto in contextos.items():
@@ -285,13 +425,13 @@ def _modo_rag(conteudo: str):
     pontuados.sort()
     fontes = [n for _, n in pontuados[:3]]
     if not fontes:
-        corpo = {"resposta": "não sei", "fontes": []}
+        corpo = {_L("f_resposta"): _L("rag_nao_sei"), _L("f_fontes"): []}
     else:
         resposta = _resposta_tabela(pergunta.casefold())
         if resposta is None:
             melhores = contextos[fontes[0]].split()
             resposta = " ".join(melhores[:12])
-        corpo = {"resposta": resposta, "fontes": fontes}
+        corpo = {_L("f_resposta"): resposta, _L("f_fontes"): fontes}
     return "```json\n" + _json.dumps(corpo, ensure_ascii=False) + "\n```"
 
 
@@ -303,7 +443,8 @@ def _responder(mensagens: list, system) -> tuple[str, bool]:
             ultima_user = m["content"]
     # continuação de ferramenta: a conversa termina num resultado de tool
     if mensagens and isinstance(mensagens[-1], dict) and mensagens[-1].get("role") == "tool":
-        return f"O resultado é {str(mensagens[-1].get('content', '')).strip()}.", False
+        return _L("llm_resultado").format(
+            conteudo=str(mensagens[-1].get('content', '')).strip()), False
 
     rag = _modo_rag(ultima_user)
     if rag is not None:
@@ -312,12 +453,12 @@ def _responder(mensagens: list, system) -> tuple[str, bool]:
     t = ultima_user.casefold()
     resposta = _resposta_tabela(t)
     if resposta is None:
-        resposta = f"Você disse: {ultima_user}"
+        resposta = _L("llm_disse").format(texto=ultima_user)
 
     s = (system or "").casefold()
-    if "pirata" in s:
+    if any(p in s for p in _L("llm_pirata")):
         resposta = "Arrr! " + resposta
-    if "maiúsculas" in s or "maiusculas" in s:
+    if any(p in s for p in _L("llm_maiusculas")):
         resposta = resposta.upper()
     return resposta, False
 
@@ -350,20 +491,21 @@ def _detectar_tool_calls(mensagens: list, tools) -> list | None:
         return None  # segunda rodada: responde texto
     t = ultima_user.casefold()
     chamadas = []
-    if "somar" in nomes:
-        for m in re.finditer(r"some\s+(-?\d+)\s+(?:e|com)\s+(-?\d+)", t):
-            chamadas.append(("somar", {"a": int(m.group(1)), "b": int(m.group(2))}))
+    somar, clima, buscar = _L("t_somar"), _L("t_clima"), _L("t_buscar")
+    if somar in nomes:
+        for m in re.finditer(_L("t_somar_re"), t):
+            chamadas.append((somar, {"a": int(m.group(1)), "b": int(m.group(2))}))
         if not chamadas:
             for m in re.finditer(r"(-?\d+)\s*\+\s*(-?\d+)", t):
-                chamadas.append(("somar", {"a": int(m.group(1)), "b": int(m.group(2))}))
-    if "clima" in nomes and not chamadas:
-        m = re.search(r"clima em ([\wà-ú]+)", t)
+                chamadas.append((somar, {"a": int(m.group(1)), "b": int(m.group(2))}))
+    if clima in nomes and not chamadas:
+        m = re.search(_L("t_clima_re"), t)
         if m:
-            chamadas.append(("clima", {"cidade": m.group(1).capitalize()}))
-    if "buscar_docs" in nomes and not chamadas:
-        m = re.search(r"busq?u?e?a?\s+sobre\s+(.+)", t)
+            chamadas.append((clima, {_L("t_clima_arg"): m.group(1).capitalize()}))
+    if buscar in nomes and not chamadas:
+        m = re.search(_L("t_buscar_re"), t)
         if m:
-            chamadas.append(("buscar_docs", {"consulta": m.group(1).strip().rstrip("?.!")}))
+            chamadas.append((buscar, {_L("t_buscar_arg"): m.group(1).strip().rstrip("?.!")}))
     return chamadas or None
 
 
@@ -398,6 +540,43 @@ _PRODUTOS = {
     2: {"id": 2, "nome": "Monitor 27 polegadas", "preco": 1450.0},
     3: {"id": 3, "nome": "Webcam HD", "preco": 280.0},
 }
+
+# versões em inglês dos dados (mesmos ids, preços e cursores)
+_USUARIOS_PAGINAS_EN = {
+    1: [{"id": 1, "name": "Ana", "team": "data"}, {"id": 2, "name": "Bruno", "team": "infra"}],
+    2: [{"id": 3, "name": "Carla", "team": "data"}, {"id": 4, "name": "Davi", "team": "ml"}],
+    3: [{"id": 5, "name": "Elisa", "team": "infra"}],
+}
+
+_PRODUTOS_EN = {
+    1: {"id": 1, "name": "Mechanical Keyboard", "price": 350.0},
+    2: {"id": 2, "name": "27-inch Monitor", "price": 1450.0},
+    3: {"id": 3, "name": "HD Webcam", "price": 280.0},
+}
+
+_MODELOS_PAGINAS_EN = {
+    None: {"models": [
+        {"id": "m1", "name": "mock-4-mini", "family": "mock-4", "cost_per_1k": 0.15},
+        {"id": "m2", "name": "mock-4", "family": "mock-4", "cost_per_1k": 2.5},
+    ], "next_cursor": "c2"},
+    "c2": {"models": [
+        {"id": "m3", "name": "mock-claude-haiku", "family": "mock-claude", "cost_per_1k": 0.25},
+        {"id": "m4", "name": "mock-claude", "family": "mock-claude", "cost_per_1k": 3.0},
+    ], "next_cursor": "c3"},
+    "c3": {"models": [
+        {"id": "m5", "name": "mock-embed", "family": "embed", "cost_per_1k": 0.02},
+    ], "next_cursor": None},
+}
+
+
+def _dados(nome):
+    """Tabela de dados do idioma atual (pt = as originais)."""
+    if IDIOMA == "en":
+        return {"usuarios": _USUARIOS_PAGINAS_EN, "produtos": _PRODUTOS_EN,
+                "modelos": _MODELOS_PAGINAS_EN}[nome]
+    return {"usuarios": _USUARIOS_PAGINAS, "produtos": _PRODUTOS,
+            "modelos": _MODELOS_PAGINAS}[nome]
+
 
 _MODELOS_PAGINAS = {
     None: {"modelos": [
@@ -464,13 +643,13 @@ def _fabricar_requests() -> types.ModuleType:
                 return _json.loads(self.text)
             except ValueError:
                 raise JSONDecodeError(
-                    f"O corpo da resposta não é JSON válido: {self.text[:80]!r}"
+                    _L("e_json").format(trecho=repr(self.text[:80]))
                 ) from None
 
         def raise_for_status(self):
             if self.status_code >= 400:
                 raise HTTPError(
-                    f"{self.status_code} Erro para a url: {self.url}", response=self
+                    _L("e_http").format(status=self.status_code, url=self.url), response=self
                 )
 
         def __repr__(self):
@@ -500,99 +679,103 @@ def _fabricar_requests() -> types.ModuleType:
         status = int(item)
         if status == 429:
             ra = _retry_after.get(caminho, 1)
-            return Response(429, {"erro": "rate limit excedido"}, url,
+            return Response(429, {_L("f_erro"): _L("v_rate_limit")}, url,
                             headers={"Retry-After": str(ra)})
         if status == 500:
-            return Response(500, "erro interno", url)
+            return Response(500, _L("v_erro_interno"), url)
         if status == 401:
-            return Response(401, {"erro": "não autorizado"}, url)
+            return Response(401, {_L("f_erro"): _L("v_nao_autorizado")}, url)
         if status == 400:
-            return Response(400, {"erro": "requisição inválida"}, url)
-        return Response(status, {"erro": f"erro {status}"}, url)
+            return Response(400, {_L("f_erro"): _L("v_requisicao_invalida")}, url)
+        return Response(status, {_L("f_erro"): _L("v_erro_status").format(status=status)}, url)
 
     def _rotear(metodo, url, params=None, json_body=None, headers=None):
         url_final, partes, query = _montar_url(url, params)
         caminho = partes.path
-        historico_http.append({
+        registro = {
             "metodo": metodo, "url": url_final, "caminho": caminho,
             "params": dict(query), "json": json_body, "headers": dict(headers or {}),
             "relogio": relogio(),
-        })
+        }
+        if IDIOMA == "en":
+            # chaves em inglês para o conteúdo en (as pt continuam valendo)
+            registro.update(method=metodo, path=caminho, clock=registro["relogio"])
+        historico_http.append(registro)
         if partes.netloc != "api.dojo.dev":
-            raise ConnectionError(
-                f"Não foi possível conectar a {partes.netloc or url!r} — "
-                "no Dojo, só a API mockada https://api.dojo.dev existe."
-            )
-        if caminho == "/timeout":
-            raise Timeout("A requisição excedeu o tempo limite (mock).")
+            raise ConnectionError(_L("e_conexao").format(host=repr(partes.netloc or url)))
+        if caminho == _L("r_timeout"):
+            raise Timeout(_L("e_timeout"))
 
         forcada = _resposta_roteirizada(caminho, url_final)
         if forcada == "loop":
-            if caminho == "/modelos":
+            if caminho == _L("r_modelos"):
                 cursor = query.get("cursor")
-                pagina = _MODELOS_PAGINAS.get(cursor if cursor else None)
+                pagina = _dados("modelos").get(cursor if cursor else None)
                 if pagina is None:
-                    return Response(400, {"erro": "cursor inválido"}, url_final)
+                    return Response(400, {_L("f_erro"): _L("v_cursor_invalido")}, url_final)
                 corpo = dict(pagina)
-                corpo["proximo_cursor"] = cursor  # mesma página, mesmo cursor: loop!
+                corpo[_L("f_proximo_cursor")] = cursor  # mesma página, mesmo cursor: loop!
                 return Response(200, corpo, url_final)
             forcada = None
         if forcada is not None:
             return forcada
 
-        if metodo == "GET" and caminho == "/status":
+        erro = _L("f_erro")
+        if metodo == "GET" and caminho == _L("r_status"):
             return Response(200, {"status": "ok"}, url_final)
 
-        if metodo == "GET" and caminho == "/usuarios":
-            bruto = query.get("pagina", "1")
+        if metodo == "GET" and caminho == _L("r_usuarios"):
+            bruto = query.get(_L("p_pagina"), "1")
             try:
                 n = int(bruto)
             except ValueError:
-                return Response(400, {"erro": "página inválida"}, url_final)
+                return Response(400, {erro: _L("v_pagina_invalida")}, url_final)
             if n < 1:
-                return Response(400, {"erro": "página inválida"}, url_final)
-            dados = _USUARIOS_PAGINAS.get(n, [])
-            return Response(200, {"dados": dados, "pagina": n, "total_paginas": 3}, url_final)
+                return Response(400, {erro: _L("v_pagina_invalida")}, url_final)
+            dados = _dados("usuarios").get(n, [])
+            return Response(200, {_L("f_dados"): dados, _L("f_pagina"): n,
+                                  _L("f_total_paginas"): 3}, url_final)
 
-        if metodo == "GET" and caminho.startswith("/produtos/"):
-            bruto = caminho[len("/produtos/"):]
+        if metodo == "GET" and caminho.startswith(_L("r_produtos")):
+            bruto = caminho[len(_L("r_produtos")):]
             try:
                 pid = int(bruto)
             except ValueError:
                 pid = -1
-            produto = _PRODUTOS.get(pid)
+            produto = _dados("produtos").get(pid)
             if produto is None:
-                return Response(404, {"erro": "produto não encontrado"}, url_final)
+                return Response(404, {erro: _L("v_produto_404")}, url_final)
             return Response(200, produto, url_final)
 
-        if metodo == "GET" and caminho == "/segredo":
+        if metodo == "GET" and caminho == _L("r_segredo"):
             auth = (headers or {}).get("Authorization", "")
             if auth == "Bearer tk_dojo_001":
-                return Response(200, {"segredo": "o dojo é o caminho"}, url_final)
-            return Response(401, {"erro": "não autorizado"}, url_final)
+                return Response(200, {_L("f_segredo"): _L("v_segredo")}, url_final)
+            return Response(401, {erro: _L("v_nao_autorizado")}, url_final)
 
-        if metodo == "GET" and caminho == "/erro500":
-            return Response(500, "erro interno", url_final)
+        if metodo == "GET" and caminho == _L("r_erro500"):
+            return Response(500, _L("v_erro_interno"), url_final)
 
-        if metodo == "POST" and caminho == "/echo":
+        if metodo == "POST" and caminho == _L("r_echo"):
             # deepcopy: devolver o MESMO objeto deixaria `return dados` passar
             # sem nunca ler a resposta (cobertura de json-parse, rodada 2).
-            return Response(200, {"recebido": copy.deepcopy(json_body), "metodo": "POST"}, url_final)
+            return Response(200, {_L("f_recebido"): copy.deepcopy(json_body),
+                                  _L("f_metodo"): "POST"}, url_final)
 
-        if metodo == "POST" and caminho == "/login":
+        if metodo == "POST" and caminho == _L("r_login"):
             corpo = json_body or {}
-            if isinstance(corpo, dict) and corpo.get("senha") == "dojo123":
+            if isinstance(corpo, dict) and corpo.get(_L("f_senha")) == "dojo123":
                 return Response(200, {"token": "tk_dojo_001"}, url_final)
-            return Response(401, {"erro": "credenciais inválidas"}, url_final)
+            return Response(401, {erro: _L("v_credenciais")}, url_final)
 
-        if metodo == "GET" and caminho == "/modelos":
+        if metodo == "GET" and caminho == _L("r_modelos"):
             cursor = query.get("cursor")
-            pagina = _MODELOS_PAGINAS.get(cursor if cursor else None)
+            pagina = _dados("modelos").get(cursor if cursor else None)
             if pagina is None:
-                return Response(400, {"erro": "cursor inválido"}, url_final)
+                return Response(400, {erro: _L("v_cursor_invalido")}, url_final)
             return Response(200, dict(pagina), url_final)
 
-        return Response(404, {"erro": "rota não encontrada"}, url_final)
+        return Response(404, {erro: _L("v_rota_404")}, url_final)
 
     def get(url, params=None, headers=None, timeout=None):
         return _rotear("GET", url, params=params, headers=headers)
@@ -656,9 +839,7 @@ def _fabricar_openai() -> types.ModuleType:
 
             evento = _proximo_erro_llm()
             if evento == "rate_limit":
-                raise RateLimitError(
-                    "Erro 429: limite de requisições excedido (mock). Tente de novo."
-                )
+                raise RateLimitError(_L("e_rate_limit"))
 
             prompt_tokens = sum(_contar_palavras(m.get("content")) for m in messages
                                 if isinstance(m, dict))
@@ -708,12 +889,14 @@ def _fabricar_openai() -> types.ModuleType:
             self._client.chamadas.append(registro)
             evento = _proximo_erro_llm()
             if evento == "rate_limit":
-                raise RateLimitError(
-                    "Erro 429: limite de requisições excedido (mock). Tente de novo."
-                )
+                raise RateLimitError(_L("e_rate_limit"))
             textos = [input] if isinstance(input, str) else list(input)
-            data = [_Obj(embedding=embed_texto(t), index=i, object="embedding")
-                    for i, t in enumerate(textos)]
+            if evento == "vetor_zero":  # norma zero: testa o cosseno blindado
+                data = [_Obj(embedding=[0.0] * 16, index=i, object="embedding")
+                        for i, _t in enumerate(textos)]
+            else:
+                data = [_Obj(embedding=embed_texto(t), index=i, object="embedding")
+                        for i, t in enumerate(textos)]
             total = sum(_contar_palavras(t) for t in textos)
             usage = _Obj(prompt_tokens=total, total_tokens=total)
             return _Obj(object="list", model=model, data=data, usage=usage)
@@ -722,6 +905,7 @@ def _fabricar_openai() -> types.ModuleType:
         def __init__(self, api_key=None, base_url=None, **kwargs):
             self.api_key = api_key
             self.chamadas = []  # spy: kwargs de TODA chamada (mesmo as que falham)
+            self.calls = self.chamadas  # alias en (MESMA lista)
             self.chat = _Chat(self)
             self.embeddings = _EmbeddingsAPI(self)
 
@@ -765,9 +949,7 @@ def _fabricar_anthropic() -> types.ModuleType:
 
             evento = _proximo_erro_llm()
             if evento == "rate_limit":
-                raise RateLimitError(
-                    "Erro 429: limite de requisições excedido (mock). Tente de novo."
-                )
+                raise RateLimitError(_L("e_rate_limit"))
 
             texto, _ = _responder(messages, system)
             texto, truncou = _truncar(texto, max_tokens)
@@ -795,6 +977,7 @@ def _fabricar_anthropic() -> types.ModuleType:
         def __init__(self, api_key=None, **kwargs):
             self.api_key = api_key
             self.chamadas = []  # spy: kwargs de TODA chamada (mesmo as que falham)
+            self.calls = self.chamadas  # alias en (MESMA lista)
             self.messages = _Messages(self)
 
     mod.Anthropic = Anthropic

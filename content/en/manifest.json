@@ -1,0 +1,465 @@
+{
+  "versao": 1,
+  "titulo": "Python AI Dojo",
+  "pyodide": {
+    "versao": "0.27.7",
+    "python": "3.12.7",
+    "numpy": "2.0.2",
+    "pandas": "2.2.3"
+  },
+  "xp_base": {
+    "1": 10,
+    "2": 15,
+    "3": 25
+  },
+  "xp_mult_boss": 3,
+  "xp_mult_boss_final": 5,
+  "pacotes_permitidos": [
+    "numpy",
+    "pandas"
+  ],
+  "mocks_permitidos": [
+    "requests",
+    "openai",
+    "anthropic"
+  ],
+  "bosses_arquivo": "bosses.json",
+  "atos": [
+    {
+      "id": "ato1",
+      "titulo": "Language Fundamentals",
+      "arquivo": "ato1-fundamentos.json",
+      "niveis": [
+        {
+          "slug": "variaveis",
+          "titulo": "Starting Point",
+          "tipo": "nivel",
+          "conceitos": [
+            "variaveis",
+            "tipos-primitivos",
+            "conversao-tipos",
+            "operadores",
+            "condicionais",
+            "truthiness"
+          ]
+        },
+        {
+          "slug": "texto",
+          "titulo": "Text Is the Raw Material",
+          "tipo": "nivel",
+          "conceitos": [
+            "strings",
+            "f-strings",
+            "slicing",
+            "metodos-string",
+            "normalizacao-texto"
+          ]
+        },
+        {
+          "slug": "colecoes",
+          "titulo": "Collections and Loops",
+          "tipo": "nivel",
+          "conceitos": [
+            "listas",
+            "tuplas",
+            "dicts",
+            "sets",
+            "loops",
+            "enumerate-zip",
+            "dicts-aninhados"
+          ]
+        },
+        {
+          "slug": "funcoes",
+          "titulo": "Functions",
+          "tipo": "nivel",
+          "conceitos": [
+            "funcoes",
+            "parametros-default",
+            "args-kwargs",
+            "lambda",
+            "escopo"
+          ]
+        },
+        {
+          "slug": "boss1",
+          "titulo": "BOSS — The Dojo Report",
+          "tipo": "boss",
+          "conceitos": [
+            "variaveis",
+            "condicionais",
+            "strings",
+            "f-strings",
+            "metodos-string",
+            "listas",
+            "dicts",
+            "loops",
+            "funcoes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ato2",
+      "titulo": "Data, Text and Robustness",
+      "arquivo": "ato2-dados-texto-robustez.json",
+      "niveis": [
+        {
+          "slug": "comprehensions",
+          "titulo": "Comprehensions, Generators and Iterators",
+          "tipo": "nivel",
+          "conceitos": [
+            "comprehensions",
+            "generators",
+            "iteradores",
+            "lazy-eager",
+            "agregadores"
+          ]
+        },
+        {
+          "slug": "excecoes",
+          "titulo": "Failure Is Part of the Job",
+          "tipo": "nivel",
+          "conceitos": [
+            "try-except",
+            "raise",
+            "excecoes-customizadas",
+            "finally",
+            "hierarquia-excecoes"
+          ]
+        },
+        {
+          "slug": "arquivos",
+          "titulo": "Files and JSON",
+          "tipo": "nivel",
+          "conceitos": [
+            "arquivos",
+            "json",
+            "jsonl",
+            "utf-8",
+            "round-trip"
+          ]
+        },
+        {
+          "slug": "regex",
+          "titulo": "Regex Basics",
+          "tipo": "nivel",
+          "conceitos": [
+            "regex-basico",
+            "grupos",
+            "classes-caracteres",
+            "quantificadores",
+            "regex-flags"
+          ]
+        },
+        {
+          "slug": "classes",
+          "titulo": "Classes, Dataclasses and Type Hints",
+          "tipo": "nivel",
+          "conceitos": [
+            "classes",
+            "dataclasses",
+            "type-hints",
+            "post-init",
+            "repr"
+          ]
+        },
+        {
+          "slug": "boss2",
+          "titulo": "BOSS — The Parser That Never Breaks",
+          "tipo": "boss",
+          "conceitos": [
+            "try-except",
+            "excecoes-customizadas",
+            "json",
+            "regex-basico",
+            "grupos",
+            "regex-flags",
+            "dataclasses"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ato3",
+      "titulo": "APIs and Numbers",
+      "arquivo": "ato3-apis-numeros.json",
+      "niveis": [
+        {
+          "slug": "http",
+          "titulo": "Fearless HTTP",
+          "tipo": "nivel",
+          "conceitos": [
+            "http-get",
+            "http-post",
+            "query-params",
+            "headers-auth",
+            "status-codes",
+            "paginacao",
+            "json-parse"
+          ]
+        },
+        {
+          "slug": "resiliencia",
+          "titulo": "Resilience: Retry and Rate Limits",
+          "tipo": "nivel",
+          "conceitos": [
+            "retry",
+            "backoff",
+            "rate-limit",
+            "erros-recuperaveis",
+            "orcamento-tentativas"
+          ]
+        },
+        {
+          "slug": "assincrono",
+          "titulo": "asyncio Basics",
+          "tipo": "nivel",
+          "conceitos": [
+            "async-await",
+            "gather",
+            "concorrencia",
+            "tratamento-parcial"
+          ]
+        },
+        {
+          "slug": "numpy",
+          "titulo": "numpy and Vectors",
+          "tipo": "nivel",
+          "conceitos": [
+            "numpy-arrays",
+            "vetorizacao",
+            "produto-escalar",
+            "norma",
+            "cosseno",
+            "argsort-topk",
+            "broadcasting"
+          ]
+        },
+        {
+          "slug": "pandas",
+          "titulo": "pandas Essentials",
+          "tipo": "nivel",
+          "conceitos": [
+            "dataframes",
+            "filtros-booleanos",
+            "groupby",
+            "merge",
+            "nan",
+            "to-dict"
+          ]
+        },
+        {
+          "slug": "boss3",
+          "titulo": "BOSS — The Bulletproof Client",
+          "tipo": "boss",
+          "conceitos": [
+            "paginacao",
+            "retry",
+            "backoff",
+            "rate-limit",
+            "async-await",
+            "gather",
+            "groupby",
+            "merge",
+            "nan"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ato4",
+      "titulo": "AI Engineering",
+      "arquivo": "ato4-engenharia-ia.json",
+      "niveis": [
+        {
+          "slug": "chunking",
+          "titulo": "Tokens and Chunking",
+          "tipo": "nivel",
+          "conceitos": [
+            "tokens",
+            "custo-llm",
+            "chunking",
+            "overlap",
+            "metadados-chunk"
+          ]
+        },
+        {
+          "slug": "embeddings",
+          "titulo": "Embeddings and Semantic Search",
+          "tipo": "nivel",
+          "conceitos": [
+            "embeddings",
+            "similaridade",
+            "busca-semantica",
+            "threshold",
+            "indice-vetorial"
+          ]
+        },
+        {
+          "slug": "boss4",
+          "titulo": "BOSS — Semantic Search Engine",
+          "tipo": "boss",
+          "conceitos": [
+            "generators",
+            "numpy-arrays",
+            "cosseno",
+            "argsort-topk",
+            "chunking",
+            "overlap",
+            "embeddings",
+            "busca-semantica",
+            "threshold"
+          ]
+        },
+        {
+          "slug": "llm",
+          "titulo": "Talking to LLMs (Mocked)",
+          "tipo": "nivel",
+          "conceitos": [
+            "chat-api-openai",
+            "chat-api-anthropic",
+            "roles",
+            "historico-chat",
+            "system-prompt",
+            "multi-turno",
+            "erros-llm"
+          ]
+        },
+        {
+          "slug": "estruturada",
+          "titulo": "Structured Output and Function Calling",
+          "tipo": "nivel",
+          "conceitos": [
+            "saida-estruturada",
+            "json-tolerante",
+            "tools",
+            "tool-calls",
+            "loop-ferramentas",
+            "validacao-dataclass"
+          ]
+        },
+        {
+          "slug": "boss5",
+          "titulo": "FINAL BOSS — Mini‑RAG",
+          "tipo": "boss_final",
+          "conceitos": [
+            "chunking",
+            "overlap",
+            "embeddings",
+            "busca-semantica",
+            "cosseno",
+            "argsort-topk",
+            "gather",
+            "json-tolerante",
+            "chat-api-openai",
+            "chat-api-anthropic",
+            "saida-estruturada"
+          ]
+        }
+      ]
+    }
+  ],
+  "rotulos_conceitos": {
+    "agregadores": "aggregators",
+    "args-kwargs": "*args / **kwargs",
+    "argsort-topk": "argsort / top-k",
+    "arquivos": "files",
+    "async-await": "async-await",
+    "backoff": "backoff",
+    "broadcasting": "broadcasting",
+    "busca-semantica": "semantic search",
+    "chat-api-anthropic": "chat API (Anthropic)",
+    "chat-api-openai": "chat API (OpenAI)",
+    "chunking": "chunking",
+    "classes": "classes",
+    "classes-caracteres": "character classes",
+    "comprehensions": "comprehensions",
+    "concorrencia": "concurrency",
+    "condicionais": "conditionals",
+    "conversao-tipos": "type conversion",
+    "cosseno": "cosine similarity",
+    "custo-llm": "LLM cost",
+    "dataclasses": "dataclasses",
+    "dataframes": "dataframes",
+    "dicts": "dicts",
+    "dicts-aninhados": "nested dicts",
+    "embeddings": "embeddings",
+    "enumerate-zip": "enumerate & zip",
+    "erros-llm": "LLM errors",
+    "erros-recuperaveis": "recoverable errors",
+    "escopo": "scope",
+    "excecoes-customizadas": "custom exceptions",
+    "f-strings": "f-strings",
+    "filtros-booleanos": "boolean filters",
+    "finally": "finally",
+    "funcoes": "functions",
+    "gather": "gather",
+    "generators": "generators",
+    "groupby": "groupby",
+    "grupos": "groups",
+    "headers-auth": "auth headers",
+    "hierarquia-excecoes": "exception hierarchy",
+    "historico-chat": "chat history",
+    "http-get": "HTTP GET",
+    "http-post": "HTTP POST",
+    "indice-vetorial": "vector index",
+    "iteradores": "iterators",
+    "json": "JSON",
+    "json-parse": "JSON parsing",
+    "json-tolerante": "tolerant JSON",
+    "jsonl": "JSONL",
+    "lambda": "lambda",
+    "lazy-eager": "lazy vs eager",
+    "listas": "lists",
+    "loop-ferramentas": "tool loop",
+    "loops": "loops",
+    "merge": "merge",
+    "metadados-chunk": "chunk metadata",
+    "metodos-string": "string methods",
+    "multi-turno": "multi-turn",
+    "nan": "NaN",
+    "norma": "vector norm",
+    "normalizacao-texto": "text normalization",
+    "numpy-arrays": "numpy arrays",
+    "operadores": "operators",
+    "orcamento-tentativas": "retry budget",
+    "overlap": "overlap",
+    "paginacao": "pagination",
+    "parametros-default": "default parameters",
+    "post-init": "__post_init__",
+    "produto-escalar": "dot product",
+    "quantificadores": "quantifiers",
+    "query-params": "query params",
+    "raise": "raise",
+    "rate-limit": "rate limit",
+    "regex-basico": "regex basics",
+    "regex-flags": "regex flags",
+    "repr": "__repr__",
+    "retry": "retry",
+    "roles": "roles",
+    "round-trip": "round-trip",
+    "saida-estruturada": "structured output",
+    "sets": "sets",
+    "similaridade": "similarity",
+    "slicing": "slicing",
+    "status-codes": "status codes",
+    "strings": "strings",
+    "system-prompt": "system prompt",
+    "threshold": "threshold",
+    "tipos-primitivos": "primitive types",
+    "to-dict": "to_dict()",
+    "tokens": "tokens",
+    "tool-calls": "tool calls",
+    "tools": "tools",
+    "tratamento-parcial": "partial failures",
+    "truthiness": "truthiness",
+    "try-except": "try-except",
+    "tuplas": "tuples",
+    "type-hints": "type hints",
+    "utf-8": "UTF-8",
+    "validacao-dataclass": "dataclass validation",
+    "variaveis": "variables",
+    "vetorizacao": "vectorization"
+  }
+}

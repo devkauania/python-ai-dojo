@@ -7,8 +7,23 @@ There's no account, no backend and no telemetry; progress stays in your browser.
 
 **▶ Play it: [python-ai-dojo.vercel.app](https://python-ai-dojo.vercel.app)** (desktop browser, keyboard recommended)
 
-> The game's text is in **Brazilian Portuguese**. It was built for Portuguese-speaking
-> developers moving into AI work. The code, the architecture and this README are in English.
+## Languages
+
+The game is available in **English** and **Brazilian Portuguese**. Both languages carry the
+full game: the interface, the tutors' lines, the glossary, all 273 Python exercises, the
+5 bosses and the 30 Web Lab exercises, with their tests and mock APIs.
+
+On first visit the game picks the language from your browser (`pt*` → Portuguese, anything
+else → English). To switch:
+
+- **In the game:** the **Português / English** buttons on the welcome window, or **Settings → Language**.
+  The page reloads in the new language and your progress is kept, because exercise ids are
+  the same in both languages.
+- **By link:** add `?lang=en` or `?lang=pt` to the URL, for example
+  `https://python-ai-dojo.vercel.app/?lang=en`.
+
+Translator notes and the parity contract between the two content folders are in
+[`docs/I18N.md`](docs/I18N.md).
 
 ![Exercise screen: the lesson on the left, the editor and test result on the right](docs/screenshot-exercise.jpg)
 
@@ -40,7 +55,9 @@ index.html + js/          single-page app, no framework
  │                         └─ py/runner.py + py/mocks_ia.py  (the same files the offline verifier runs)
  ├─ webrunner.js          Web Lab: runs DOM assertions inside a sandboxed iframe (postMessage)
  └─ storage.js            localStorage with schema migration, export/import
-content/*.json            exercise bank: statement, starter, reference solution, visible + hidden tests
+content/*.json            exercise bank (Portuguese): statement, starter, reference solution, visible + hidden tests
+content/en/*.json         the same bank in English (same ids, same tests, English mock contract)
+js/i18n.js                interface text in both languages; py/runner.py + mocks take lang="pt"|"en"
 ```
 
 - **Same runner everywhere.** `py/runner.py` and `py/mocks_ia.py` are the single source of
@@ -66,11 +83,12 @@ nothing).
 
 | Check | Command | Result at publish time |
 |---|---|---|
-| Schema, content rules, solution passes, starter fails (CPython 3.12) | `python -X utf8 tools/verify.py` | **273/273** |
-| The same check inside real Pyodide in Chrome | `npm run parity` | **273/273** |
-| Web Lab: solution passes, starter fails (real browser) | `npm run weblab` | **30/30** |
+| Schema, content rules, solution passes, starter fails (CPython 3.12) | `python -X utf8 tools/verify.py --lang pt` / `--lang en` | **273/273** in each language |
+| The same check inside real Pyodide in Chrome | `DOJO_LANG=pt npm run parity` / `DOJO_LANG=en npm run parity` | **273/273** in each language |
+| Web Lab: solution passes, starter fails (real browser) | `DOJO_LANG=pt npm run weblab` / `DOJO_LANG=en npm run weblab` | **30/30** in each language |
 | Same two browser checks against the live deploy | `DOJO_URL=https://python-ai-dojo.vercel.app npm run parity` | **273/273** and **30/30** |
-| Markdown rendering of every statement | `npm run md` | **0 broken fields** |
+| Markdown rendering of every statement, both languages | `npm run md` | **0 broken fields** |
+| English content mirrors the Portuguese structure; no Portuguese left in it | `python -X utf8 tools/i18n_check.py --estrito` | **0 structural diffs, 0 leftovers** |
 
 ```bash
 # offline verifier (Python 3.12, pinned to Pyodide's numpy/pandas)
@@ -132,7 +150,6 @@ inline scripts and the test harness.
 
 ## Known limitations
 
-- The UI and the exercises are in Portuguese only.
 - The first load needs the internet, because Pyodide comes from a CDN.
 - It's designed for desktop with a keyboard. It opens on mobile, but it isn't comfortable.
 
@@ -144,6 +161,10 @@ licenses: GSAP and plugins (GSAP Standard "No Charge" License) and Lenis (MIT), 
 ---
 
 ### Em português
+
+O jogo tem versão completa em **português** e em **inglês**. Para trocar, use os botões
+**Português / English** na janela de boas-vindas, **Configurações → Idioma**, ou acrescente `?lang=pt` ao
+endereço.
 
 O **Python AI Dojo** é um jogo no navegador para aprender o Python do dia a dia de quem
 trabalha com IA: tokens, custo, APIs de LLM, tool calling, saída estruturada, chunking,

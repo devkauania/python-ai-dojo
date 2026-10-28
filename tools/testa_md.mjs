@@ -10,7 +10,7 @@ fs.mkdirSync(TMP, { recursive: true });
 // stub dos imports do ui.js (só queremos md/esc)
 let src = fs.readFileSync(path.join(RAIZ, "js/ui.js"), "utf8");
 src = src.replace(/^import[\s\S]*?from\s+["'][^"']+["'];?$/gm, "");
-src = "const GLOSSARIO = {};\nconst engine = {};\nconst exerciciosDe = () => [];\n" +
+src = "const t = (k) => k;\nconst glossario = () => ({});\nconst engine = {};\nconst exerciciosDe = () => [];\n" +
   "const ICONE_NIVEL='',ICONE_CADEADO='',ICONE_GRAFICO='',ICONE_LAB='',ICONE_ALVO='',ICONE_FAIXA_MODO='',ICONE_RAIO='',ICONE_CHECK='',ICONE_CONFIG='',ICONE_SETA_DIR='',AVATAR_CUBO='';\n" +
   "const iconeFaixa=()=> '';\nconst cuboPlataforma=()=> '';\nconst cuboSvg=()=> '';\n" + src;
 const arq = path.join(TMP, "ui-teste.mjs");

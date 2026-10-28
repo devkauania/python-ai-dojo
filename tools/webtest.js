@@ -2,19 +2,24 @@
 // webrunner REAL do jogo — a solução tem de PASSAR e o starter tem de FALHAR.
 const { chromium } = require("playwright-core");
 const BASE = process.env.DOJO_URL || "http://localhost:8321";
+// DOJO_LANG=en: conteúdo content/en + textos do harness em inglês
+const LANG = process.env.DOJO_LANG === "en" ? "en" : "pt";
 
 (async () => {
   const browser = await chromium.launch({ channel: "chrome", headless: true });
   const page = await (await browser.newContext()).newPage();
   const erros = [];
   page.on("pageerror", (e) => erros.push(`[pageerror] ${e.message}`));
-  await page.goto(BASE + "/", { waitUntil: "domcontentloaded" });
+  await page.goto(BASE + "/?lang=" + LANG, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("#btn-comecar", { timeout: 40000 });
+  if (LANG !== "pt") console.log("Idioma:", LANG);
 
-  const resultado = await page.evaluate(async () => {
+  const resultado = await page.evaluate(async (lang) => {
+    const { definirIdioma } = await import("/js/i18n.js");
+    definirIdioma(lang);
     const { carregarConteudo } = await import("/js/content.js");
     const webrunner = await import("/js/webrunner.js");
-    const c = await carregarConteudo();
+    const c = await carregarConteudo(lang);
     const saida = [];
     for (const ex of c.webLab) {
       const sol = {};
@@ -35,7 +40,7 @@ const BASE = process.env.DOJO_URL || "http://localhost:8321";
       saida.push({ id: ex.id, okSol, startFalha: !okStart, erro });
     }
     return saida;
-  });
+  }, LANG);
 
   let verdes = 0;
   for (const r of resultado) {

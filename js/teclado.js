@@ -10,6 +10,7 @@
 //   clique virtual (respeita a config de som via juice.tocar).
 
 import * as juice from "./juice.js";
+import { t, t as tr } from "./i18n.js"; // tr: dentro do laço, "t" é a tecla
 
 // [code físico, legenda base, legenda com shift, largura em unidades]
 const LINHAS = [
@@ -110,7 +111,7 @@ export function iniciarTeclado() {
   raiz = document.createElement("div");
   raiz.id = "teclado-virtual";
   raiz.setAttribute("role", "group");
-  raiz.setAttribute("aria-label", "Teclado virtual");
+  raiz.setAttribute("aria-label", t("vk.aria"));
   for (const linha of LINHAS) {
     const div = document.createElement("div");
     div.className = "vk-linha";
@@ -125,7 +126,7 @@ export function iniciarTeclado() {
       }
       t.textContent = base;
       if (w) t.style.flex = w >= 10 ? "1 1 auto" : `0 0 calc(${w} * var(--vk-u))`;
-      t.setAttribute("aria-label", code === "Space" ? "Espaço" : base || code);
+      t.setAttribute("aria-label", code === "Space" ? tr("vk.espaco") : base || code);
       // As teclas não entram na ordem de Tab: são ~61 paradas mortas entre o
       // editor e o "Rodar". Quem usa teclado já tem... o teclado.
       t.tabIndex = -1;

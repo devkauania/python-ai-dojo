@@ -12,8 +12,9 @@ payload = {
   "testes_ocultos": [Teste],
   "mocks": ["requests"|"openai"|"anthropic", ...],
   "arquivos": {"nome.txt": "conteúdo"},   # fixtures no sandbox
-  "timeout_s": int               # informativo; quem interrompe é o ambiente
-}
+  "timeout_s": int,              # informativo; quem interrompe é o ambiente
+  "lang": "pt"|"en"              # opcional (padrão "pt"): idioma das mensagens
+}                                #   didáticas e dos dados dos mocks
 
 resultado = {
   "status": "ok"|"falha_teste"|"erro_sintaxe"|"erro_execucao"|"timeout",
@@ -31,7 +32,10 @@ Regras de execução:
 - Todos os testes rodam (não para no primeiro que falha).
 - Timeout: o ambiente injeta KeyboardInterrupt (SIGINT) ou mata o processo;
   KeyboardInterrupt aqui vira status "timeout".
-- Helpers visíveis SÓ nos testes: _verificar, _stdout, _mocks, _rodar.
+- Helpers visíveis SÓ nos testes: _verificar, _stdout, _mocks, _rodar, _lang
+  (aliases en: _check = _verificar, _run = _rodar).
+- Idioma: payload["lang"] ("pt" padrão | "en") vira LANG aqui e no mocks_ia;
+  com "pt" TODA mensagem é byte-idêntica à versão monolíngue (verify pt 273/273).
 """
 from __future__ import annotations
 
@@ -53,6 +57,135 @@ import mocks_ia
 
 _CAP_STDOUT = 10_000
 _CAP_REPR = 300
+
+# ---------------------------------------------------------------------------
+# Idioma das mensagens mostradas ao aluno (o worker e o verify passam no payload)
+# ---------------------------------------------------------------------------
+LANG = "pt"
+
+_MSG = {
+    "pt": {
+        "sem_repr": "<{tipo} sem repr>",
+        "cortado": "… (cortado)",
+        "diff_esperado": "esperado",
+        "diff_obtido": "obtido",
+        "unbound": ("Você usou uma variável local antes de dar um valor a ela — "
+                    "atribua antes de usar, ou repense o escopo da função."),
+        "name": ("Você usou o nome '{nome}' que ainda não foi definido — confira a "
+                 "grafia ou se esqueceu de criar essa variável/função antes de usar."),
+        "attr": ("Valores do tipo '{tipo}' não têm o atributo/método "
+                 "'{attr}' — confira a grafia e o tipo da variável."),
+        "attr_generico": "Esse objeto não tem o atributo/método pedido — confira a grafia e o tipo.",
+        "tipos_misturados": ("Você misturou tipos numa operação (ex.: texto + número). "
+                             "Converta antes com str(), int() ou float()."),
+        "subscript": "Esse valor não aceita indexação com [ ] — confira o tipo da variável.",
+        "callable": "Você usou parênteses em algo que não é uma função.",
+        "missing_arg": "A função foi chamada sem um argumento obrigatório — confira a assinatura.",
+        "kwarg": "A função recebeu um argumento nomeado que ela não aceita — confira o nome.",
+        "type_generico": "Os tipos usados não combinam com essa operação — veja a mensagem original.",
+        "index": ("Você tentou acessar uma posição que não existe na sequência — "
+                  "lembre que os índices começam em 0 e o último é len(x) - 1."),
+        "key": ("A chave {msg} não existe nesse dicionário — confira a grafia "
+                "ou use .get() para ter um valor padrão."),
+        "zero": ("Divisão por zero — garanta que o divisor nunca seja 0 "
+                 "(cuidado com médias de listas vazias)."),
+        "int_literal": "int() recebeu um texto que não representa um número inteiro válido.",
+        "float_literal": "float() recebeu um texto que não representa um número válido.",
+        "value_generico": "Um valor com tipo certo mas conteúdo inválido foi usado — veja a mensagem original.",
+        "import": ("Esse módulo não está disponível no Dojo. Existem: biblioteca padrão, "
+                   "numpy, pandas e os mocks (requests, openai, anthropic) quando o "
+                   "exercício os ativa."),
+        "recursion": ("Recursão infinita — sua função chama a si mesma sem nunca alcançar "
+                      "a condição de parada."),
+        "stop": ("next() foi chamado num iterador já esgotado — generators só podem "
+                 "ser percorridos uma vez."),
+        "file": ("Arquivo não encontrado — use exatamente os arquivos que o exercício "
+                 "fornece e caminhos relativos."),
+        "generico": "Ocorreu um erro do tipo {tipo} — veja a mensagem original.",
+        "input_proibido": ("Este exercício não usa input() — trabalhe com os argumentos da função "
+                           "e o valor de retorno."),
+        "input_esgotado": ("Seu código chamou input() mais vezes do que o teste forneceu "
+                           "entradas — confira quantas leituras o enunciado pede."),
+        "sem_io": "I/O de rede/arquivo real não existe no sandbox do Dojo.",
+        "assert": "A condição verificada não é verdadeira.",
+        "erro_no_teste": "O teste provocou um erro no seu código — {didatica} ({tipo}: {exc})",
+        "indentacao": ("A indentação está errada nessa linha — em Python os "
+                       "blocos são definidos por 4 espaços consistentes."),
+        "sintaxe": ("O Python não conseguiu nem começar a rodar: há um erro "
+                    "de escrita nessa linha (parêntese, aspas ou dois-pontos "
+                    "faltando são os suspeitos de sempre)."),
+        "timeout": ("Seu código passou do tempo limite — quase sempre "
+                    "é um loop que nunca termina (while sem condição "
+                    "de saída ou contador que não anda)."),
+        "timeout_original": "KeyboardInterrupt (interrompido pelo Dojo)",
+    },
+    "en": {
+        "sem_repr": "<{tipo} without repr>",
+        "cortado": "… (truncated)",
+        "diff_esperado": "expected",
+        "diff_obtido": "got",
+        "unbound": ("You used a local variable before giving it a value — "
+                    "assign it before using it, or rethink the function's scope."),
+        "name": ("You used the name '{nome}', which hasn't been defined yet — check the "
+                 "spelling, or whether you forgot to create that variable/function first."),
+        "attr": ("Values of type '{tipo}' don't have the attribute/method "
+                 "'{attr}' — check the spelling and the variable's type."),
+        "attr_generico": "This object doesn't have the requested attribute/method — check the spelling and the type.",
+        "tipos_misturados": ("You mixed types in one operation (e.g. text + number). "
+                             "Convert first with str(), int() or float()."),
+        "subscript": "This value can't be indexed with [ ] — check the variable's type.",
+        "callable": "You used parentheses on something that isn't a function.",
+        "missing_arg": "The function was called without a required argument — check its signature.",
+        "kwarg": "The function got a keyword argument it doesn't accept — check the name.",
+        "type_generico": "The types used don't fit this operation — see the original message.",
+        "index": ("You tried to access a position that doesn't exist in the sequence — "
+                  "remember indexes start at 0 and the last one is len(x) - 1."),
+        "key": ("The key {msg} doesn't exist in this dictionary — check the spelling "
+                "or use .get() to get a default value."),
+        "zero": ("Division by zero — make sure the divisor is never 0 "
+                 "(watch out for averages of empty lists)."),
+        "int_literal": "int() got a text that isn't a valid whole number.",
+        "float_literal": "float() got a text that isn't a valid number.",
+        "value_generico": "A value of the right type but invalid content was used — see the original message.",
+        "import": ("That module isn't available in the Dojo. You have: the standard library, "
+                   "numpy, pandas and the mocks (requests, openai, anthropic) when the "
+                   "exercise turns them on."),
+        "recursion": ("Infinite recursion — your function calls itself without ever reaching "
+                      "the stopping condition."),
+        "stop": ("next() was called on an iterator that is already exhausted — generators can "
+                 "only be walked through once."),
+        "file": ("File not found — use exactly the files the exercise provides, "
+                 "with relative paths."),
+        "generico": "An error of type {tipo} happened — see the original message.",
+        "input_proibido": ("This exercise doesn't use input() — work with the function's arguments "
+                           "and its return value."),
+        "input_esgotado": ("Your code called input() more times than the test provided "
+                           "inputs — check how many reads the task asks for."),
+        "sem_io": "Real network/file I/O doesn't exist in the Dojo sandbox.",
+        "assert": "The checked condition is not true.",
+        "erro_no_teste": "The test triggered an error in your code — {didatica} ({tipo}: {exc})",
+        "indentacao": ("The indentation is wrong on this line — in Python, "
+                       "blocks are defined by consistent 4-space indents."),
+        "sintaxe": ("Python couldn't even start running: there is a typo "
+                    "on this line (a missing parenthesis, quote or colon "
+                    "are the usual suspects)."),
+        "timeout": ("Your code went over the time limit — it is almost always "
+                    "a loop that never ends (a while with no exit "
+                    "condition, or a counter that never moves)."),
+        "timeout_original": "KeyboardInterrupt (stopped by the Dojo)",
+    },
+}
+
+
+def _m(chave, **kw):
+    texto = _MSG.get(LANG, _MSG["pt"]).get(chave) or _MSG["pt"][chave]
+    return texto.format(**kw) if kw else texto
+
+
+def _definir_idioma(lang):
+    global LANG
+    LANG = lang if lang in _MSG else "pt"
+    mocks_ia.definir_idioma(LANG)
 
 
 # ---------------------------------------------------------------------------
@@ -105,9 +238,9 @@ def _repr_curto(x) -> str:
     try:
         r = repr(_despir(x))
     except Exception:
-        r = f"<{type(x).__name__} sem repr>"
+        r = _m("sem_repr", tipo=type(x).__name__)
     if len(r) > _CAP_REPR:
-        r = r[:_CAP_REPR] + "… (cortado)"
+        r = r[:_CAP_REPR] + _m("cortado")
     return r
 
 
@@ -121,7 +254,7 @@ def _verificar(obtido, esperado, rotulo=None):
     ):
         diff = "\n".join(difflib.unified_diff(
             esperado.splitlines(), obtido.splitlines(),
-            fromfile="esperado", tofile="obtido", lineterm="",
+            fromfile=_m("diff_esperado"), tofile=_m("diff_obtido"), lineterm="",
         ))[:2000]
     raise _FalhaVerificacao(_repr_curto(esperado), _repr_curto(obtido), diff, rotulo)
 
@@ -132,63 +265,51 @@ def _verificar(obtido, esperado, rotulo=None):
 def _traduzir(exc: BaseException) -> str:
     msg = str(exc)
     if isinstance(exc, UnboundLocalError):
-        return ("Você usou uma variável local antes de dar um valor a ela — "
-                "atribua antes de usar, ou repense o escopo da função.")
+        return _m("unbound")
     if isinstance(exc, NameError):
         m = re.search(r"name '([^']+)' is not defined", msg)
         nome = m.group(1) if m else "?"
-        return (f"Você usou o nome '{nome}' que ainda não foi definido — confira a "
-                "grafia ou se esqueceu de criar essa variável/função antes de usar.")
+        return _m("name", nome=nome)
     if isinstance(exc, AttributeError):
         m = re.search(r"'([^']+)' object has no attribute '([^']+)'", msg)
         if m:
-            return (f"Valores do tipo '{m.group(1)}' não têm o atributo/método "
-                    f"'{m.group(2)}' — confira a grafia e o tipo da variável.")
-        return "Esse objeto não tem o atributo/método pedido — confira a grafia e o tipo."
+            return _m("attr", tipo=m.group(1), attr=m.group(2))
+        return _m("attr_generico")
     if isinstance(exc, TypeError):
         if "can only concatenate str" in msg or "unsupported operand type" in msg:
-            return ("Você misturou tipos numa operação (ex.: texto + número). "
-                    "Converta antes com str(), int() ou float().")
+            return _m("tipos_misturados")
         if "not subscriptable" in msg:
-            return "Esse valor não aceita indexação com [ ] — confira o tipo da variável."
+            return _m("subscript")
         if "not callable" in msg:
-            return "Você usou parênteses em algo que não é uma função."
+            return _m("callable")
         if "missing" in msg and "argument" in msg:
-            return "A função foi chamada sem um argumento obrigatório — confira a assinatura."
+            return _m("missing_arg")
         if "unexpected keyword argument" in msg:
-            return "A função recebeu um argumento nomeado que ela não aceita — confira o nome."
-        return "Os tipos usados não combinam com essa operação — veja a mensagem original."
+            return _m("kwarg")
+        return _m("type_generico")
     if isinstance(exc, IndexError):
-        return ("Você tentou acessar uma posição que não existe na sequência — "
-                "lembre que os índices começam em 0 e o último é len(x) - 1.")
+        return _m("index")
     if isinstance(exc, KeyError):
-        return (f"A chave {msg} não existe nesse dicionário — confira a grafia "
-                "ou use .get() para ter um valor padrão.")
+        return _m("key", msg=msg)
     if isinstance(exc, ZeroDivisionError):
-        return ("Divisão por zero — garanta que o divisor nunca seja 0 "
-                "(cuidado com médias de listas vazias).")
+        return _m("zero")
     if isinstance(exc, ValueError):
         if "invalid literal for int()" in msg:
-            return "int() recebeu um texto que não representa um número inteiro válido."
+            return _m("int_literal")
         if "could not convert string to float" in msg:
-            return "float() recebeu um texto que não representa um número válido."
-        return "Um valor com tipo certo mas conteúdo inválido foi usado — veja a mensagem original."
+            return _m("float_literal")
+        return _m("value_generico")
     if isinstance(exc, (ImportError, ModuleNotFoundError)):
-        return ("Esse módulo não está disponível no Dojo. Existem: biblioteca padrão, "
-                "numpy, pandas e os mocks (requests, openai, anthropic) quando o "
-                "exercício os ativa.")
+        return _m("import")
     if isinstance(exc, RecursionError):
-        return ("Recursão infinita — sua função chama a si mesma sem nunca alcançar "
-                "a condição de parada.")
+        return _m("recursion")
     if isinstance(exc, StopIteration):
-        return ("next() foi chamado num iterador já esgotado — generators só podem "
-                "ser percorridos uma vez.")
+        return _m("stop")
     if isinstance(exc, FileNotFoundError):
-        return ("Arquivo não encontrado — use exatamente os arquivos que o exercício "
-                "fornece e caminhos relativos.")
+        return _m("file")
     if isinstance(exc, RuntimeError):
         return msg  # nossos próprios erros didáticos (input etc.)
-    return f"Ocorreu um erro do tipo {type(exc).__name__} — veja a mensagem original."
+    return _m("generico", tipo=type(exc).__name__)
 
 
 def _linha_do_aluno(exc: BaseException):
@@ -212,10 +333,7 @@ def _erro_execucao(exc: BaseException) -> dict:
 # input() controlado
 # ---------------------------------------------------------------------------
 def _input_proibido(prompt=""):
-    raise RuntimeError(
-        "Este exercício não usa input() — trabalhe com os argumentos da função "
-        "e o valor de retorno."
-    )
+    raise RuntimeError(_m("input_proibido"))
 
 
 def _fabricar_input(entradas):
@@ -223,10 +341,7 @@ def _fabricar_input(entradas):
 
     def _input(prompt=""):
         if not fila:
-            raise RuntimeError(
-                "Seu código chamou input() mais vezes do que o teste forneceu "
-                "entradas — confira quantas leituras o enunciado pede."
-            )
+            raise RuntimeError(_m("input_esgotado"))
         return fila.pop(0)
 
     return _input
@@ -242,10 +357,10 @@ class _SeletorVirtual(selectors.BaseSelector):
         self._mapa = {}
 
     def register(self, fileobj, events, data=None):
-        raise RuntimeError("I/O de rede/arquivo real não existe no sandbox do Dojo.")
+        raise RuntimeError(_m("sem_io"))
 
     def unregister(self, fileobj):
-        raise RuntimeError("I/O de rede/arquivo real não existe no sandbox do Dojo.")
+        raise RuntimeError(_m("sem_io"))
 
     def select(self, timeout=None):
         if timeout:
@@ -327,6 +442,10 @@ def _rodar_teste(teste, ns_base, codigo_compilado, stdout_base, resultado_testes
         ns["_stdout"] = stdout_teste
         ns["_mocks"] = mocks_ia
         ns["_rodar"] = _rodar
+        ns["_lang"] = LANG
+        # aliases em inglês (conteúdo en): os MESMOS objetos
+        ns["_check"] = _verificar
+        ns["_run"] = _rodar
         codigo_teste = compile(teste.get("codigo", ""), f"<teste: {nome}>", "exec")
         with contextlib.redirect_stdout(saida_local), contextlib.redirect_stderr(saida_local):
             exec(codigo_teste, ns)
@@ -339,17 +458,16 @@ def _rodar_teste(teste, ns_base, codigo_compilado, stdout_base, resultado_testes
         entrada_teste["diff"] = f.diff
         entrada_teste["mensagem"] = f.rotulo
     except AssertionError as e:
-        entrada_teste["mensagem"] = str(e) or "A condição verificada não é verdadeira."
+        entrada_teste["mensagem"] = str(e) or _m("assert")
     except BaseException as e:  # noqa: BLE001 - erro do código do aluno num teste
-        entrada_teste["mensagem"] = (
-            f"O teste provocou um erro no seu código — {_traduzir(e)} "
-            f"({type(e).__name__}: {e})"
-        )
+        entrada_teste["mensagem"] = _m("erro_no_teste", didatica=_traduzir(e),
+                                       tipo=type(e).__name__, exc=e)
     resultado_testes.append(entrada_teste)
 
 
 def executar_json(payload_json: str) -> str:
     payload = json.loads(payload_json)
+    _definir_idioma(payload.get("lang") or "pt")
     codigo = (payload.get("codigo") or "").replace("\r\n", "\n").replace("\r", "\n")
     visiveis = payload.get("testes_visiveis") or []
     ocultos = payload.get("testes_ocultos") or []
@@ -378,12 +496,9 @@ def executar_json(payload_json: str) -> str:
             codigo_compilado = compile(codigo, "aluno.py", "exec")
         except SyntaxError as e:
             if isinstance(e, IndentationError):
-                didatica = ("A indentação está errada nessa linha — em Python os "
-                            "blocos são definidos por 4 espaços consistentes.")
+                didatica = _m("indentacao")
             else:
-                didatica = ("O Python não conseguiu nem começar a rodar: há um erro "
-                            "de escrita nessa linha (parêntese, aspas ou dois-pontos "
-                            "faltando são os suspeitos de sempre).")
+                didatica = _m("sintaxe")
             resultado["status"] = "erro_sintaxe"
             resultado["erro"] = {
                 "tipo": type(e).__name__,
@@ -436,10 +551,8 @@ def executar_json(payload_json: str) -> str:
         resultado["erro"] = {
             "tipo": "Timeout",
             "linha": None,
-            "mensagem_didatica": ("Seu código passou do tempo limite — quase sempre "
-                                  "é um loop que nunca termina (while sem condição "
-                                  "de saída ou contador que não anda)."),
-            "mensagem_original": "KeyboardInterrupt (interrompido pelo Dojo)",
+            "mensagem_didatica": _m("timeout"),
+            "mensagem_original": _m("timeout_original"),
         }
         return json.dumps(resultado, ensure_ascii=False)
     finally:

@@ -1288,11 +1288,11 @@
       "testes_ocultos": [
         {
           "nome": "quase-duplicata acima do limiar também some",
-          "codigo": "r = buscar_sem_duplicatas('preco do token', ['preco do token subiu', 'preco do token subiu hoje', 'gato preto'], 3, 0.95)\n_verificar([t for t, _ in r], ['preco do token subiu', 'gato preto'])"
+          "codigo": "r = buscar_sem_duplicatas('preco do token', ['preco do token subiu de novo', 'preco do token subiu de novo hoje', 'gato preto'], 3, 0.95)\n_verificar([t for t, _ in r], ['preco do token subiu de novo', 'gato preto'])"
         },
         {
           "nome": "limiar alto preserva as quase-duplicatas",
-          "codigo": "r = buscar_sem_duplicatas('preco do token', ['preco do token subiu', 'preco do token subiu hoje'], 5, 0.99)\n_verificar(len(r), 2)"
+          "codigo": "r = buscar_sem_duplicatas('preco do token', ['preco do token subiu de novo', 'preco do token subiu de novo hoje'], 5, 0.99)\n_verificar(len(r), 2)"
         },
         {
           "nome": "corpus vazio não quebra",
@@ -2040,7 +2040,7 @@
       ],
       "titulo": "JSON dentro da cerca",
       "explicacao_md": null,
-      "enunciado_md": "O modelo costuma embrulhar o JSON numa **cerca Markdown**: uma linha abre com três crases e a palavra `json`, o JSON vem no meio, e outra linha de três crases fecha — quase sempre com texto solto em volta. Por exemplo, a resposta pode ser `Claro, aqui está:` seguida da cerca com `{\"ok\": true}` dentro.\n\nAntes de `json.loads`, é preciso extrair só o miolo `{...}` de dentro da cerca. O regex já está no starter. Complete `extrair_bloco_json(resposta)` para devolver o **dict** — no exemplo, `{\"ok\": True}`.",
+      "enunciado_md": "O modelo costuma embrulhar o JSON numa **cerca Markdown**: uma linha abre com três crases e a palavra `json`, o JSON vem no meio, e outra linha de três crases fecha — quase sempre com texto solto em volta. A tag `json` pode faltar: às vezes a cerca abre só com as três crases. Por exemplo, a resposta pode ser `Claro, aqui está:` seguida da cerca com `{\"ok\": true}` dentro.\n\nAntes de `json.loads`, é preciso extrair só o miolo `{...}` de dentro da cerca. O regex já está no starter. Complete `extrair_bloco_json(resposta)` para devolver o **dict** — no exemplo, `{\"ok\": True}`.",
       "starter_code": "import json\nimport re\n\n\ndef extrair_bloco_json(resposta):\n    # A cerca pode vir com ou sem a tag json — o regex preguiçoso do Ato 2\n    # resolve; o miolo ainda passa pelo loads antes de voltar.\n    m = re.search(r\"```(?:json)?\\s*(\\{.*?\\})\\s*```\", resposta, re.DOTALL)\n    ...\n",
       "solucao_referencia": "import json\nimport re\n\n\ndef extrair_bloco_json(resposta):\n    m = re.search(r\"```(?:json)?\\s*(\\{.*?\\})\\s*```\", resposta, re.DOTALL)\n    return json.loads(m.group(1))\n",
       "testes_visiveis": [

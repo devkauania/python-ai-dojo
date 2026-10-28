@@ -1,6 +1,8 @@
 // Persistência em localStorage do Python AI Dojo.
 // Chave única, migração por versão, export/import, backup antes de migrar.
 
+import { t } from "./i18n.js";
+
 const CHAVE = "pyai_dojo_save";
 const CHAVE_BACKUP = "pyai_dojo_save_backup";
 export const SCHEMA_VERSAO = 3;
@@ -143,6 +145,8 @@ export function normalizarSave(s) {
     tema: ["claro", "escuro", "auto"].includes(cfg.tema) ? cfg.tema : "claro",
   };
   if (typeof cfg.teclado === "boolean") config.teclado = cfg.teclado;
+  // idioma: só "pt" | "en"; ausente = o boot decide (navegador / save antigo = pt)
+  if (cfg.lang === "pt" || cfg.lang === "en") config.lang = cfg.lang;
   const ultimo = texto(src.ultimo_dia, 10);
   return {
     schema_versao: SCHEMA_VERSAO,
@@ -220,6 +224,37 @@ export function salvar(save) {
   }
 }
 
+// já existe um save gravado neste navegador? (não confunde com save novo em memória)
+export function existe() {
+  try {
+    return localStorage.getItem(CHAVE) != null;
+  } catch {
+    return false;
+  }
+}
+
+// Idioma escolhido ANTES de existir save (boas-vindas -> English -> fecha a
+// aba): chave própria, pequena, que NÃO conta como save (storage.existe() e o
+// "bem-vindo de volta" continuam olhando só CHAVE). Lida entre a URL e o
+// idioma do navegador; o save, quando existe, manda.
+const CHAVE_IDIOMA = "pyai_dojo_lang";
+
+export function idiomaPreferido() {
+  try {
+    return localStorage.getItem(CHAVE_IDIOMA);
+  } catch {
+    return null;
+  }
+}
+
+export function gravarIdiomaPreferido(l) {
+  try {
+    localStorage.setItem(CHAVE_IDIOMA, l);
+  } catch {
+    /* sem storage: a URL (?lang=) ainda carrega a escolha */
+  }
+}
+
 export function resetar() {
   try {
     localStorage.removeItem(CHAVE);
@@ -245,19 +280,19 @@ export function exportar(save) {
 export function importar(arquivo) {
   return new Promise((resolve, reject) => {
     const leitor = new FileReader();
-    leitor.onerror = () => reject(new Error("não consegui ler o arquivo"));
+    leitor.onerror = () => reject(new Error(t("save.lerFalhou")));
     leitor.onload = () => {
       try {
         let save = JSON.parse(String(leitor.result));
         if (!save || typeof save.schema_versao !== "number") {
-          throw new Error("o arquivo não parece um save do Dojo");
+          throw new Error(t("save.naoParece"));
         }
         if (save.schema_versao > SCHEMA_VERSAO) {
-          throw new Error("o save é de uma versão mais nova do Dojo");
+          throw new Error(t("save.maisNovo"));
         }
         while (save.schema_versao < SCHEMA_VERSAO) {
           const migrar = MIGRACOES[save.schema_versao];
-          if (!migrar) throw new Error("migração ausente");
+          if (!migrar) throw new Error(t("save.migracao"));
           save = migrar(save);
           save.schema_versao += 1;
         }

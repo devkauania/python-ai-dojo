@@ -1,4 +1,8 @@
 // Carga e indexação do conteúdo (manifest + atos + bosses).
+// Idioma: pt lê content/*.json; en lê content/en/*.json (MESMOS nomes de
+// arquivo, MESMOS ids — contrato em tools/i18n_check.py e docs/I18N.md).
+
+import { t, idioma } from "./i18n.js";
 
 // Versão do módulo (o mesmo ?v= com que o content.js foi carregado pelo import
 // map). Anexada às URLs de conteúdo para que o navegador possa CACHEAR os JSON
@@ -7,16 +11,22 @@
 // frágil: um reload offline/flaky derrubava o jogo na tela de erro).
 const V = new URL(import.meta.url).search; // ex.: "?v=21" (ou "" fora do import map)
 
-export async function carregarConteudo() {
-  const manifest = await buscarJson("./content/manifest.json");
+// pasta de conteúdo de um idioma ("./content/" para pt, "./content/en/" para en)
+export function pastaConteudo(lang) {
+  return lang === "en" ? "./content/en/" : "./content/";
+}
+
+export async function carregarConteudo(lang = idioma()) {
+  const pasta = pastaConteudo(lang);
+  const manifest = await buscarJson(pasta + "manifest.json");
   const nomes = manifest.atos.map((a) => a.arquivo).concat([manifest.bosses_arquivo]);
-  const arquivos = await Promise.all(nomes.map((n) => buscarJson("./content/" + n)));
+  const arquivos = await Promise.all(nomes.map((n) => buscarJson(pasta + n)));
 
   // Laboratório Web (opcional — tolera ausência)
   let webLab = [];
   const webPorNivel = new Map();
   try {
-    const web = await buscarJson("./content/web-lab.json");
+    const web = await buscarJson(pasta + "web-lab.json");
     webLab = web.exercicios || [];
     for (const ex of webLab) {
       ex.trilha = "web";
@@ -96,5 +106,5 @@ async function buscarJson(url) {
       clearTimeout(timer);
     }
   }
-  throw new Error("não consegui carregar " + url + " (" + ultimoErro?.message + ")");
+  throw new Error(t("erro.carregar", { url, msg: ultimoErro?.message }));
 }

@@ -1,0 +1,2613 @@
+{
+  "ato": "ato1",
+  "titulo": "Language Fundamentals",
+  "exercicios": [
+    {
+      "id": "ato1-variaveis-t1-01",
+      "nivel": "variaveis",
+      "tier": 1,
+      "conceitos": [
+        "variaveis",
+        "operadores"
+      ],
+      "titulo": "Token counter",
+      "explicacao_md": "You're here. Good. Two pieces hold up everything that comes after — pay attention to them now and you won't have to come back here.\n\nA **variable** is a name that holds a value. A **function** takes values, does a calculation and **returns** the result with `return`. Without `return`, it hands back `None` — in other words, nothing.\n\n```python\ntokens = 120           # int: a whole number\nprice = 0.002          # float: a number with decimals\n\ndef add(a, b):         # a and b are the values coming in\n    total = a + b      # + adds, - subtracts, * multiplies, / divides\n    return total       # this is what leaves the function\n```\n\nIn the exercises the `def` line is already written: you write the body. That `...` in the middle of the code is just a \"write here\" placeholder — delete it and put your code in its place.\n\nBy the end of this game you'll build an entire RAG system on your own. It starts here: adding up tokens.",
+      "enunciado_md": "Every call to an AI model is measured in **tokens**: the ones in the prompt you send (prompt tokens) and the ones in the reply you get back (completion tokens). The cost comes from the total.\n\n`total_tokens(prompt_tokens, completion_tokens)` returns the **sum** of the two — a whole number.\n\nExample: `total_tokens(120, 80)` → `200`",
+      "starter_code": "def total_tokens(prompt_tokens, completion_tokens):\n    # The skeleton is ready; the body is yours.\n    # The two numbers arrive in prompt_tokens and completion_tokens.\n    # Remember: nothing leaves the function without return.\n    ...\n",
+      "solucao_referencia": "def total_tokens(prompt_tokens, completion_tokens):\n    total = prompt_tokens + completion_tokens\n    return total\n",
+      "testes_visiveis": [
+        {
+          "nome": "basic sum",
+          "codigo": "_check(total_tokens(120, 80), 200)"
+        },
+        {
+          "nome": "zero prompt tokens",
+          "codigo": "_check(total_tokens(0, 50), 50)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "other values",
+          "codigo": "_check(total_tokens(7, 3), 10)"
+        },
+        {
+          "nome": "big numbers",
+          "codigo": "_check(total_tokens(1000, 2500), 3500)"
+        },
+        {
+          "nome": "returns a whole number",
+          "codigo": "assert isinstance(total_tokens(2, 3), int), 'The function must return an int, not ' + type(total_tokens(2, 3)).__name__"
+        }
+      ],
+      "dicas": [
+        "The `+` adds the two numbers — but the result only leaves the function with `return`; without it, the function hands back None.",
+        "Store the sum in a variable (`total = prompt_tokens + completion_tokens`) and return that variable on the next line.",
+        "`total = prompt_tokens + completion_tokens` and then `return total` (or directly: `return prompt_tokens + completion_tokens`)."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t1-02",
+      "nivel": "variaveis",
+      "tier": 1,
+      "conceitos": [
+        "operadores",
+        "tipos-primitivos"
+      ],
+      "titulo": "The price per thousand",
+      "explicacao_md": null,
+      "enunciado_md": "LLM APIs charge per **thousand** tokens: a price of `0.02` means 0.02 for every 1000 tokens.\n\n`call_cost(tokens, price_per_1000)` returns how much the call cost.\n\nThe `/` operator divides (and always returns a `float`); `*` multiplies.\n\nExample: `call_cost(500, 0.02)` → `0.01` (half a thousand costs half the price)",
+      "starter_code": "def call_cost(tokens, price_per_1000):\n    # The price is per THOUSAND tokens, not per token — that's the trick.\n    # Figure out how many \"thousands\" were spent and charge the price for them.\n    ...\n",
+      "solucao_referencia": "def call_cost(tokens, price_per_1000):\n    return tokens / 1000 * price_per_1000\n",
+      "testes_visiveis": [
+        {
+          "nome": "half a thousand",
+          "codigo": "_check(call_cost(500, 0.02), 0.01)"
+        },
+        {
+          "nome": "a thousand tokens cost the full price",
+          "codigo": "_check(call_cost(1000, 0.02), 0.02)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "another price",
+          "codigo": "_check(call_cost(250, 0.04), 0.01)"
+        },
+        {
+          "nome": "zero tokens, zero cost",
+          "codigo": "_check(call_cost(0, 0.5), 0.0)"
+        },
+        {
+          "nome": "more than a thousand tokens",
+          "codigo": "_check(call_cost(2000, 0.03), 0.06)"
+        }
+      ],
+      "dicas": [
+        "Sanity check: if exactly 1000 tokens come in, the cost must equal the full price. Which calculation with `tokens` and `1000` gives that result?",
+        "It's two steps in a single expression: `tokens / 1000` gives the thousands, then multiply by the price of each thousand.",
+        "`return tokens / 1000 * price_per_1000`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t1-03",
+      "nivel": "variaveis",
+      "tier": 1,
+      "conceitos": [
+        "operadores",
+        "tipos-primitivos"
+      ],
+      "titulo": "Temperature in range",
+      "explicacao_md": null,
+      "enunciado_md": "`temperature` controls how creative a model is — and APIs only accept values from 0 to 2. Outside that range, the call fails.\n\nA comparison returns `True` or `False` (the `bool` type): `price > 0` asks \"is the price greater than zero?\". The `and` operator is only true when **both** conditions are.\n\n`valid_temperature(t)` returns `True` if `t` is between 0 and 2, **including** both ends; otherwise, `False`.\n\nExample: `valid_temperature(0.7)` → `True`; `valid_temperature(3)` → `False`",
+      "starter_code": "def valid_temperature(t):\n    # Two questions at once: is it too low? is it too high?\n    # Each comparison already returns True/False by itself — combine the two.\n    # \"Including both ends\" changes which sign you pick: think about 0 and 2.\n    ...\n",
+      "solucao_referencia": "def valid_temperature(t):\n    return t >= 0 and t <= 2\n",
+      "testes_visiveis": [
+        {
+          "nome": "a common value is valid",
+          "codigo": "_check(valid_temperature(0.7), True)"
+        },
+        {
+          "nome": "3 is over the limit",
+          "codigo": "_check(valid_temperature(3), False)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "lower edge",
+          "codigo": "_check(valid_temperature(0), True)"
+        },
+        {
+          "nome": "upper edge",
+          "codigo": "_check(valid_temperature(2), True)"
+        },
+        {
+          "nome": "negative is invalid",
+          "codigo": "_check(valid_temperature(-0.5), False)"
+        },
+        {
+          "nome": "returns a real boolean",
+          "codigo": "assert valid_temperature(1) is True and valid_temperature(9) is False, 'Return True/False, not another type'"
+        }
+      ],
+      "dicas": [
+        "Two questions at once: \"is it not too low?\" AND \"is it not too high?\". Each comparison already returns True/False by itself.",
+        "Combine the two with `and` and return the expression directly — you don't need an if.",
+        "`return t >= 0 and t <= 2`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t1-04",
+      "nivel": "variaveis",
+      "tier": 1,
+      "conceitos": [
+        "condicionais",
+        "operadores"
+      ],
+      "titulo": "Fast or full route",
+      "explicacao_md": null,
+      "enunciado_md": "AI gateways route requests: a short prompt goes to a fast, cheap model; a long prompt goes to the full model. Routing starts with an `if`:\n\n```python\nif condition:\n    return \"left\"    # leaves here if the condition is True\nelse:\n    return \"right\"   # leaves here in every other case\n```\n\n`choose_route(length)`: if `length` (the number of characters in the prompt) is **less than 200**, return `\"fast\"`; otherwise, `\"full\"`.\n\nExample: `choose_route(50)` → `\"fast\"`",
+      "starter_code": "def choose_route(length):\n    # Two possible exits: a single condition decides which return runs.\n    # Watch the edge: which side does exactly 200 fall on?\n    ...\n",
+      "solucao_referencia": "def choose_route(length):\n    if length < 200:\n        return \"fast\"\n    else:\n        return \"full\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "short prompt",
+          "codigo": "_check(choose_route(50), 'fast')"
+        },
+        {
+          "nome": "long prompt",
+          "codigo": "_check(choose_route(500), 'full')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "one below the edge",
+          "codigo": "_check(choose_route(199), 'fast')"
+        },
+        {
+          "nome": "the exact edge goes to full",
+          "codigo": "_check(choose_route(200), 'full')"
+        },
+        {
+          "nome": "empty prompt",
+          "codigo": "_check(choose_route(0), 'fast')"
+        }
+      ],
+      "dicas": [
+        "Two possible exits call for `if`/`else`: one condition decides which `return` runs.",
+        "The condition is `length < 200` — notice that exactly 200 is NOT less than 200, so it falls into the else.",
+        "`if length < 200: return \"fast\"` and in the `else: return \"full\"` (each return on its own line, indented)."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t1-05",
+      "nivel": "variaveis",
+      "tier": 1,
+      "conceitos": [
+        "condicionais",
+        "operadores"
+      ],
+      "titulo": "Style thermostat",
+      "explicacao_md": null,
+      "enunciado_md": "A low temperature makes the model predictable; a high one, creative. With more than two ranges, `elif` goes between the `if` and the `else` — Python checks from top to bottom and stops at the **first** true condition.\n\nWrite `classify_style(temperature)`:\n\n- less than `0.4` → `\"precise\"`\n- less than `1.0` → `\"balanced\"`\n- otherwise → `\"creative\"`\n\nExample: `classify_style(0.7)` → `\"balanced\"`",
+      "starter_code": "def classify_style(temperature):\n    # Three ranges, three exits. The elif goes between the if and the else.\n    # Python stops at the FIRST true condition — so order matters:\n    # start with the lowest range and work your way up.\n    ...\n",
+      "solucao_referencia": "def classify_style(temperature):\n    if temperature < 0.4:\n        return \"precise\"\n    elif temperature < 1.0:\n        return \"balanced\"\n    else:\n        return \"creative\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "very low",
+          "codigo": "_check(classify_style(0.2), 'precise')"
+        },
+        {
+          "nome": "halfway",
+          "codigo": "_check(classify_style(0.7), 'balanced')"
+        },
+        {
+          "nome": "very high",
+          "codigo": "_check(classify_style(1.5), 'creative')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "edge 0.4",
+          "codigo": "_check(classify_style(0.4), 'balanced')"
+        },
+        {
+          "nome": "edge 1.0",
+          "codigo": "_check(classify_style(1.0), 'creative')"
+        },
+        {
+          "nome": "absolute zero",
+          "codigo": "_check(classify_style(0), 'precise')"
+        },
+        {
+          "nome": "almost at the top edge",
+          "codigo": "_check(classify_style(0.99), 'balanced')"
+        }
+      ],
+      "dicas": [
+        "Python checks the conditions from top to bottom and stops at the first true one — that's why the second check doesn't need to repeat \"and is greater than 0.4\".",
+        "Structure: `if temperature < 0.4:` … `elif temperature < 1.0:` … `else:` — one return inside each branch.",
+        "`if temperature < 0.4: return \"precise\"`, `elif temperature < 1.0: return \"balanced\"`, `else: return \"creative\"`."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t2-01",
+      "nivel": "variaveis",
+      "tier": 2,
+      "conceitos": [
+        "condicionais",
+        "operadores"
+      ],
+      "titulo": "Model on a budget",
+      "explicacao_md": "In tier 2 the decisions are compound — like in a real gateway, which weighs more than one thing before every call.\n\nTwo ways to combine conditions:\n\n```python\n# and on the same line (both must hold):\nif latency < 100 and cache_free:\n    ...\n\n# or an if inside another, deciding in steps:\nif latency < 100:\n    if cache_free:\n        ...\n```\n\nA big prompt without the budget to cover the big model does **not** fall back to the small model: each model has its own price.",
+      "enunciado_md": "Your gateway picks the model by the size of the prompt **and** by the budget available for the call:\n\n- a big prompt (`tokens > 500`) requires `\"mock-4\"`, which costs `0.10` — without the budget for it, `\"refused\"`\n- a small prompt (up to 500) gets `\"mock-mini\"`, which costs `0.01` — without the budget even for that, `\"refused\"`\n\n`choose_model(tokens, budget)` returns `\"mock-4\"`, `\"mock-mini\"` or `\"refused\"`. \"Covering\" means the budget is **greater than or equal to** the cost.\n\nExamples: `choose_model(800, 0.50)` → `\"mock-4\"`; `choose_model(100, 0.05)` → `\"mock-mini\"`; `choose_model(800, 0.02)` → `\"refused\"`",
+      "starter_code": "def choose_model(tokens, budget):\n    # Two questions in order: the size decides WHICH model would be picked;\n    # the budget decides whether you can pay for IT.\n    # A big prompt with a mini-sized budget doesn't become mini — it's refused.\n    ...\n",
+      "solucao_referencia": "def choose_model(tokens, budget):\n    if tokens > 500 and budget >= 0.10:\n        return \"mock-4\"\n    if tokens <= 500 and budget >= 0.01:\n        return \"mock-mini\"\n    return \"refused\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "big with budget",
+          "codigo": "_check(choose_model(800, 0.50), 'mock-4')"
+        },
+        {
+          "nome": "small with budget",
+          "codigo": "_check(choose_model(100, 0.05), 'mock-mini')"
+        },
+        {
+          "nome": "big without budget",
+          "codigo": "_check(choose_model(800, 0.02), 'refused')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "edges: 501 tokens and the exact budget",
+          "codigo": "_check(choose_model(501, 0.10), 'mock-4')"
+        },
+        {
+          "nome": "edges: 500 tokens and the minimum budget",
+          "codigo": "_check(choose_model(500, 0.01), 'mock-mini')"
+        },
+        {
+          "nome": "small without enough budget",
+          "codigo": "_check(choose_model(300, 0.005), 'refused')"
+        },
+        {
+          "nome": "big with only a mini budget",
+          "codigo": "_check(choose_model(2000, 0.09), 'refused')"
+        }
+      ],
+      "dicas": [
+        "Decide in two steps: the size defines WHICH model would be picked; the budget defines whether you can pay for IT. A big prompt with a mini budget is refused — it doesn't fall back to mini.",
+        "You can flatten it into three cases: big AND budget >= 0.10; small AND budget >= 0.01; everything else is \"refused\".",
+        "`if tokens > 500 and budget >= 0.10: return \"mock-4\"`, then `if tokens <= 500 and budget >= 0.01: return \"mock-mini\"`, and finally `return \"refused\"`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t2-02",
+      "nivel": "variaveis",
+      "tier": 2,
+      "conceitos": [
+        "condicionais",
+        "operadores"
+      ],
+      "titulo": "Dashboard tiers",
+      "explicacao_md": null,
+      "enunciado_md": "The gateway's cost dashboard groups every call into a tier for the monthly report.\n\n`cost_tier(cost)` returns the tier as text:\n\n- exactly `0` → `\"free\"`\n- less than `0.01` → `\"cheap\"`\n- less than `0.10` → `\"medium\"`\n- otherwise → `\"expensive\"`\n\nWatch the edges: exactly `0.01` is already `\"medium\"`, and exactly `0.10` is already `\"expensive\"`.\n\nExamples: `cost_tier(0.005)` → `\"cheap\"`; `cost_tier(0.01)` → `\"medium\"`; `cost_tier(0.25)` → `\"expensive\"`",
+      "starter_code": "def cost_tier(cost):\n    # if/elif/else in increasing order: each tier is only checked if the earlier\n    # ones failed — so \"less than 0.10\" already means \"at least 0.01\".\n    # The edges are < , not <= . Start with the special case: cost == 0.\n    ...\n",
+      "solucao_referencia": "def cost_tier(cost):\n    if cost == 0:\n        return \"free\"\n    elif cost < 0.01:\n        return \"cheap\"\n    elif cost < 0.10:\n        return \"medium\"\n    else:\n        return \"expensive\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "zero cost",
+          "codigo": "_check(cost_tier(0), 'free')"
+        },
+        {
+          "nome": "half a cent",
+          "codigo": "_check(cost_tier(0.005), 'cheap')"
+        },
+        {
+          "nome": "five cents",
+          "codigo": "_check(cost_tier(0.05), 'medium')"
+        },
+        {
+          "nome": "an expensive call",
+          "codigo": "_check(cost_tier(0.25), 'expensive')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "edge 0.01",
+          "codigo": "_check(cost_tier(0.01), 'medium')"
+        },
+        {
+          "nome": "edge 0.10",
+          "codigo": "_check(cost_tier(0.10), 'expensive')"
+        },
+        {
+          "nome": "almost nothing, but not zero",
+          "codigo": "_check(cost_tier(0.0001), 'cheap')"
+        },
+        {
+          "nome": "a hair below 0.10",
+          "codigo": "_check(cost_tier(0.099), 'medium')"
+        }
+      ],
+      "dicas": [
+        "Tiers in increasing order with if/elif/else: each check only runs if the earlier ones failed — so \"less than 0.10\" already means \"at least 0.01\".",
+        "Start with the special case `cost == 0`; then `< 0.01`, then `< 0.10`; the else gets \"expensive\". The edges are `<`, not `<=`.",
+        "`if cost == 0: return \"free\"`, `elif cost < 0.01: return \"cheap\"`, `elif cost < 0.10: return \"medium\"`, `else: return \"expensive\"`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t2-03",
+      "nivel": "variaveis",
+      "tier": 2,
+      "conceitos": [
+        "conversao-tipos",
+        "condicionais"
+      ],
+      "titulo": "Everything arrives as text",
+      "explicacao_md": "Parameters coming from a web form or an environment variable **always arrive as text**: `\"0.7\"`, `\"512\"`. Text and numbers are different things — for math, convert first.\n\n```python\nfloat(\"0.7\")   # 0.7  (text -> float)\nint(\"512\")     # 512  (text -> int)\n```\n\nConvert, store it under a name, and only then compare it with the range. That's the order: first the number exists, then you validate it.",
+      "enunciado_md": "Parameters arrive as text and need to become numbers, with a safe default when the value is unusable.\n\nWrite two functions (the text always represents a valid number):\n\n- `read_temperature(text)`: converts to `float`. If the value is in the range 0 to 2 (ends included), return the value itself; if it falls outside, return the default `1.0`\n- `read_max_tokens(text)`: converts to `int`. If the value is greater than zero, return the value itself; if it is zero or negative, return the default `256`\n\nExamples: `read_temperature(\"0.7\")` → `0.7`; `read_temperature(\"5\")` → `1.0`; `read_max_tokens(\"512\")` → `512`; `read_max_tokens(\"0\")` → `256`",
+      "starter_code": "def read_temperature(text):\n    # Convert first (float), store it under a name, validate after.\n    # \"Out of range\" has two ends: too low OR too high.\n    ...\n\ndef read_max_tokens(text):\n    # Same design: int first, and a default for when the value is unusable.\n    ...\n",
+      "solucao_referencia": "def read_temperature(text):\n    t = float(text)\n    if t < 0 or t > 2:\n        return 1.0\n    return t\n\ndef read_max_tokens(text):\n    n = int(text)\n    if n <= 0:\n        return 256\n    return n\n",
+      "testes_visiveis": [
+        {
+          "nome": "normal temperature",
+          "codigo": "_check(read_temperature('0.7'), 0.7)"
+        },
+        {
+          "nome": "an absurd temperature falls back to the default",
+          "codigo": "_check(read_temperature('5'), 1.0)"
+        },
+        {
+          "nome": "normal max_tokens",
+          "codigo": "_check(read_max_tokens('512'), 512)"
+        },
+        {
+          "nome": "zero tokens falls back to the default",
+          "codigo": "_check(read_max_tokens('0'), 256)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "valid edge",
+          "codigo": "_check(read_temperature('2'), 2.0)"
+        },
+        {
+          "nome": "negative temperature",
+          "codigo": "_check(read_temperature('-0.5'), 1.0)"
+        },
+        {
+          "nome": "negative tokens",
+          "codigo": "_check(read_max_tokens('-50'), 256)"
+        },
+        {
+          "nome": "a single token is fine",
+          "codigo": "_check(read_max_tokens('1'), 1)"
+        },
+        {
+          "nome": "max_tokens is a real int",
+          "codigo": "assert isinstance(read_max_tokens('300'), int), 'read_max_tokens must return an int, not ' + type(read_max_tokens('300')).__name__"
+        }
+      ],
+      "dicas": [
+        "Convert first, validate after: the text becomes a number with float()/int(), and only then can you compare it with the range.",
+        "Store the conversion in a variable (`t = float(text)`); if `t < 0 or t > 2`, return the default `1.0` — otherwise return `t`. The same design works for the int.",
+        "Two comparisons joined by `or` cover being out of range (`t < 0 or t > 2`), and the function needs two returns: one for the default, another for the value that passed."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t2-04",
+      "nivel": "variaveis",
+      "tier": 2,
+      "conceitos": [
+        "tipos-primitivos",
+        "condicionais",
+        "operadores"
+      ],
+      "titulo": "Cache or generate?",
+      "explicacao_md": null,
+      "enunciado_md": "Caching LLM responses saves real money — but it only makes sense when the response is **deterministic**: with `temperature` above 0, each call can come back different.\n\n`cache_decision(temperature, already_answered)` — `temperature` is `0` or a positive number, and `already_answered` is a `bool` saying whether the question already has a stored answer:\n\n- `temperature` greater than 0 → `\"generate\"` (caching isn't worth it)\n- `temperature` equal to 0 and `already_answered` → `\"cache\"`\n- `temperature` equal to 0 and still unanswered → `\"generate-and-store\"`\n\nExample: `cache_decision(0, True)` → `\"cache\"`; `cache_decision(0.7, True)` → `\"generate\"`",
+      "starter_code": "def cache_decision(temperature, already_answered):\n    # The first question rules out half the cases: above zero, never cache.\n    # After it, you already KNOW the temperature is zero — only the bool is left.\n    ...\n",
+      "solucao_referencia": "def cache_decision(temperature, already_answered):\n    if temperature > 0:\n        return \"generate\"\n    if already_answered:\n        return \"cache\"\n    return \"generate-and-store\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "deterministic and already seen",
+          "codigo": "_check(cache_decision(0, True), 'cache')"
+        },
+        {
+          "nome": "creative never caches",
+          "codigo": "_check(cache_decision(0.7, True), 'generate')"
+        },
+        {
+          "nome": "deterministic and brand new",
+          "codigo": "_check(cache_decision(0, False), 'generate-and-store')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "a float zero is zero too",
+          "codigo": "_check(cache_decision(0.0, True), 'cache')"
+        },
+        {
+          "nome": "very creative and brand new",
+          "codigo": "_check(cache_decision(1.5, False), 'generate')"
+        },
+        {
+          "nome": "a float zero, brand new",
+          "codigo": "_check(cache_decision(0.0, False), 'generate-and-store')"
+        },
+        {
+          "nome": "slightly above zero already rules out the cache",
+          "codigo": "_check(cache_decision(0.3, True), 'generate')"
+        }
+      ],
+      "dicas": [
+        "The first question rules out half the cases: a temperature above zero never hits the cache, whatever the rest says.",
+        "Handle `temperature > 0` first with a return; after that you KNOW it's zero — only the bool `already_answered` is left to check.",
+        "`if temperature > 0: return \"generate\"`, then `if already_answered: return \"cache\"` and finally `return \"generate-and-store\"`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t3-01",
+      "nivel": "variaveis",
+      "tier": 3,
+      "conceitos": [
+        "conversao-tipos",
+        "tipos-primitivos",
+        "operadores"
+      ],
+      "titulo": "The sum that concatenated",
+      "explicacao_md": "In tier 3 the data arrives dirty — and Python does NOT convert types by itself:\n\n```python\n\"2\" + 2      # TypeError: can't add str and int\n\"2\" + \"2\"    # \"22\" — text \"adds\" by gluing!\nint(\"120\")   # 120 (accepts leading/trailing spaces: int(\" 15 \") -> 15)\nfloat(\"0.7\") # 0.7\n```\n\nOther traps in this tier: `0`, `\"\"` and `None` are all \"falsy\" in an `if`, but they mean different things — absence is detected with `is None`. And floats add up with noise (`0.1 + 0.2` → `0.30000000000000004`); `round(value, places)` cleans the number up for display.",
+      "enunciado_md": "The `prompt_tokens` and `completion_tokens` fields come from the gateway log as **text** — and the code below shipped to production adding text: `\"120\" + \"80\"` became `\"12080\"` and the cost report blew up.\n\nFix `add_tokens(prompt_tokens, completion_tokens)` so it returns the **numeric** sum, as an `int`.\n\nContract: both texts always represent integers, possibly with leading/trailing spaces (`\" 15 \"`).\n\nExample: `add_tokens(\"120\", \"80\")` → `200`",
+      "starter_code": "def add_tokens(prompt_tokens, completion_tokens):\n    # BUG that shipped to production: both values arrive as TEXT (\"120\", \"80\"),\n    # and the line below CONCATENATES them instead of adding -> \"12080\".\n    # Contract: always integer text, possibly with leading/trailing spaces (\" 15 \").\n    # Fix it to return the numeric sum (int). The values have to become\n    # numbers BEFORE the math.\n    return prompt_tokens + completion_tokens\n",
+      "solucao_referencia": "def add_tokens(prompt_tokens, completion_tokens):\n    return int(prompt_tokens) + int(completion_tokens)\n",
+      "testes_visiveis": [
+        {
+          "nome": "a real sum, not concatenation",
+          "codigo": "_check(add_tokens('120', '80'), 200)"
+        },
+        {
+          "nome": "small numbers",
+          "codigo": "_check(add_tokens('1', '2'), 3)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "leading/trailing spaces",
+          "codigo": "_check(add_tokens(' 15 ', '5'), 20)"
+        },
+        {
+          "nome": "a sum that crosses 1000",
+          "codigo": "_check(add_tokens('999', '1'), 1000)"
+        },
+        {
+          "nome": "zeros as text",
+          "codigo": "_check(add_tokens('0', '0'), 0)"
+        },
+        {
+          "nome": "returns a real int",
+          "codigo": "assert isinstance(add_tokens('4', '6'), int), 'Return an int, not ' + type(add_tokens('4', '6')).__name__"
+        }
+      ],
+      "dicas": [
+        "The `+` between two strings concatenates them, it doesn't add — the values need to become numbers BEFORE the math.",
+        "`int(text)` converts integer text into an int and already ignores leading/trailing spaces — convert BOTH arguments.",
+        "`return int(prompt_tokens) + int(completion_tokens)`"
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t3-02",
+      "nivel": "variaveis",
+      "tier": 3,
+      "conceitos": [
+        "truthiness",
+        "condicionais",
+        "tipos-primitivos"
+      ],
+      "titulo": "Zero is not absence",
+      "explicacao_md": null,
+      "enunciado_md": "The user may ask for a `temperature` — or leave it out, and then the field arrives as `None`. When it is given, `requested` is a number.\n\nWrite `final_temperature(requested)`:\n\n- not given (`None`) → return the default `0.7`\n- given and inside the range 0 to 2 (ends included) → return `requested` as it came\n- given but out of range → return `0.7`\n\nCareful: `0` is a legitimate request (maximum determinism) and must come back as `0` — don't fall into the trap of treating `0` as \"not given\".\n\nExample: `final_temperature(None)` → `0.7`; `final_temperature(0)` → `0`; `final_temperature(3)` → `0.7`",
+      "starter_code": "def final_temperature(requested):\n    # Contract:\n    # - requested is None when the user did NOT provide it -> return 0.7\n    # - 0 is a legitimate value (don't confuse it with None!)\n    # - outside the 0..2 range -> return 0.7\n    ...\n",
+      "solucao_referencia": "def final_temperature(requested):\n    if requested is None:\n        return 0.7\n    if 0 <= requested <= 2:\n        return requested\n    return 0.7\n",
+      "testes_visiveis": [
+        {
+          "nome": "not given gets the default",
+          "codigo": "_check(final_temperature(None), 0.7)"
+        },
+        {
+          "nome": "a valid value passes straight through",
+          "codigo": "_check(final_temperature(1.5), 1.5)"
+        },
+        {
+          "nome": "zero is zero, not absence",
+          "codigo": "_check(final_temperature(0), 0)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "a float zero survives too",
+          "codigo": "_check(final_temperature(0.0), 0.0)"
+        },
+        {
+          "nome": "the upper edge is valid",
+          "codigo": "_check(final_temperature(2), 2)"
+        },
+        {
+          "nome": "above the range falls back to the default",
+          "codigo": "_check(final_temperature(2.5), 0.7)"
+        },
+        {
+          "nome": "negative falls back to the default",
+          "codigo": "_check(final_temperature(-0.5), 0.7)"
+        }
+      ],
+      "dicas": [
+        "`0`, `\"\"` and `None` are all \"falsy\" in an if — `if not requested:` can't tell \"asked for zero\" apart from \"asked for nothing\". Absence has its own test.",
+        "Test `requested is None` FIRST and return the default; then validate the range — Python lets you chain comparisons: `0 <= requested <= 2`.",
+        "`if requested is None: return 0.7`; then `if 0 <= requested <= 2: return requested`; finally `return 0.7`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t3-03",
+      "nivel": "variaveis",
+      "tier": 3,
+      "conceitos": [
+        "operadores",
+        "tipos-primitivos"
+      ],
+      "titulo": "Two divisions, two results",
+      "explicacao_md": null,
+      "enunciado_md": "Python has two divisions: `/` always returns a float (`7 / 2` → `3.5`); `//` throws away the decimal part (`7 // 2` → `3`). Picking the wrong one silently corrupts metrics.\n\nWrite two functions for the dashboard:\n\n- `average_per_call(total_tokens, n_calls)`: the average tokens per call, rounded to **2 decimal places** with `round(value, 2)`. If `n_calls` is `0`, return `0.0` without dividing\n- `batches_needed(n_prompts, batch_size)`: how many batches it takes to process everything, rounding **UP** (7 prompts in batches of 5 → 2 batches). An exact division doesn't add a batch (10 in batches of 5 → 2). The result must be an `int`, and with zero prompts (`0`) → `0` batches\n\nExamples: `average_per_call(1000, 3)` → `333.33`; `batches_needed(11, 5)` → `3`; `batches_needed(10, 5)` → `2`",
+      "starter_code": "def average_per_call(total_tokens, n_calls):\n    # Round to 2 places with round(value, 2).\n    # n_calls == 0 -> return 0.0 without dividing (never divide by zero).\n    ...\n\ndef batches_needed(n_prompts, batch_size):\n    # Rounds UP and returns an int; zero prompts (0) -> 0 batches.\n    # An exact division does NOT add a batch — think about how to \"push\" only when something is left over.\n    ...\n",
+      "solucao_referencia": "def average_per_call(total_tokens, n_calls):\n    if n_calls == 0:\n        return 0.0\n    return round(total_tokens / n_calls, 2)\n\ndef batches_needed(n_prompts, batch_size):\n    return (n_prompts + batch_size - 1) // batch_size\n",
+      "testes_visiveis": [
+        {
+          "nome": "an average with a repeating decimal, rounded",
+          "codigo": "_check(average_per_call(1000, 3), 333.33)"
+        },
+        {
+          "nome": "11 prompts, batches of 5",
+          "codigo": "_check(batches_needed(11, 5), 3)"
+        },
+        {
+          "nome": "an exact division doesn't add a batch",
+          "codigo": "_check(batches_needed(10, 5), 2)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "a non-integer average",
+          "codigo": "_check(average_per_call(7, 2), 3.5)"
+        },
+        {
+          "nome": "zero calls doesn't blow up",
+          "codigo": "_check(average_per_call(500, 0), 0.0)"
+        },
+        {
+          "nome": "a single prompt fills one batch",
+          "codigo": "_check(batches_needed(1, 100), 1)"
+        },
+        {
+          "nome": "nothing to process",
+          "codigo": "_check(batches_needed(0, 10), 0)"
+        },
+        {
+          "nome": "batches is a real int",
+          "codigo": "assert isinstance(batches_needed(9, 4), int), 'batches_needed must return an int — reach for //, not /'"
+        }
+      ],
+      "dicas": [
+        "For the average, `//` would throw away the decimals (7 // 2 gives 3, not 3.5) — go with `/` and then `round`. For the batches it's the opposite: the result must be an int.",
+        "Division by zero crashes the program: test `n_calls == 0` first. To round up with only `//`: add `batch_size - 1` to the total before dividing.",
+        "`return round(total_tokens / n_calls, 2)` (with the zero check before it) and `return (n_prompts + batch_size - 1) // batch_size`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t1-01",
+      "nivel": "texto",
+      "tier": 1,
+      "conceitos": [
+        "metodos-string",
+        "normalizacao-texto"
+      ],
+      "titulo": "Prompt cleanup",
+      "explicacao_md": "Here **text is the raw material**: prompt, response, log — everything arrives as a string. The tokens you added up in the last level all came from strings like these. It pays to know the tools well.\n\nA string method returns a **new** string; the original never changes:\n\n```python\ntext = \"  Hi, Dojo!  \"\ntext.strip()   # \"Hi, Dojo!\"      (removes leading/trailing spaces)\ntext.lower()   # \"  hi, dojo!  \"  (lowercase)\n```\n\nSince each method returns a string, you **chain** them: `text.strip().lower()`. You'll be writing this all the time.",
+      "enunciado_md": "Before sending text to a model, we almost always normalize the input.\n\nComplete the function `normalize(text)` so it:\n\n- removes spaces and line breaks from the **ends**\n- converts everything to **lowercase**\n\nExample: `normalize(\"  Hello, World!  \")` → `\"hello, world!\"`",
+      "starter_code": "def normalize(text):\n    # Two cleanups, in whatever order makes sense: leading/trailing whitespace and case.\n    # Each method returns a new string — chain them or store the result.\n    ...\n",
+      "solucao_referencia": "def normalize(text):\n    return text.strip().lower()\n",
+      "testes_visiveis": [
+        {
+          "nome": "strips and lowercases",
+          "codigo": "_check(normalize('  Hello, World!  '), 'hello, world!')"
+        },
+        {
+          "nome": "uppercase only",
+          "codigo": "_check(normalize('PYTHON'), 'python')"
+        },
+        {
+          "nome": "line breaks and tabs",
+          "codigo": "_check(normalize('\\n\\tHi\\n'), 'hi')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "text that is already clean",
+          "codigo": "_check(normalize('already clean'), 'already clean')"
+        },
+        {
+          "nome": "returns a real string",
+          "codigo": "assert isinstance(normalize('Abc'), str), 'The function must return a string, not ' + type(normalize('Abc')).__name__"
+        },
+        {
+          "nome": "a mix of everything",
+          "codigo": "_check(normalize('  Crème BRÛLÉE Rocks \\n'), 'crème brûlée rocks')"
+        }
+      ],
+      "dicas": [
+        "String methods return a NEW string — store or chain the result; calling `text.strip()` alone on a line doesn't change `text`.",
+        "The result of `text.strip()` is a string, so it accepts `.lower()` right after it, in the same expression.",
+        "`return text.strip().lower()`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t1-02",
+      "nivel": "texto",
+      "tier": 1,
+      "conceitos": [
+        "f-strings",
+        "strings"
+      ],
+      "titulo": "Model label",
+      "explicacao_md": null,
+      "enunciado_md": "F-strings build text with values inside: `f\"model={name}\"` inserts the value of `name` in place of the braces.\n\nWrite `describe(model, temperature)` that returns **exactly** text in this format:\n\n```\nmodel=mock-4 temperature=0.7\n```\n\n(with the values it received, of course). Example: `describe(\"mock-4\", 0.7)` → `\"model=mock-4 temperature=0.7\"`",
+      "starter_code": "def describe(model, temperature):\n    # An f-string starts with f before the quotes; whatever is inside braces becomes a value.\n    # The format must come out EXACT — notice the = and the space between the two fields.\n    ...\n",
+      "solucao_referencia": "def describe(model, temperature):\n    return f\"model={model} temperature={temperature}\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "mock-4 with 0.7",
+          "codigo": "_check(describe('mock-4', 0.7), 'model=mock-4 temperature=0.7')"
+        },
+        {
+          "nome": "another model",
+          "codigo": "_check(describe('mock-claude', 0.0), 'model=mock-claude temperature=0.0')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "temperature 1.0",
+          "codigo": "_check(describe('mini', 1.0), 'model=mini temperature=1.0')"
+        },
+        {
+          "nome": "a name with hyphens",
+          "codigo": "_check(describe('mock-4-mini', 0.3), 'model=mock-4-mini temperature=0.3')"
+        }
+      ],
+      "dicas": [
+        "An f-string starts with `f` before the quotes: `f\"text {variable}\"` — whatever is inside the braces is replaced by its value.",
+        "There are two pairs of braces in the same f-string: `f\"model={model} temperature={temperature}\"` — notice the space between them.",
+        "`return f\"model={model} temperature={temperature}\"`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t1-03",
+      "nivel": "texto",
+      "tier": 1,
+      "conceitos": [
+        "slicing",
+        "strings"
+      ],
+      "titulo": "Context window",
+      "explicacao_md": null,
+      "enunciado_md": "Models have a context limit — too much text has to be cut.\n\nSlicing strings: `text[:5]` takes the first 5 characters; `text[2:]` skips the first 2.\n\nWrite `truncate(text, limit)` that returns only the first `limit` characters of `text`.\n\nExample: `truncate(\"python for ai\", 6)` → `\"python\"`",
+      "starter_code": "def truncate(text, limit):\n    # You've already seen the slice text[:N]. Here N isn't fixed: it's whatever arrived.\n    # Slicing doesn't break if the limit goes past the length — you can count on that.\n    ...\n",
+      "solucao_referencia": "def truncate(text, limit):\n    return text[:limit]\n",
+      "testes_visiveis": [
+        {
+          "nome": "cut at 6",
+          "codigo": "_check(truncate('python for ai', 6), 'python')"
+        },
+        {
+          "nome": "cut at 3",
+          "codigo": "_check(truncate('embedding', 3), 'emb')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "a limit bigger than the text",
+          "codigo": "_check(truncate('hi', 10), 'hi')"
+        },
+        {
+          "nome": "zero limit",
+          "codigo": "_check(truncate('text', 0), '')"
+        },
+        {
+          "nome": "text with accents",
+          "codigo": "_check(truncate('résumés galore', 7), 'résumés')"
+        }
+      ],
+      "dicas": [
+        "Slicing doesn't break if the limit goes past the length: `\"hi\"[:10]` returns `\"hi\"` without an error.",
+        "The slice you want starts at the beginning, so the left side of the colon stays empty — fill in only the right side with the limit.",
+        "`return text[:limit]`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t1-04",
+      "nivel": "texto",
+      "tier": 1,
+      "conceitos": [
+        "metodos-string"
+      ],
+      "titulo": "Tags for the prompt",
+      "explicacao_md": null,
+      "enunciado_md": "To put a list of tags inside a prompt, we join the items into a single text.\n\n`\", \".join(items)` glues the items of the list together with `\", \"` as the separator.\n\nWrite `join_tags(tags)` that takes a list of strings and returns them all joined by a comma and a space.\n\nExample: `join_tags([\"rag\", \"llm\", \"python\"])` → `\"rag, llm, python\"`",
+      "starter_code": "def join_tags(tags):\n    # The one doing the joining is the SEPARATOR, not the list: it's the string that calls .join.\n    # Which string? The one that sits BETWEEN the items in the result.\n    ...\n",
+      "solucao_referencia": "def join_tags(tags):\n    return \", \".join(tags)\n",
+      "testes_visiveis": [
+        {
+          "nome": "three tags",
+          "codigo": "_check(join_tags(['rag', 'llm', 'python']), 'rag, llm, python')"
+        },
+        {
+          "nome": "a single tag",
+          "codigo": "_check(join_tags(['ai']), 'ai')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "two tags",
+          "codigo": "_check(join_tags(['data', 'api']), 'data, api')"
+        },
+        {
+          "nome": "empty list",
+          "codigo": "_check(join_tags([]), '')"
+        }
+      ],
+      "dicas": [
+        "`.join` is a method of the SEPARATOR, not of the list — the string `\", \"` is what joins.",
+        "The shape is `separator.join(items)` — what calls `.join` is the separator STRING (the one with a comma and a space), passing the list as the argument.",
+        "`return \", \".join(tags)`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t1-05",
+      "nivel": "texto",
+      "tier": 1,
+      "conceitos": [
+        "metodos-string"
+      ],
+      "titulo": "Sensitive data in the log",
+      "explicacao_md": null,
+      "enunciado_md": "Logs sent to an AI model must not leak secrets.\n\n`text.replace(old, new)` returns a copy with **every** occurrence swapped — all at once.\n\nWrite `mask(text)` that swaps every occurrence of `\"dojo123\"` for `\"***\"`.\n\nExample: `mask(\"key dojo123 and backup dojo123\")` → `\"key *** and backup ***\"`",
+      "starter_code": "def mask(text):\n    # There's a string method that swaps one piece for another and handles EVERY\n    # occurrence at once — without you repeating anything. Look for it.\n    ...\n",
+      "solucao_referencia": "def mask(text):\n    return text.replace(\"dojo123\", \"***\")\n",
+      "testes_visiveis": [
+        {
+          "nome": "password in the middle",
+          "codigo": "_check(mask('password=dojo123'), 'password=***')"
+        },
+        {
+          "nome": "without a secret, nothing changes",
+          "codigo": "_check(mask('all clean'), 'all clean')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "two occurrences",
+          "codigo": "_check(mask('dojo123 and dojo123'), '*** and ***')"
+        },
+        {
+          "nome": "at the end of the sentence",
+          "codigo": "_check(mask('the key is dojo123'), 'the key is ***')"
+        }
+      ],
+      "dicas": [
+        "`replace` swaps EVERY occurrence at once — you don't need a loop.",
+        "The argument order is `replace(what_goes_out, what_comes_in)`.",
+        "`return text.replace(\"dojo123\", \"***\")`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t1-06",
+      "nivel": "texto",
+      "tier": 1,
+      "conceitos": [
+        "metodos-string",
+        "strings"
+      ],
+      "titulo": "Command detector",
+      "explicacao_md": null,
+      "enunciado_md": "In a chat, messages that start with `/` are commands (`/help`, `/clear`), and messages with ` ``` ` contain code.\n\nTwo ways to ask about the content:\n\n- `text.startswith(\"/\")` → does the text **start** with `/`?\n- `\"abc\" in text` → does `\"abc\"` appear anywhere?\n\nWrite two functions: `is_command(text)` (starts with `/`?) and `has_code(text)` (contains three backticks?). Both return `True` or `False`.",
+      "starter_code": "def is_command(text):\n    # \"Starts with\" has its own method; \"appears anywhere\" has the in operator.\n    # Both answers are already True/False — you can return them directly.\n    ...\n\ndef has_code(text):\n    ...\n",
+      "solucao_referencia": "def is_command(text):\n    return text.startswith(\"/\")\n\ndef has_code(text):\n    return \"```\" in text\n",
+      "testes_visiveis": [
+        {
+          "nome": "/help is a command",
+          "codigo": "_check(is_command('/help'), True)"
+        },
+        {
+          "nome": "hi isn't a command",
+          "codigo": "_check(is_command('hi'), False)"
+        },
+        {
+          "nome": "code block detected",
+          "codigo": "_check(has_code('look: ```print(1)```'), True)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "a slash in the middle doesn't count",
+          "codigo": "_check(is_command('a/b'), False)"
+        },
+        {
+          "nome": "without backticks",
+          "codigo": "_check(has_code('just text'), False)"
+        },
+        {
+          "nome": "returns a real boolean",
+          "codigo": "assert is_command('/x') is True and is_command('x') is False, 'Return True/False, nothing else'"
+        }
+      ],
+      "dicas": [
+        "Both expressions already return a ready True/False — you can return them directly, without an if.",
+        "For the second one: the operator is `in`, in the form `\"```\" in text`.",
+        "`return text.startswith(\"/\")` and `return \"```\" in text`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t2-01",
+      "nivel": "texto",
+      "tier": 2,
+      "conceitos": [
+        "f-strings",
+        "strings"
+      ],
+      "titulo": "Prompt template",
+      "explicacao_md": "In tier 2 the context is real: you build the texts that go to an LLM.\n\nTwo new f-string tools:\n\n```python\nvalue = 0.7\nf\"{value:.2f}\"      # \"0.70\"  (two decimal places)\nf\"line1\\nline2\"     # \\n breaks the line\n```\n\nA production prompt is a template: one character out of place changes the model's behavior. Count every line break.",
+      "enunciado_md": "Write `build_prompt(context, question, temperature)` that returns **exactly** this template (with real line breaks):\n\n```\nContext:\n<context>\n\nQuestion: <question>\n(temperature=<value with 2 decimal places>)\n```\n\nExample: `build_prompt(\"RAG is retrieval + generation.\", \"What is RAG?\", 0.7)` →\n\n```\nContext:\nRAG is retrieval + generation.\n\nQuestion: What is RAG?\n(temperature=0.70)\n```",
+      "starter_code": "def build_prompt(context, question, temperature):\n    # It's a single f-string, with \\n breaks inside. Count them against the template\n    # in the task: one after \"Context:\", a blank line before \"Question:\", one\n    # before the parenthesis. The temperature comes out with two decimal places.\n    ...\n",
+      "solucao_referencia": "def build_prompt(context, question, temperature):\n    return f\"Context:\\n{context}\\n\\nQuestion: {question}\\n(temperature={temperature:.2f})\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "the full template",
+          "codigo": "_check(build_prompt('RAG is retrieval + generation.', 'What is RAG?', 0.7), 'Context:\\nRAG is retrieval + generation.\\n\\nQuestion: What is RAG?\\n(temperature=0.70)')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "an integer temperature gets 2 decimal places",
+          "codigo": "_check(build_prompt('x', 'y?', 1), 'Context:\\nx\\n\\nQuestion: y?\\n(temperature=1.00)')"
+        },
+        {
+          "nome": "zero is 0.00",
+          "codigo": "_check(build_prompt('ctx', 'q', 0), 'Context:\\nctx\\n\\nQuestion: q\\n(temperature=0.00)')"
+        },
+        {
+          "nome": "a context with several lines",
+          "codigo": "_check(build_prompt('l1\\nl2', 'p?', 0.25), 'Context:\\nl1\\nl2\\n\\nQuestion: p?\\n(temperature=0.25)')"
+        }
+      ],
+      "dicas": [
+        "Count the line breaks in the template: one after `Context:`, TWO before `Question:` (a blank line) and one before the parenthesis.",
+        "The 2-decimal format inside the f-string: `{temperature:.2f}`.",
+        "`return f\"Context:\\n{context}\\n\\nQuestion: {question}\\n(temperature={temperature:.2f})\"`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t2-02",
+      "nivel": "texto",
+      "tier": 2,
+      "conceitos": [
+        "metodos-string",
+        "normalizacao-texto"
+      ],
+      "titulo": "Cleaning a batch of logs",
+      "explicacao_md": "Here you'll meet a pattern that stays with you for the whole course: **walking a list with `for` and building a new list**, item by item. Keep it close — it keeps coming back.\n\n```python\ncleaned = []\nfor line in lines:\n    stripped = line.strip()   # removes the leading/trailing spaces\n    if stripped:              # an empty string counts as \"falsy\" in an if\n        cleaned.append(stripped)\n```\n\nThe `for` visits each item; `append` attaches the processed item to the end of the new list; `if stripped:` drops whatever ended up empty.",
+      "enunciado_md": "You've received log lines from an AI gateway to analyze — a few come with extra spaces, others arrive empty.\n\nWrite `clean_logs(lines)` that takes a **list** of strings and returns a new list where:\n\n- each line has had its leading/trailing whitespace removed\n- blank lines (only spaces, tabs or line breaks) have been dropped\n- the order of the rest is preserved\n\nExample: `clean_logs([\" ok \", \"\", \"  \", \"error 500\"])` → `[\"ok\", \"error 500\"]`",
+      "starter_code": "def clean_logs(lines):\n    # The lesson above already showed the pattern: a new list, for, strip and an if that\n    # decides whether the line stays. Strip BEFORE the test — then \"only spaces\" becomes \"\" and gets dropped.\n    ...\n",
+      "solucao_referencia": "def clean_logs(lines):\n    cleaned = []\n    for line in lines:\n        line = line.strip()\n        if line:\n            cleaned.append(line)\n    return cleaned\n",
+      "testes_visiveis": [
+        {
+          "nome": "cleans and drops empty lines",
+          "codigo": "_check(clean_logs([' ok ', '', '  ', 'error 500']), ['ok', 'error 500'])"
+        },
+        {
+          "nome": "a list that is already clean",
+          "codigo": "_check(clean_logs(['a', 'b']), ['a', 'b'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "tabs and line breaks count as empty",
+          "codigo": "_check(clean_logs(['\\t\\n', ' x ']), ['x'])"
+        },
+        {
+          "nome": "all empty becomes an empty list",
+          "codigo": "_check(clean_logs(['', '   ']), [])"
+        },
+        {
+          "nome": "order preserved",
+          "codigo": "_check(clean_logs([' c ', ' a ', ' b ']), ['c', 'a', 'b'])"
+        }
+      ],
+      "dicas": [
+        "There are two operations per line: strip leading/trailing whitespace and decide whether it stays. An empty string is 'falsy' in an if.",
+        "Strip BEFORE the test: a line of only spaces becomes '' after the strip — and then `if line:` drops it.",
+        "Loop with for, write `line = line.strip()`, and only append if `line` is truthy."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t2-03",
+      "nivel": "texto",
+      "tier": 2,
+      "conceitos": [
+        "metodos-string",
+        "slicing"
+      ],
+      "titulo": "A field in the raw log",
+      "explicacao_md": null,
+      "enunciado_md": "Each gateway log line has `key=value` fields separated by spaces:\n\n```\nts=1735689600 model=mock-4 latency=0.42\n```\n\nWrite `extract_model(line)` that returns only the **value** of the `model` field (in the example, `\"mock-4\"`).\n\nThe `model=` field always exists, but its position varies. Careful: `model` is the whole key — don't confuse it with similar fields like `submodel=`.\n\n`line.split()` breaks the line into a list of fields, which you walk with `for`.",
+      "starter_code": "def extract_model(line):\n    # Split the line into fields with .split() and look for the right one — the position\n    # varies, so you can't slice blindly. \"Starts with model=\" targets the field;\n    # then you cut off the prefix. And watch out for submodel=: it doesn't start with model=.\n    ...\n",
+      "solucao_referencia": "def extract_model(line):\n    for field in line.split():\n        if field.startswith(\"model=\"):\n            return field[len(\"model=\"):]\n    return \"\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "field in the middle",
+          "codigo": "_check(extract_model('ts=1735689600 model=mock-4 latency=0.42'), 'mock-4')"
+        },
+        {
+          "nome": "field at the start",
+          "codigo": "_check(extract_model('model=mock-claude ts=99'), 'mock-claude')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "field at the end",
+          "codigo": "_check(extract_model('ts=1 latency=2.0 model=mini'), 'mini')"
+        },
+        {
+          "nome": "a value with hyphens and numbers",
+          "codigo": "_check(extract_model('model=mock-4-mini-2 ts=5'), 'mock-4-mini-2')"
+        },
+        {
+          "nome": "doesn't confuse it with a similar field",
+          "codigo": "_check(extract_model('submodel=x model=y'), 'y')"
+        }
+      ],
+      "dicas": [
+        "Split the line into fields with `.split()` and look for the right one — the position varies, so you can't slice blindly.",
+        "`field.startswith(\"model=\")` finds the field; then just cut off the prefix with a slice.",
+        "The prefix `\"model=\"` has 6 characters: `field[6:]` (or `field[len(\"model=\"):]`) returns just the value."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t2-04",
+      "nivel": "texto",
+      "tier": 2,
+      "conceitos": [
+        "slicing",
+        "strings"
+      ],
+      "titulo": "An honest ellipsis",
+      "explicacao_md": null,
+      "enunciado_md": "Truncating text to fit a limit is routine — but cutting it off mid-way without warning misleads the reader.\n\nWrite `summary(text, limit)`, for a `limit` of at least 1:\n\n- if `text` fits in `limit` characters, return it whole, unchanged\n- otherwise, return the first `limit - 1` characters followed by `\"…\"` (a single ellipsis character)\n\nThat way the result is never longer than `limit`. Example: `summary(\"python for ai\", 9)` → `\"python f…\"`",
+      "starter_code": "def summary(text, limit):\n    # Two cases: it fits (return it as is) or it doesn't (cut it). len(text) gives the length.\n    # When cutting, the slice is limit - 1 to leave room for the …, which counts as ONE.\n    ...\n",
+      "solucao_referencia": "def summary(text, limit):\n    if len(text) <= limit:\n        return text\n    return text[:limit - 1] + \"…\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "cuts with an ellipsis",
+          "codigo": "_check(summary('python for ai', 9), 'python f…')"
+        },
+        {
+          "nome": "fits whole, left alone",
+          "codigo": "_check(summary('short', 10), 'short')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "the exact length doesn't cut",
+          "codigo": "_check(summary('abcde', 5), 'abcde')"
+        },
+        {
+          "nome": "the result never goes past the limit",
+          "codigo": "assert len(summary('a' * 50, 8)) == 8, 'The cut text must have exactly `limit` characters'"
+        },
+        {
+          "nome": "one character over already cuts",
+          "codigo": "_check(summary('abcdef', 5), 'abcd…')"
+        }
+      ],
+      "dicas": [
+        "There are two cases: it fits (return it as is) or it doesn't (cut it). `len(text)` gives the length.",
+        "When cutting, the slice is `limit - 1` to leave room for the `…` — which counts as ONE character.",
+        "`if len(text) <= limit: return text` and otherwise `return text[:limit - 1] + \"…\"`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t2-05",
+      "nivel": "texto",
+      "tier": 2,
+      "conceitos": [
+        "metodos-string",
+        "normalizacao-texto"
+      ],
+      "titulo": "A safe file name",
+      "explicacao_md": null,
+      "enunciado_md": "You're going to save each conversation in a file whose name comes from its title.\n\nWrite `slug(title)` that:\n\n- removes leading and trailing whitespace\n- converts to lowercase\n- swaps the spaces **between words** for `-` (several spaces in a row become ONE single hyphen)\n\nAccents stay as they are. Example: `slug(\"  Résumé  Final \")` → `\"résumé-final\"`",
+      "starter_code": "def slug(title):\n    # .split() without an argument already ignores leading/trailing whitespace AND repeated spaces.\n    # Once the words are separated, join them back — but with a different separator.\n    ...\n",
+      "solucao_referencia": "def slug(title):\n    return \"-\".join(title.lower().split())\n",
+      "testes_visiveis": [
+        {
+          "nome": "spaces become hyphens",
+          "codigo": "_check(slug('  Résumé  Final '), 'résumé-final')"
+        },
+        {
+          "nome": "a single word",
+          "codigo": "_check(slug('Dojo'), 'dojo')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "three words",
+          "codigo": "_check(slug('Guide to RAG'), 'guide-to-rag')"
+        },
+        {
+          "nome": "lots of inner spaces",
+          "codigo": "_check(slug('a    b     c'), 'a-b-c')"
+        },
+        {
+          "nome": "empty string",
+          "codigo": "_check(slug(''), '')"
+        }
+      ],
+      "dicas": [
+        "`.split()` without arguments already solves two problems at once: it ignores repeated spaces AND leading/trailing whitespace.",
+        "Once the words are separated, join them with `\"-\".join(...)` — the reverse path of split.",
+        "`return \"-\".join(title.lower().split())` — you don't even need strip, since split without an argument already ignores leading/trailing whitespace."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t3-01",
+      "nivel": "texto",
+      "tier": 3,
+      "conceitos": [
+        "normalizacao-texto",
+        "metodos-string"
+      ],
+      "titulo": "Query normalization",
+      "explicacao_md": "In tier 3 the world is messy: empty input, unicode, doubled spaces. Nothing dramatic — you already have the tools.\n\nOne new piece: `casefold()` is a stronger `lower()` for comparing text — `\"Straße\".casefold()` becomes `\"strasse\"` (while `lower()` gives `\"straße\"`). For search and comparison, prefer `casefold()`.\n\nAnd the trick you've already seen: `text.split()` returns a **list** of words (which you know how to slice), and `\" \".join(...)` puts it back together. Together, `\" \".join(text.split())` collapses any run of spaces/tabs/line breaks into a single space.",
+      "enunciado_md": "Before searching an index, the user's query needs to be canonical.\n\nWrite `normalize_query(text)`:\n\n- removes leading/trailing spaces, tabs and line breaks\n- converts with `casefold()`\n- collapses repeated inner spaces into a single space\n- an empty string (or only spaces) → returns `\"\"` without an error\n\nExample: `normalize_query(\"  What  IS\\tRAG? \")` → `\"what is rag?\"`",
+      "starter_code": "def normalize_query(text):\n    # Three transformations — but split() without an argument hands you two for free\n    # (leading/trailing whitespace + repeated spaces). The case is what's left: casefold before anything else.\n    ...\n",
+      "solucao_referencia": "def normalize_query(text):\n    return \" \".join(text.casefold().split())\n",
+      "testes_visiveis": [
+        {
+          "nome": "a messy query",
+          "codigo": "_check(normalize_query('  What  IS\\tRAG? '), 'what is rag?')"
+        },
+        {
+          "nome": "accents preserved, case not",
+          "codigo": "_check(normalize_query('CRÈME brûLÉE'), 'crème brûlée')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "an empty string doesn't break",
+          "codigo": "_check(normalize_query(''), '')"
+        },
+        {
+          "nome": "only spaces and tabs",
+          "codigo": "_check(normalize_query(' \\t\\n '), '')"
+        },
+        {
+          "nome": "real casefold (ß)",
+          "codigo": "_check(normalize_query('STRASSE ß'), 'strasse ss')"
+        },
+        {
+          "nome": "inner line breaks become a space",
+          "codigo": "_check(normalize_query('line one\\nline two'), 'line one line two')"
+        }
+      ],
+      "dicas": [
+        "There are three transformations, but `split()` without an argument handles two of them by itself (leading/trailing whitespace + repeated spaces).",
+        "The sequence is: casefold on the whole string, split to slice it into words, join with a space to put it back together.",
+        "`return \" \".join(text.casefold().split())` — with empty input, split returns `[]` and join returns `\"\"`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t3-02",
+      "nivel": "texto",
+      "tier": 3,
+      "conceitos": [
+        "slicing",
+        "metodos-string"
+      ],
+      "titulo": "The tail of the context",
+      "explicacao_md": null,
+      "enunciado_md": "When the chat history overflows the model's window, we keep only the **end** of the conversation.\n\nWrite `last_words(text, n)` that returns the last `n` words of `text`, joined by a single space:\n\n- `n <= 0` → returns `\"\"` (careful: a slice with `-0` does NOT behave the way it looks)\n- `n` greater than or equal to the total number of words → returns all of them\n- repeated spaces in the input don't produce empty words\n\nExample: `last_words(\"the dojo is the way\", 2)` → `\"the way\"`",
+      "starter_code": "def last_words(text, n):\n    # items[-n:] takes the last n — BUT -0 equals 0, and items[0:] is the whole\n    # list. That case (n <= 0) needs its own if before slicing.\n    ...\n",
+      "solucao_referencia": "def last_words(text, n):\n    if n <= 0:\n        return \"\"\n    return \" \".join(text.split()[-n:])\n",
+      "testes_visiveis": [
+        {
+          "nome": "the last two",
+          "codigo": "_check(last_words('the dojo is the way', 2), 'the way')"
+        },
+        {
+          "nome": "n larger than the word count",
+          "codigo": "_check(last_words('only three words', 10), 'only three words')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "n = 0 returns empty (the -0 trap)",
+          "codigo": "_check(last_words('a b c', 0), '')"
+        },
+        {
+          "nome": "a negative n returns empty",
+          "codigo": "_check(last_words('a b c', -2), '')"
+        },
+        {
+          "nome": "repeated spaces",
+          "codigo": "_check(last_words('a   b    c d', 3), 'b c d')"
+        },
+        {
+          "nome": "empty text",
+          "codigo": "_check(last_words('', 3), '')"
+        }
+      ],
+      "dicas": [
+        "`items[-n:]` takes the last n items — but `-0` equals `0`, and `items[0:]` is the WHOLE list. That case needs separate handling.",
+        "Handle `n <= 0` with an if before slicing; the rest is split, a negative slice and join.",
+        "`if n <= 0: return \"\"` and then `return \" \".join(text.split()[-n:])`"
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t3-03",
+      "nivel": "texto",
+      "tier": 3,
+      "conceitos": [
+        "slicing",
+        "metodos-string",
+        "strings"
+      ],
+      "titulo": "A clean first sentence",
+      "explicacao_md": null,
+      "enunciado_md": "To generate an automatic title, we take the first sentence of the model's reply.\n\nWrite `first_sentence(text)`:\n\n- returns the part **before the first period** (`.`), without the period\n- if there isn't a single period, returns the whole text\n- in every case, strips leading/trailing spaces from the result\n- empty input → `\"\"`\n\nUseful tool: `text.find(\".\")` returns the index of the first `.`, or `-1` if there isn't one.\n\nExample: `first_sentence(\"Hello. How are you?\")` → `\"Hello\"`",
+      "starter_code": "def first_sentence(text):\n    # find(\".\") gives the period's index, or -1 if there isn't one. Careful: feeding that -1\n    # straight into a slice (text[:idx]) cuts off the LAST character — a silent bug.\n    # Handle the \"missing period\" case separately, and .strip() the result both ways.\n    ...\n",
+      "solucao_referencia": "def first_sentence(text):\n    idx = text.find(\".\")\n    if idx == -1:\n        return text.strip()\n    return text[:idx].strip()\n",
+      "testes_visiveis": [
+        {
+          "nome": "a sentence with a period",
+          "codigo": "_check(first_sentence('Hello. How are you?'), 'Hello')"
+        },
+        {
+          "nome": "without a period, the whole text",
+          "codigo": "_check(first_sentence(' Without a period '), 'Without a period')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "a period right at the start",
+          "codigo": "_check(first_sentence('.abc'), '')"
+        },
+        {
+          "nome": "several periods, only the first matters",
+          "codigo": "_check(first_sentence('One. Two. Three.'), 'One')"
+        },
+        {
+          "nome": "empty input",
+          "codigo": "_check(first_sentence(''), '')"
+        },
+        {
+          "nome": "spaces before the period",
+          "codigo": "_check(first_sentence('  Hi world . rest'), 'Hi world')"
+        },
+        {
+          "nome": "without a period, the last character counts",
+          "codigo": "_check(first_sentence('Without period'), 'Without period')"
+        }
+      ],
+      "dicas": [
+        "Watch out for find's `-1` return: used directly in a slice, `text[:-1]` cuts off the LAST character — an easy-to-miss bug.",
+        "Handle the `idx == -1` case in a separate if; on both paths, apply `.strip()` to the final result.",
+        "`idx = text.find(\".\")`, then `return text.strip() if idx == -1 else text[:idx].strip()`"
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t1-01",
+      "nivel": "colecoes",
+      "tier": 1,
+      "conceitos": [
+        "listas"
+      ],
+      "titulo": "Prompt queue",
+      "explicacao_md": "Collections are everyday work in AI: the `messages` of a chat call is a **list**, a batch of prompts is a list, the documents RAG retrieves arrive in a list. You can't escape them.\n\n```python\nqueue = [\"summarize\", \"translate\", \"classify\"]\nqueue[0]     # \"summarize\" — indexes start at 0\nqueue[-1]    # \"classify\" — negative counts from the end\nlen(queue)   # 3\nqueue.append(\"review\")  # adds to the end\n```\n\n`queue[-1]` is the idiomatic shortcut for the last item — it works at any size, without computing `len(queue) - 1`. Make it a habit.\n\nThe log lines you cleaned one by one in the last level? Here they travel in packs — and that's how they really arrive.",
+      "enunciado_md": "An AI worker processes a queue of prompts in order of arrival.\n\nWrite two functions:\n\n- `next_up(queue)` — returns the **first** item in the list (the next one to process)\n- `most_recent(queue)` — returns the **last** item (the one that just arrived)\n\nThe queue always has at least one item.\n\nExample: `next_up([\"summarize\", \"translate\"])` → `\"summarize\"`; `most_recent([\"summarize\", \"translate\"])` → `\"translate\"`",
+      "starter_code": "def next_up(queue):\n    # The next one to process is the first one that arrived.\n    ...\n\ndef most_recent(queue):\n    # The most recent is the one at the end — and there's a shortcut index for that.\n    ...\n",
+      "solucao_referencia": "def next_up(queue):\n    return queue[0]\n\ndef most_recent(queue):\n    return queue[-1]\n",
+      "testes_visiveis": [
+        {
+          "nome": "first in the queue",
+          "codigo": "_check(next_up(['summarize', 'translate', 'classify']), 'summarize')"
+        },
+        {
+          "nome": "last in the queue",
+          "codigo": "_check(most_recent(['summarize', 'translate', 'classify']), 'classify')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "a single-item queue",
+          "codigo": "_check(next_up(['only']), 'only')\n_check(most_recent(['only']), 'only')"
+        },
+        {
+          "nome": "a long queue",
+          "codigo": "_check(next_up(['a', 'b', 'c', 'd', 'e']), 'a')\n_check(most_recent(['a', 'b', 'c', 'd', 'e']), 'e')"
+        },
+        {
+          "nome": "doesn't modify the queue",
+          "codigo": "queue = ['x', 'y']\nnext_up(queue)\nmost_recent(queue)\n_check(queue, ['x', 'y'])"
+        }
+      ],
+      "dicas": [
+        "List indexes start at 0; negative indexes count from the end — `-1` is the last one, whatever the size.",
+        "It's two direct returns: one with `queue[0]`, the other with `queue[-1]` — without a loop, without len.",
+        "`return queue[0]` in the first function and `return queue[-1]` in the second."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t1-02",
+      "nivel": "colecoes",
+      "tier": 1,
+      "conceitos": [
+        "listas",
+        "loops"
+      ],
+      "titulo": "The day's bill",
+      "explicacao_md": null,
+      "enunciado_md": "Each call to the model costs a few cents — and the day's total is the sum of all of them.\n\nWrite `total_cost(costs)` that takes a list of numbers and returns the sum, accumulating with a `for` loop (it's the pattern you'll repeat for the rest of your life with collections). Empty list → `0`.\n\nExample: `total_cost([0.02, 0.05, 0.01])` → `0.08`",
+      "starter_code": "def total_cost(costs):\n    # The accumulator pattern, which comes back forever: a total that starts at zero\n    # and grows with each item of the for. The return goes OUTSIDE the loop.\n    ...\n",
+      "solucao_referencia": "def total_cost(costs):\n    total = 0\n    for cost in costs:\n        total += cost\n    return total\n",
+      "testes_visiveis": [
+        {
+          "nome": "adds up the day's costs",
+          "codigo": "_check(total_cost([0.02, 0.05, 0.01]), 0.08)"
+        },
+        {
+          "nome": "whole numbers",
+          "codigo": "_check(total_cost([1, 2, 3]), 6)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "a day without calls",
+          "codigo": "_check(total_cost([]), 0)"
+        },
+        {
+          "nome": "a single call",
+          "codigo": "_check(total_cost([0.25]), 0.25)"
+        },
+        {
+          "nome": "bigger values",
+          "codigo": "_check(total_cost([1.5, 2.5, 0.5, 0.5]), 5.0)"
+        }
+      ],
+      "dicas": [
+        "The accumulator pattern: start with a total at zero and keep adding item by item inside the for.",
+        "`total += cost` is the same as `total = total + cost` — and it has to happen INSIDE the loop.",
+        "`total = 0`, then `for cost in costs: total += cost`, and `return total` outside the loop."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t1-03",
+      "nivel": "colecoes",
+      "tier": 1,
+      "conceitos": [
+        "dicts"
+      ],
+      "titulo": "Token receipt",
+      "explicacao_md": null,
+      "enunciado_md": "An LLM API response carries a usage dict, in the same format as the real APIs:\n\n```python\nusage = {\"prompt_tokens\": 120, \"completion_tokens\": 80}\n```\n\nWrite `total_tokens(usage)` that returns the sum of the `\"prompt_tokens\"` and `\"completion_tokens\"` fields.\n\nExample: with the dict above → `200`",
+      "starter_code": "def total_tokens(usage):\n    # A dict is read by key, inside square brackets. That's two reads and one sum.\n    # The keys have to match the task EXACTLY.\n    ...\n",
+      "solucao_referencia": "def total_tokens(usage):\n    return usage[\"prompt_tokens\"] + usage[\"completion_tokens\"]\n",
+      "testes_visiveis": [
+        {
+          "nome": "a simple receipt",
+          "codigo": "_check(total_tokens({'prompt_tokens': 120, 'completion_tokens': 80}), 200)"
+        },
+        {
+          "nome": "another call",
+          "codigo": "_check(total_tokens({'prompt_tokens': 7, 'completion_tokens': 3}), 10)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "zero prompt tokens",
+          "codigo": "_check(total_tokens({'prompt_tokens': 0, 'completion_tokens': 5}), 5)"
+        },
+        {
+          "nome": "an extra field doesn't fool it",
+          "codigo": "_check(total_tokens({'prompt_tokens': 10, 'completion_tokens': 2, 'total_tokens': 999}), 12)"
+        },
+        {
+          "nome": "big numbers",
+          "codigo": "_check(total_tokens({'prompt_tokens': 999, 'completion_tokens': 1}), 1000)"
+        }
+      ],
+      "dicas": [
+        "Values in a dict are read by key, inside square brackets: `d[\"key\"]`.",
+        "Two reads and one sum — the key names must be EXACTLY the ones in the task.",
+        "`return usage[\"prompt_tokens\"] + usage[\"completion_tokens\"]`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t1-04",
+      "nivel": "colecoes",
+      "tier": 1,
+      "conceitos": [
+        "sets"
+      ],
+      "titulo": "Unique vocabulary",
+      "explicacao_md": null,
+      "enunciado_md": "How many **different** words appear in a prompt? This simple measure helps compare short, repetitive prompts with rich ones.\n\nWrite `unique_words(words)` that takes a list of words and returns **how many** are distinct (an integer).\n\nExample: `unique_words([\"the\", \"dojo\", \"the\"])` → `2`",
+      "starter_code": "def unique_words(words):\n    # There's a collection that throws away duplicates by itself. Then all that's\n    # left is counting how many elements remain.\n    ...\n",
+      "solucao_referencia": "def unique_words(words):\n    return len(set(words))\n",
+      "testes_visiveis": [
+        {
+          "nome": "repeated words",
+          "codigo": "_check(unique_words(['the', 'dojo', 'the']), 2)"
+        },
+        {
+          "nome": "all different",
+          "codigo": "_check(unique_words(['rag', 'llm', 'python']), 3)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "empty list",
+          "codigo": "_check(unique_words([]), 0)"
+        },
+        {
+          "nome": "everything repeated",
+          "codigo": "_check(unique_words(['ai', 'ai', 'ai', 'ai']), 1)"
+        },
+        {
+          "nome": "a different case counts as another word",
+          "codigo": "_check(unique_words(['Hi', 'hi']), 2)"
+        }
+      ],
+      "dicas": [
+        "A set keeps each value only once — dropping a list into a set removes the duplicates automatically.",
+        "`set(words)` creates the set; `len(...)` counts its elements.",
+        "`return len(set(words))`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t1-05",
+      "nivel": "colecoes",
+      "tier": 1,
+      "conceitos": [
+        "enumerate-zip",
+        "loops",
+        "f-strings"
+      ],
+      "titulo": "Numbered sources",
+      "explicacao_md": null,
+      "enunciado_md": "In RAG, the retrieved documents go into the prompt numbered — that way the model can cite its sources (\"according to [2]...\").\n\nWrite `number_sources(titles)` that takes a list of titles and returns a **new** list with each title prefixed by its number, starting at 1, in the format `\"1. title\"`.\n\nExample: `number_sources([\"RAG Guide\", \"FAQ\"])` → `[\"1. RAG Guide\", \"2. FAQ\"]`",
+      "starter_code": "def number_sources(titles):\n    # You need the POSITION number (1, 2, 3...) together with each title —\n    # there's a tool that hands you both at once, and it can start at 1.\n    # Build each line into a new list.\n    ...\n",
+      "solucao_referencia": "def number_sources(titles):\n    result = []\n    for i, title in enumerate(titles, start=1):\n        result.append(f\"{i}. {title}\")\n    return result\n",
+      "testes_visiveis": [
+        {
+          "nome": "two sources",
+          "codigo": "_check(number_sources(['RAG Guide', 'FAQ']), ['1. RAG Guide', '2. FAQ'])"
+        },
+        {
+          "nome": "one source",
+          "codigo": "_check(number_sources(['Manual']), ['1. Manual'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "empty list",
+          "codigo": "_check(number_sources([]), [])"
+        },
+        {
+          "nome": "four sources",
+          "codigo": "_check(number_sources(['a', 'b', 'c', 'd']), ['1. a', '2. b', '3. c', '4. d'])"
+        },
+        {
+          "nome": "doesn't modify the original list",
+          "codigo": "titles = ['Doc']\nnumber_sources(titles)\n_check(titles, ['Doc'])"
+        },
+        {
+          "nome": "repeated titles are numbered by position",
+          "codigo": "_check(number_sources(['Doc', 'Doc']), ['1. Doc', '2. Doc'])"
+        }
+      ],
+      "dicas": [
+        "`enumerate` hands you, on each pass of the for, a pair (number, item) — and accepts a `start` to choose which number to begin at.",
+        "`for i, title in enumerate(titles, start=1):` already gives 1, 2, 3...; build each line with `f\"{i}. {title}\"` and collect it in a new list.",
+        "`result = []`, then `for i, t in enumerate(titles, start=1): result.append(f\"{i}. {t}\")` and `return result`."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t1-06",
+      "nivel": "colecoes",
+      "tier": 1,
+      "conceitos": [
+        "tuplas",
+        "f-strings"
+      ],
+      "titulo": "An immutable pair",
+      "explicacao_md": null,
+      "enunciado_md": "Before becoming the dict the API expects, a chat message can live as an **immutable pair** `(role, content)` — nobody changes it by accident.\n\nWrite two functions:\n\n- `make_pair(role, content)` — returns the **tuple** `(role, content)`\n- `format_pair(pair)` — takes one of those tuples and returns the string `\"role: content\"`\n\nExample: `make_pair(\"user\", \"Hi\")` → `(\"user\", \"Hi\")`; `format_pair((\"user\", \"Hi\"))` → `\"user: Hi\"`",
+      "starter_code": "def make_pair(role, content):\n    # A tuple is the pair that never changes: parentheses and a comma.\n    ...\n\ndef format_pair(pair):\n    # You can split the tuple into two variables at once (unpacking) and\n    # then build the string.\n    ...\n",
+      "solucao_referencia": "def make_pair(role, content):\n    return (role, content)\n\ndef format_pair(pair):\n    role, content = pair\n    return f\"{role}: {content}\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "creates the pair",
+          "codigo": "_check(make_pair('user', 'Hi'), ('user', 'Hi'))"
+        },
+        {
+          "nome": "formats the pair",
+          "codigo": "_check(format_pair(('user', 'Hi')), 'user: Hi')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "a real tuple, not a list",
+          "codigo": "assert isinstance(make_pair('system', 'rules'), tuple), 'make_pair must return a tuple, not ' + type(make_pair('system', 'rules')).__name__"
+        },
+        {
+          "nome": "a different role",
+          "codigo": "_check(format_pair(('assistant', 'sure!')), 'assistant: sure!')"
+        },
+        {
+          "nome": "round trip",
+          "codigo": "_check(format_pair(make_pair('system', 'be brief')), 'system: be brief')"
+        }
+      ],
+      "dicas": [
+        "A tuple is like a list that never changes: created with parentheses, read by index or by unpacking.",
+        "In the second function, `role, content = pair` splits the tuple into two variables at once.",
+        "`return (role, content)` in the first; `role, content = pair` and `return f\"{role}: {content}\"` in the second."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t2-01",
+      "nivel": "colecoes",
+      "tier": 2,
+      "conceitos": [
+        "dicts-aninhados",
+        "dicts",
+        "loops"
+      ],
+      "titulo": "Conversation scoreboard",
+      "explicacao_md": "In chat APIs (OpenAI and Anthropic) the history is a **list of dicts** — each message has a `role` and a `content`:\n\n```python\nmessages = [\n    {\"role\": \"system\", \"content\": \"Be brief.\"},\n    {\"role\": \"user\", \"content\": \"Hi!\"},\n]\nmessages[1][\"content\"]   # \"Hi!\" — index the list, then read the key\n\n# counter dict: create the key with 0 the first time, then add\ncounts = {}\nfor color in [\"blue\", \"green\", \"blue\"]:\n    if color not in counts:\n        counts[color] = 0\n    counts[color] += 1\n# {\"blue\": 2, \"green\": 1}\n```\n\nThese two patterns — navigating a nested dict and counting with a dict — solve half of all log and chat-history analysis. Keep them close.",
+      "enunciado_md": "Before resending a conversation to the model, it's worth auditing how many messages each `role` has — an unbalanced history often points to a bug in the app.\n\nWrite `count_roles(messages)` that takes a list of messages in the chat API format and returns a dict `role → count`, containing **only** the roles that appear. Empty list → `{}`.\n\n```python\nmsgs = [\n    {\"role\": \"user\", \"content\": \"Hi\"},\n    {\"role\": \"assistant\", \"content\": \"Hello!\"},\n    {\"role\": \"user\", \"content\": \"Can you help me?\"},\n]\ncount_roles(msgs)  # {\"user\": 2, \"assistant\": 1}\n```",
+      "starter_code": "def count_roles(messages):\n    # It's the counter dict from the lesson: the key is each message's role.\n    # Before adding, make sure the key exists (otherwise, KeyError).\n    ...\n",
+      "solucao_referencia": "def count_roles(messages):\n    counts = {}\n    for msg in messages:\n        role = msg[\"role\"]\n        if role not in counts:\n            counts[role] = 0\n        counts[role] += 1\n    return counts\n",
+      "testes_visiveis": [
+        {
+          "nome": "a short conversation",
+          "codigo": "msgs = [{'role': 'user', 'content': 'Hi'}, {'role': 'assistant', 'content': 'Hello!'}, {'role': 'user', 'content': 'Can you help me?'}]\n_check(count_roles(msgs), {'user': 2, 'assistant': 1})"
+        },
+        {
+          "nome": "with a system message",
+          "codigo": "msgs = [{'role': 'system', 'content': 'Be brief.'}, {'role': 'user', 'content': 'Hi'}]\n_check(count_roles(msgs), {'system': 1, 'user': 1})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "an empty conversation",
+          "codigo": "_check(count_roles([]), {})"
+        },
+        {
+          "nome": "one role, several messages",
+          "codigo": "msgs = [{'role': 'user', 'content': 'a'}, {'role': 'user', 'content': 'b'}, {'role': 'user', 'content': 'c'}]\n_check(count_roles(msgs), {'user': 3})"
+        },
+        {
+          "nome": "three different roles",
+          "codigo": "msgs = [{'role': 'system', 'content': 's'}, {'role': 'user', 'content': 'u'}, {'role': 'assistant', 'content': 'a'}, {'role': 'assistant', 'content': 'b'}]\n_check(count_roles(msgs), {'system': 1, 'user': 1, 'assistant': 2})"
+        }
+      ],
+      "dicas": [
+        "It's the counter dict from the lesson — the key here is each message's role, read with `msg[\"role\"]`.",
+        "Before adding, make sure the key exists: `if role not in counts: counts[role] = 0`.",
+        "An empty dict; for each msg: `role = msg[\"role\"]`, set the key to zero if it's new and write `counts[role] += 1`; return the dict at the end."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t2-02",
+      "nivel": "colecoes",
+      "tier": 2,
+      "conceitos": [
+        "dicts-aninhados",
+        "loops",
+        "condicionais"
+      ],
+      "titulo": "The last question",
+      "explicacao_md": null,
+      "enunciado_md": "To rerun the RAG search for a conversation, you need the user's most recent question — not the last message, which may be from the assistant.\n\nWrite `last_question(messages)` that returns the `content` of the **last** message with `role == \"user\"`. If the conversation has none, return `\"\"`.\n\nExample: in a conversation `user: \"Hi\"` → `assistant: \"Hello!\"` → `user: \"What now?\"`, the return value is `\"What now?\"`.",
+      "starter_code": "def last_question(messages):\n    # Walk through in order and store the content every time you find a user —\n    # by the end of the loop, the last one is what's left. Start with \"\" in case there are none.\n    ...\n",
+      "solucao_referencia": "def last_question(messages):\n    result = \"\"\n    for msg in messages:\n        if msg[\"role\"] == \"user\":\n            result = msg[\"content\"]\n    return result\n",
+      "testes_visiveis": [
+        {
+          "nome": "gets the most recent one",
+          "codigo": "msgs = [{'role': 'user', 'content': 'Hi'}, {'role': 'assistant', 'content': 'Hello!'}, {'role': 'user', 'content': 'What now?'}]\n_check(last_question(msgs), 'What now?')"
+        },
+        {
+          "nome": "a single question",
+          "codigo": "_check(last_question([{'role': 'user', 'content': 'Only one'}]), 'Only one')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "without any user",
+          "codigo": "msgs = [{'role': 'system', 'content': 'rules'}, {'role': 'assistant', 'content': 'hi'}]\n_check(last_question(msgs), '')"
+        },
+        {
+          "nome": "an empty conversation",
+          "codigo": "_check(last_question([]), '')"
+        },
+        {
+          "nome": "the last message isn't from the user",
+          "codigo": "msgs = [{'role': 'user', 'content': 'first'}, {'role': 'assistant', 'content': 'reply 1'}, {'role': 'assistant', 'content': 'reply 2'}]\n_check(last_question(msgs), 'first')"
+        }
+      ],
+      "dicas": [
+        "Walk through in order and store the content every time you find a user — by the end of the loop, the variable holds the last one.",
+        "Start with `result = \"\"`; that way, if a user never shows up, the return value is already right without an extra if.",
+        "`for msg in messages:` and, inside, `if msg[\"role\"] == \"user\": result = msg[\"content\"]` — return `result` after the loop."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t2-03",
+      "nivel": "colecoes",
+      "tier": 2,
+      "conceitos": [
+        "dicts",
+        "loops",
+        "normalizacao-texto"
+      ],
+      "titulo": "Most-mentioned terms",
+      "explicacao_md": null,
+      "enunciado_md": "Which terms show up most in the prompts reaching your gateway? This count feeds dashboards and caching decisions.\n\nWrite `frequency(text)` that:\n\n- splits the text into words with `.split()` (repeated spaces and leading/trailing whitespace are already taken care of)\n- converts each word to lowercase\n- returns a dict `word → count`\n\nEmpty text (or only spaces) → `{}`.\n\nExample: `frequency(\"RAG is retrieval and RAG is generation\")` → `{\"rag\": 2, \"is\": 2, \"retrieval\": 1, \"and\": 1, \"generation\": 1}`",
+      "starter_code": "def frequency(text):\n    # The same counter dict — but the keys come from text.split(), and each word\n    # goes through .lower() BEFORE becoming a key (otherwise \"Python\" and \"python\" count separately).\n    ...\n",
+      "solucao_referencia": "def frequency(text):\n    counts = {}\n    for word in text.split():\n        word = word.lower()\n        if word not in counts:\n            counts[word] = 0\n        counts[word] += 1\n    return counts\n",
+      "testes_visiveis": [
+        {
+          "nome": "repeated terms",
+          "codigo": "_check(frequency('RAG is retrieval and RAG is generation'), {'rag': 2, 'is': 2, 'retrieval': 1, 'and': 1, 'generation': 1})"
+        },
+        {
+          "nome": "without repetition",
+          "codigo": "_check(frequency('python for ai'), {'python': 1, 'for': 1, 'ai': 1})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "empty text",
+          "codigo": "_check(frequency(''), {})"
+        },
+        {
+          "nome": "only spaces",
+          "codigo": "_check(frequency('   '), {})"
+        },
+        {
+          "nome": "mixed case becomes a single key",
+          "codigo": "_check(frequency('Python PYTHON python'), {'python': 3})"
+        },
+        {
+          "nome": "repeated spaces don't create a word",
+          "codigo": "_check(frequency('a  a   b'), {'a': 2, 'b': 1})"
+        }
+      ],
+      "dicas": [
+        "It's the same counter dict — but the keys come from `text.split()`, and each word goes through `.lower()` before counting.",
+        "`for word in text.split():` already ignores repeated spaces and leading/trailing whitespace; normalize with `word.lower()` BEFORE you treat it as a key.",
+        "An empty counter; for each word in `text.split()`: `w = word.lower()`, set the key to zero if it's new, add 1; return the dict."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t2-04",
+      "nivel": "colecoes",
+      "tier": 2,
+      "conceitos": [
+        "sets",
+        "listas",
+        "loops"
+      ],
+      "titulo": "Every document once",
+      "explicacao_md": null,
+      "enunciado_md": "Two searches in the vector index can return the same document. Before building the context, remove the repeats **without scrambling the order** — it reflects relevance.\n\nWrite `dedupe(ids)` that returns a **new** list with the first occurrence of each id, in the original order. (`set(ids)` alone won't solve it: sets don't keep order.)\n\nExample: `dedupe([\"doc3\", \"doc1\", \"doc3\", \"doc2\", \"doc1\"])` → `[\"doc3\", \"doc1\", \"doc2\"]`",
+      "starter_code": "def dedupe(ids):\n    # Two structures together: a list for the result (it keeps the order) and a\n    # set to remember what has already gone by. Only items not yet seen get into the list.\n    ...\n",
+      "solucao_referencia": "def dedupe(ids):\n    seen = set()\n    result = []\n    for item in ids:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n    return result\n",
+      "testes_visiveis": [
+        {
+          "nome": "removes repeats, in order",
+          "codigo": "_check(dedupe(['doc3', 'doc1', 'doc3', 'doc2', 'doc1']), ['doc3', 'doc1', 'doc2'])"
+        },
+        {
+          "nome": "without repeats, unchanged",
+          "codigo": "_check(dedupe(['a', 'b', 'c']), ['a', 'b', 'c'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "empty list",
+          "codigo": "_check(dedupe([]), [])"
+        },
+        {
+          "nome": "all the same",
+          "codigo": "_check(dedupe(['x', 'x', 'x']), ['x'])"
+        },
+        {
+          "nome": "arrival order kept",
+          "codigo": "_check(dedupe(['z', 'a', 'z', 'm', 'a', 'z']), ['z', 'a', 'm'])"
+        },
+        {
+          "nome": "doesn't modify the original list",
+          "codigo": "ids = ['d1', 'd1', 'd2']\ndedupe(ids)\n_check(ids, ['d1', 'd1', 'd2'])"
+        }
+      ],
+      "dicas": [
+        "Two structures working together: a list for the result (keeps the order) and a set to remember what has already appeared (fast lookup).",
+        "For each item: if it isn't in the `seen` set yet, add it to BOTH — `seen.add(item)` and `result.append(item)`.",
+        "`seen = set()`, `result = []`; in the loop, `if item not in seen:` → add to the set + append to the list; return `result`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t2-05",
+      "nivel": "colecoes",
+      "tier": 2,
+      "conceitos": [
+        "enumerate-zip",
+        "dicts-aninhados",
+        "listas"
+      ],
+      "titulo": "Rebuilding the history",
+      "explicacao_md": null,
+      "enunciado_md": "An old export split the conversation into two parallel lists: the user's questions and the assistant's answers. To resend it to the API, you have to rebuild the `messages` format.\n\nWrite `rebuild(questions, answers)` that returns an interleaved list: for each pair, a dict `{\"role\": \"user\", \"content\": question}` followed by `{\"role\": \"assistant\", \"content\": answer}`. The lists always have the same length.\n\nExample: `rebuild([\"Hi\"], [\"Hello!\"])` → `[{\"role\": \"user\", \"content\": \"Hi\"}, {\"role\": \"assistant\", \"content\": \"Hello!\"}]`",
+      "starter_code": "def rebuild(questions, answers):\n    # There's a tool that walks both lists at the same time, handing you\n    # one pair per pass. For each pair, TWO appends: the user dict, then the assistant one.\n    ...\n",
+      "solucao_referencia": "def rebuild(questions, answers):\n    messages = []\n    for question, answer in zip(questions, answers):\n        messages.append({\"role\": \"user\", \"content\": question})\n        messages.append({\"role\": \"assistant\", \"content\": answer})\n    return messages\n",
+      "testes_visiveis": [
+        {
+          "nome": "one pair",
+          "codigo": "_check(rebuild(['Hi'], ['Hello!']), [{'role': 'user', 'content': 'Hi'}, {'role': 'assistant', 'content': 'Hello!'}])"
+        },
+        {
+          "nome": "two pairs",
+          "codigo": "_check(rebuild(['a?', 'b?'], ['A.', 'B.']), [{'role': 'user', 'content': 'a?'}, {'role': 'assistant', 'content': 'A.'}, {'role': 'user', 'content': 'b?'}, {'role': 'assistant', 'content': 'B.'}])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "empty lists",
+          "codigo": "_check(rebuild([], []), [])"
+        },
+        {
+          "nome": "three interleaved pairs",
+          "codigo": "_check(rebuild(['1', '2', '3'], ['one', 'two', 'three']), [{'role': 'user', 'content': '1'}, {'role': 'assistant', 'content': 'one'}, {'role': 'user', 'content': '2'}, {'role': 'assistant', 'content': 'two'}, {'role': 'user', 'content': '3'}, {'role': 'assistant', 'content': 'three'}])"
+        },
+        {
+          "nome": "each pair produces two messages",
+          "codigo": "assert len(rebuild(['q1', 'q2'], ['r1', 'r2'])) == 4, 'Each (question, answer) pair must produce TWO messages in the final list'"
+        }
+      ],
+      "dicas": [
+        "`zip` walks both lists at the same time, handing you a pair (question, answer) on each pass of the loop.",
+        "`for question, answer in zip(questions, answers):` — inside the loop, make TWO appends, one for each dict.",
+        "Build each dict literally: `{\"role\": \"user\", \"content\": question}` and then the assistant one; appends always in user → assistant order."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t3-01",
+      "nivel": "colecoes",
+      "tier": 3,
+      "conceitos": [
+        "listas",
+        "loops",
+        "dicts-aninhados"
+      ],
+      "titulo": "Purging the history",
+      "explicacao_md": "A classic bug: **removing items from a list while iterating over it**. When an item leaves, the following ones shift one position — and the iterator, which advances by an internal index, skips the neighbor of the removed item.\n\n```python\nnumbers = [1, 1, 2]\nfor n in numbers:\n    if n == 1:\n        numbers.remove(n)\nprint(numbers)  # [1, 2] — one of the 1s escaped!\n```\n\nThe canonical fix: iterate over a **copy** (`items[:]` or `list(items)`) and remove from the original — the copy keeps the sequence stable while the original shrinks.\n\nIn tier 3, the contract matters as much as the code: read the starter's docstring — it says what the function promises (in-place mutation, edges, dirty cases).",
+      "enunciado_md": "Messages with an empty `content` (or only spaces) break API calls — the whole request comes back with a 400 error.\n\nThe starter has a function with a common bug: it removes items **while iterating** and lets consecutive empty messages slip through. Fix `purge_empty(history)` while honoring the docstring's contract: modify the list it receives **in place** and return the SAME list.\n\nExample: a history whose contents are `[\"Hi\", \"\", \"  \", \"How are you?\"]` ends up as `[\"Hi\", \"How are you?\"]`.",
+      "starter_code": "def purge_empty(history):\n    \"\"\"Removes from `history` ITSELF the messages whose content is empty or only spaces.\n\n    Contract:\n    - modifies the received list in place\n    - returns the SAME list (the same object)\n    - consecutive empty messages are removed too\n    - an empty list doesn't break\n    \"\"\"\n    # BUG: removing while iterating skips elements — fix it.\n    for msg in history:\n        if not msg[\"content\"].strip():\n            history.remove(msg)\n    return history\n",
+      "solucao_referencia": "def purge_empty(history):\n    for msg in history[:]:\n        if not msg[\"content\"].strip():\n            history.remove(msg)\n    return history\n",
+      "testes_visiveis": [
+        {
+          "nome": "empty and whitespace-only messages are removed",
+          "codigo": "h = [{'role': 'user', 'content': 'Hi'}, {'role': 'assistant', 'content': ''}, {'role': 'user', 'content': '  '}, {'role': 'assistant', 'content': 'How are you?'}]\npurge_empty(h)\n_check(h, [{'role': 'user', 'content': 'Hi'}, {'role': 'assistant', 'content': 'How are you?'}])"
+        },
+        {
+          "nome": "returns the SAME list",
+          "codigo": "h = [{'role': 'user', 'content': 'x'}]\nassert purge_empty(h) is h, 'Return the SAME list you received (in place), not a copy'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "three empty ones in a row (the heart of the bug)",
+          "codigo": "h = [{'role': 'user', 'content': ''}, {'role': 'user', 'content': ' '}, {'role': 'user', 'content': '\\t'}, {'role': 'user', 'content': 'end'}]\npurge_empty(h)\n_check(h, [{'role': 'user', 'content': 'end'}])"
+        },
+        {
+          "nome": "all empty",
+          "codigo": "h = [{'role': 'user', 'content': ''}, {'role': 'assistant', 'content': '   '}]\npurge_empty(h)\n_check(h, [])"
+        },
+        {
+          "nome": "nothing to purge, order intact",
+          "codigo": "h = [{'role': 'user', 'content': 'a'}, {'role': 'assistant', 'content': 'b'}]\npurge_empty(h)\n_check(h, [{'role': 'user', 'content': 'a'}, {'role': 'assistant', 'content': 'b'}])"
+        },
+        {
+          "nome": "an empty history doesn't break",
+          "codigo": "h = []\n_check(purge_empty(h), [])"
+        }
+      ],
+      "dicas": [
+        "When an item leaves the list, the following ones shift one slot — and the iterator, which follows an internal index, skips the neighbor. Two empty ones in a row: the second escapes.",
+        "Iterate over a copy (`history[:]`) and call `history.remove(msg)` on the original — the copy doesn't shrink, so nothing gets skipped.",
+        "Change only the for line: `for msg in history[:]:` — the rest of the body (the if, the remove and the return) is already right."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t3-02",
+      "nivel": "colecoes",
+      "tier": 3,
+      "conceitos": [
+        "dicts",
+        "dicts-aninhados",
+        "loops"
+      ],
+      "titulo": "An invoice with gaps",
+      "explicacao_md": null,
+      "enunciado_md": "The billing log arrived dirty: a few records lack the `\"model\"` field, others lack `\"tokens\"`.\n\nWrite `tokens_by_model(records)` that takes a list of dicts and returns a dict `model → sum of tokens`, with this contract:\n\n- a record without `\"model\"` counts toward the `\"unknown\"` group\n- a record without `\"tokens\"` adds `0` (but the model still appears in the result)\n- empty list → `{}`\n\nUseful tool: `d.get(key, default)` returns the default when the key doesn't exist, without raising `KeyError`.\n\nExample: `tokens_by_model([{\"model\": \"mock-4\", \"tokens\": 100}, {\"tokens\": 30}])` → `{\"mock-4\": 100, \"unknown\": 30}`",
+      "starter_code": "def tokens_by_model(records):\n    \"\"\"Sums tokens per model from DIRTY billing records.\n\n    Contract:\n    - a record without \"model\" goes into the \"unknown\" group\n    - a record without \"tokens\" adds 0 (but the model appears in the result)\n    - empty list -> {}\n    \"\"\"\n    # Three places can raise KeyError: the record's two fields and the new key\n    # in the totals dict. There's a dict method with a default value that guards all three.\n    ...\n",
+      "solucao_referencia": "def tokens_by_model(records):\n    totals = {}\n    for rec in records:\n        model = rec.get(\"model\", \"unknown\")\n        tokens = rec.get(\"tokens\", 0)\n        totals[model] = totals.get(model, 0) + tokens\n    return totals\n",
+      "testes_visiveis": [
+        {
+          "nome": "a record without a model becomes unknown",
+          "codigo": "_check(tokens_by_model([{'model': 'mock-4', 'tokens': 100}, {'tokens': 30}]), {'mock-4': 100, 'unknown': 30})"
+        },
+        {
+          "nome": "clean records sum per model",
+          "codigo": "_check(tokens_by_model([{'model': 'mini', 'tokens': 10}, {'model': 'mini', 'tokens': 5}, {'model': 'mock-4', 'tokens': 7}]), {'mini': 15, 'mock-4': 7})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "an empty log",
+          "codigo": "_check(tokens_by_model([]), {})"
+        },
+        {
+          "nome": "without tokens, the model still appears",
+          "codigo": "_check(tokens_by_model([{'model': 'mini'}]), {'mini': 0})"
+        },
+        {
+          "nome": "a completely empty record",
+          "codigo": "_check(tokens_by_model([{}]), {'unknown': 0})"
+        },
+        {
+          "nome": "a mix of gaps",
+          "codigo": "_check(tokens_by_model([{'model': 'x', 'tokens': 1}, {}, {'tokens': 2}, {'model': 'x'}]), {'x': 1, 'unknown': 2})"
+        }
+      ],
+      "dicas": [
+        "Three places can blow up with KeyError — the record's two fields and the new key in the totals dict. `.get` with a default solves all three.",
+        "`rec.get(\"model\", \"unknown\")` and `rec.get(\"tokens\", 0)` clean up the record; to accumulate, `totals.get(model, 0) + tokens` (or `totals.setdefault(model, 0)` before adding).",
+        "In the loop: `model = rec.get(\"model\", \"unknown\")`, `tokens = rec.get(\"tokens\", 0)`, `totals[model] = totals.get(model, 0) + tokens`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t3-03",
+      "nivel": "colecoes",
+      "tier": 3,
+      "conceitos": [
+        "enumerate-zip",
+        "tuplas",
+        "listas"
+      ],
+      "titulo": "The document podium",
+      "explicacao_md": null,
+      "enunciado_md": "The vector search returned two parallel lists: document names and similarity scores — and not always the same length.\n\nWrite `rank(names, scores)`:\n\n- pair them with `zip`; different lengths → **the shorter one wins**, leftovers are ignored (zip's default behavior)\n- sort by score, **descending**\n- ties keep the original arrival order (Python's `sorted` is stable)\n- return only the names, in ranking order\n\nUseful tool: `sorted(pairs, key=pick, reverse=True)` sorts by the value the `pick` function returns for each item. Here the items are `(name, score)` pairs, and the comparison value is the score — the second element of the pair. You write that small function alongside:\n\n```python\ndef pick(pair):\n    return pair[1]   # the score of the (name, score) pair\n```\n\nExample: `rank([\"a\", \"b\", \"c\"], [0.2, 0.9, 0.5])` → `[\"b\", \"c\", \"a\"]`",
+      "starter_code": "def rank(names, scores):\n    \"\"\"Ranks documents by score, from highest to lowest.\n\n    Contract:\n    - different lengths: pairs only up to the shorter list (zip's default)\n    - tied scores: keep the original order (sorted is stable)\n    - returns ONLY the names, in ranking order\n    \"\"\"\n    # Pair the two with zip, sort the pairs by score (the little function from the\n    # task is the key), and finally collect just the names in the new order.\n    ...\n",
+      "solucao_referencia": "def get_score(pair):\n    return pair[1]\n\ndef rank(names, scores):\n    pairs = list(zip(names, scores))\n    ordered = sorted(pairs, key=get_score, reverse=True)\n    ranking = []\n    for name, score in ordered:\n        ranking.append(name)\n    return ranking\n",
+      "testes_visiveis": [
+        {
+          "nome": "sorts by score",
+          "codigo": "_check(rank(['a', 'b', 'c'], [0.2, 0.9, 0.5]), ['b', 'c', 'a'])"
+        },
+        {
+          "nome": "already in order",
+          "codigo": "_check(rank(['top', 'middle'], [0.9, 0.1]), ['top', 'middle'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "a tie keeps the arrival order",
+          "codigo": "_check(rank(['x', 'y', 'z'], [0.5, 0.9, 0.5]), ['y', 'x', 'z'])"
+        },
+        {
+          "nome": "more names than scores (the shorter one wins)",
+          "codigo": "_check(rank(['d1', 'd2', 'd3', 'd4'], [0.1, 0.8]), ['d2', 'd1'])"
+        },
+        {
+          "nome": "more scores than names",
+          "codigo": "_check(rank(['solo'], [0.3, 0.9, 0.5]), ['solo'])"
+        },
+        {
+          "nome": "empty lists",
+          "codigo": "_check(rank([], []), [])"
+        },
+        {
+          "nome": "everything tied",
+          "codigo": "_check(rank(['p', 'q', 'r'], [1.0, 1.0, 1.0]), ['p', 'q', 'r'])"
+        }
+      ],
+      "dicas": [
+        "Three steps: pair with `zip`, sort with `sorted` (`reverse=True`) and extract the names. The stability of `sorted` handles ties on its own.",
+        "The `key` is a small function that takes each pair and returns the score. Define it alongside: `def pick(pair): return pair[1]`, and pass `key=pick`.",
+        "`pairs = list(zip(names, scores))`, then `sorted(pairs, key=pick, reverse=True)`, and a for that appends only the name of each pair."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t1-01",
+      "nivel": "funcoes",
+      "tier": 1,
+      "conceitos": [
+        "funcoes"
+      ],
+      "titulo": "Token calculator",
+      "explicacao_md": "Functions are the heart of any AI SDK: `client.chat.completions.create(...)` is, deep down, a function with a lot of parameters. In Act 4 you'll call exactly that `create` — today you learn what's behind it.\n\nThe full anatomy:\n\n```python\ndef estimate(text, factor=4):    # defines; factor has a DEFAULT value\n    return len(text) // factor   # returns the result\n\nestimate(\"dojo\")             # positional call -> 1\nestimate(\"dojo\", factor=2)   # KEYWORD argument -> 2\n```\n\n- `def` defines; `return` hands back (without return, the function returns `None`).\n- A parameter with `=` in the signature has a default value — the caller can leave it out.\n- In the call, `name=value` frees you from the order and documents the intent.\n- To return two values at once: `return a, b` (it becomes a tuple).",
+      "enunciado_md": "Before sending a prompt to the API, every team estimates the cost — and the industry's rule of thumb is **1 token ≈ 4 characters**.\n\nWrite the function `estimate_tokens(text)` that returns the token estimate: the length of the text divided by 4, with **integer division** (`//`).\n\nExample: `estimate_tokens(\"python for ai\")` → `3` (13 characters // 4).",
+      "starter_code": "def estimate_tokens(text):\n    # The rule: 1 token ~ 4 characters. len() gives the length; what's left is dividing by 4\n    # in a way that returns an integer (the division that drops the remainder).\n    ...\n",
+      "solucao_referencia": "def estimate_tokens(text):\n    return len(text) // 4\n",
+      "testes_visiveis": [
+        {
+          "nome": "a 13-character prompt",
+          "codigo": "_check(estimate_tokens('python for ai'), 3)"
+        },
+        {
+          "nome": "short text rounds down",
+          "codigo": "_check(estimate_tokens('rag'), 0)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "long text",
+          "codigo": "_check(estimate_tokens('x' * 100), 25)"
+        },
+        {
+          "nome": "another word",
+          "codigo": "_check(estimate_tokens('embedding'), 2)"
+        },
+        {
+          "nome": "returns a real int",
+          "codigo": "assert isinstance(estimate_tokens('abcd'), int), 'The estimate must be an int — reach for integer division //'"
+        },
+        {
+          "nome": "empty text",
+          "codigo": "_check(estimate_tokens(''), 0)"
+        }
+      ],
+      "dicas": [
+        "A function starts with `def name(parameters):`, an indented body and `return` to hand back the value — without return, the caller gets None.",
+        "`len(text)` gives the length; the division that drops the remainder is `//`. Put the two together in a single return.",
+        "`return len(text) // 4`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t1-02",
+      "nivel": "funcoes",
+      "tier": 1,
+      "conceitos": [
+        "parametros-default",
+        "funcoes"
+      ],
+      "titulo": "The default temperature",
+      "explicacao_md": null,
+      "enunciado_md": "AI SDKs come with factory defaults: if you don't pass `temperature`, the API assumes a default. In Python, that's a **default parameter**.\n\nWrite `generation_config(model, temperature=0.7)` — the `0.7` default goes in the signature — returning **exactly** this format:\n\n```\nmock-4 (temperature=0.7)\n```\n\nExamples:\n\n- `generation_config(\"mock-4\")` → `\"mock-4 (temperature=0.7)\"`\n- `generation_config(\"mock-4\", 0.0)` → `\"mock-4 (temperature=0.0)\"`",
+      "starter_code": "def generation_config(model, temperature):\n    # The 0.7 default lives in the SIGNATURE above (give the parameter an =), not in the body.\n    # The rest is an f-string in the exact format from the task.\n    ...\n",
+      "solucao_referencia": "def generation_config(model, temperature=0.7):\n    return f\"{model} (temperature={temperature})\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "without passing the temperature",
+          "codigo": "_check(generation_config('mock-4'), 'mock-4 (temperature=0.7)')"
+        },
+        {
+          "nome": "overriding the default",
+          "codigo": "_check(generation_config('mock-4', 0.0), 'mock-4 (temperature=0.0)')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "another model, same default",
+          "codigo": "_check(generation_config('mini'), 'mini (temperature=0.7)')"
+        },
+        {
+          "nome": "a high temperature",
+          "codigo": "_check(generation_config('m', 1.5), 'm (temperature=1.5)')"
+        },
+        {
+          "nome": "temperature passed by name",
+          "codigo": "_check(generation_config('x', temperature=0.2), 'x (temperature=0.2)')"
+        }
+      ],
+      "dicas": [
+        "The default value lives in the function's OWN signature: anyone who calls it without the second argument gets the default automatically.",
+        "Signature: `def generation_config(model, temperature=0.7):` — the body is an f-string with both values and the format's parentheses.",
+        "`def generation_config(model, temperature=0.7):` and `return f\"{model} (temperature={temperature})\"`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t1-03",
+      "nivel": "funcoes",
+      "tier": 1,
+      "conceitos": [
+        "funcoes",
+        "f-strings"
+      ],
+      "titulo": "Order doesn't matter",
+      "explicacao_md": null,
+      "enunciado_md": "AI SDK calls almost always pass **keyword** arguments — `chat(model=\"x\", max_tokens=100)` — because the name matches the parameter and the order stops mattering.\n\nWrite `usage_summary(model, prompt_tokens, completion_tokens)` that returns this exact format:\n\n```\nmock-4: 120+80=200 tokens\n```\n\n(200 is the sum). The tests call your function with the arguments in SEVERAL orders — many of them by name — so if the parameter names are right, everything works.\n\nExample: `usage_summary(completion_tokens=80, model=\"mock-4\", prompt_tokens=120)` → `\"mock-4: 120+80=200 tokens\"`",
+      "starter_code": "def usage_summary(model, prompt_tokens, completion_tokens):\n    # The parameter NAMES are the contract: the tests call by name, in several\n    # orders. An f-string can hold an expression — you can add right there.\n    ...\n",
+      "solucao_referencia": "def usage_summary(model, prompt_tokens, completion_tokens):\n    return f\"{model}: {prompt_tokens}+{completion_tokens}={prompt_tokens + completion_tokens} tokens\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "a positional call",
+          "codigo": "_check(usage_summary('mock-4', 120, 80), 'mock-4: 120+80=200 tokens')"
+        },
+        {
+          "nome": "keywords out of order",
+          "codigo": "_check(usage_summary(completion_tokens=5, prompt_tokens=10, model='mini'), 'mini: 10+5=15 tokens')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "another order of names",
+          "codigo": "_check(usage_summary(model='m', completion_tokens=1, prompt_tokens=2), 'm: 2+1=3 tokens')"
+        },
+        {
+          "nome": "all zero",
+          "codigo": "_check(usage_summary('t', 0, 0), 't: 0+0=0 tokens')"
+        },
+        {
+          "nome": "mixing positional and keyword",
+          "codigo": "_check(usage_summary('mock-4', completion_tokens=30, prompt_tokens=70), 'mock-4: 70+30=100 tokens')"
+        }
+      ],
+      "dicas": [
+        "Keyword arguments match by the parameter's NAME, not its position — your only job is to declare the three exact names from the task.",
+        "Inside the braces of an f-string you can put a whole expression: `{prompt_tokens + completion_tokens}` computes the sum on the spot.",
+        "`return f\"{model}: {prompt_tokens}+{completion_tokens}={prompt_tokens + completion_tokens} tokens\"`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t1-04",
+      "nivel": "funcoes",
+      "tier": 1,
+      "conceitos": [
+        "funcoes",
+        "tuplas"
+      ],
+      "titulo": "Best and worst case",
+      "explicacao_md": null,
+      "enunciado_md": "A latency dashboard always shows the best and worst case of the LLM calls.\n\nWrite `extremes(latencies)` that takes a **non-empty** list of numbers and returns TWO values: the smallest and the largest, in that order — separated by a comma in the `return`, which packs them into a tuple.\n\nThe caller can unpack them directly: `lowest, highest = extremes([0.4, 1.2, 0.8])`.\n\nExample: `extremes([0.4, 1.2, 0.8])` → `(0.4, 1.2)`",
+      "starter_code": "def extremes(latencies):\n    # Python already ships two built-in functions for the smallest and largest in a list.\n    # To return both at once, separate them with a comma in the return statement.\n    ...\n",
+      "solucao_referencia": "def extremes(latencies):\n    return min(latencies), max(latencies)\n",
+      "testes_visiveis": [
+        {
+          "nome": "three latencies",
+          "codigo": "_check(extremes([0.4, 1.2, 0.8]), (0.4, 1.2))"
+        },
+        {
+          "nome": "unpacking the result",
+          "codigo": "lowest, highest = extremes([3, 1, 2])\n_check(lowest, 1)\n_check(highest, 3)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "a single element",
+          "codigo": "_check(extremes([5]), (5, 5))"
+        },
+        {
+          "nome": "returns a real tuple",
+          "codigo": "assert isinstance(extremes([1.0, 2.0]), tuple), 'Return a tuple — two values separated by a comma in the return statement'"
+        },
+        {
+          "nome": "repeated values",
+          "codigo": "_check(extremes([2, 2, 2]), (2, 2))"
+        }
+      ],
+      "dicas": [
+        "To return two values, separate them with a comma in the return statement — Python packs them into a tuple, and the caller unpacks with `a, b = ...`.",
+        "The built-in functions `min(items)` and `max(items)` handle the heavy lifting; you just decide which comes first.",
+        "`return min(latencies), max(latencies)`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t1-05",
+      "nivel": "funcoes",
+      "tier": 1,
+      "conceitos": [
+        "parametros-default",
+        "funcoes"
+      ],
+      "titulo": "Generation preset",
+      "explicacao_md": null,
+      "enunciado_md": "A generation preset has several knobs, each with a default value. With keyword arguments you can change JUST one of them, skipping the ones in the middle.\n\nWrite `profile(model, temperature=0.7, max_tokens=256)` that returns this exact format:\n\n```\nmock-4 t=0.7 max=256\n```\n\nExamples:\n\n- `profile(\"mock-4\")` → `\"mock-4 t=0.7 max=256\"`\n- `profile(\"mock-4\", max_tokens=1024)` → `\"mock-4 t=0.7 max=1024\"` (temperature untouched)",
+      "starter_code": "def profile(model, temperature=0.7, max_tokens=256):\n    # Both defaults are already in the signature. The body is a single f-string, with\n    # the three values in the format's order.\n    ...\n",
+      "solucao_referencia": "def profile(model, temperature=0.7, max_tokens=256):\n    return f\"{model} t={temperature} max={max_tokens}\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "just the model",
+          "codigo": "_check(profile('mock-4'), 'mock-4 t=0.7 max=256')"
+        },
+        {
+          "nome": "skipping the temperature",
+          "codigo": "_check(profile('mock-4', max_tokens=1024), 'mock-4 t=0.7 max=1024')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "just the temperature",
+          "codigo": "_check(profile('mini', temperature=0.2), 'mini t=0.2 max=256')"
+        },
+        {
+          "nome": "both by name, reversed",
+          "codigo": "_check(profile('m', max_tokens=8, temperature=1.0), 'm t=1.0 max=8')"
+        },
+        {
+          "nome": "the second position is the temperature",
+          "codigo": "_check(profile('z', 0.5), 'z t=0.5 max=256')"
+        }
+      ],
+      "dicas": [
+        "With several defaults, a keyword argument lets you skip the ones in the middle: you can change just `max_tokens` without touching `temperature`.",
+        "The body is a single f-string, with the three parameters in the format's order: model, temperature, max_tokens.",
+        "`return f\"{model} t={temperature} max={max_tokens}\"`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t2-01",
+      "nivel": "funcoes",
+      "tier": 2,
+      "conceitos": [
+        "args-kwargs",
+        "parametros-default",
+        "dicts"
+      ],
+      "titulo": "The SDK payload",
+      "explicacao_md": "Open any AI SDK and you'll see signatures like this: `create(model=..., temperature=..., **kwargs)`. Two ideas unlock how to read them:\n\n**1. `**kwargs` collects extra keyword arguments into a dict** — and, in the opposite direction, `func(**my_dict)` spreads a dict out into keyword arguments:\n\n```python\ndef call(prompt, **extras):\n    return extras            # a dict with whatever was left over\n\ncall(\"hi\", top_p=0.9)        # {'top_p': 0.9}\n```\n\n**2. Functions are values.** You can store one in a variable, pass it as an argument — `sorted(models, key=my_func)` — and create an anonymous one from a single expression: `lambda m: m[\"cost\"]`.\n\nOnce you've mastered these two ideas, you can read any SDK's documentation without flinching.",
+      "enunciado_md": "Every AI SDK accepts parameters beyond the basic ones — and passes them along via `**kwargs`. Time for you to follow suit.\n\nWrite `build_request(prompt, model=\"mock-4\", temperature=0.7, **extras)` that returns a dict with:\n\n- `\"model\"`: the model\n- `\"temperature\"`: the temperature\n- `\"messages\"`: a list with ONE dict `{\"role\": \"user\", \"content\": prompt}`\n- each extra argument becomes one more key, with the same name and value\n\nExample: `build_request(\"Hi\", max_tokens=100)` →\n\n```python\n{\"model\": \"mock-4\", \"temperature\": 0.7,\n \"messages\": [{\"role\": \"user\", \"content\": \"Hi\"}],\n \"max_tokens\": 100}\n```\n\nWithout extras, the dict has only the three base keys.",
+      "starter_code": "def build_request(prompt, model=\"mock-4\", temperature=0.7, **extras):\n    ...\n",
+      "solucao_referencia": "def build_request(prompt, model=\"mock-4\", temperature=0.7, **extras):\n    req = {\n        \"model\": model,\n        \"temperature\": temperature,\n        \"messages\": [{\"role\": \"user\", \"content\": prompt}],\n    }\n    req.update(extras)\n    return req\n",
+      "testes_visiveis": [
+        {
+          "nome": "just the prompt",
+          "codigo": "_check(build_request('Hi'), {'model': 'mock-4', 'temperature': 0.7, 'messages': [{'role': 'user', 'content': 'Hi'}]})"
+        },
+        {
+          "nome": "an extra becomes a key",
+          "codigo": "_check(build_request('Hi', max_tokens=100)['max_tokens'], 100)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "everything together",
+          "codigo": "_check(build_request('How much does it cost?', model='mini', temperature=0.2, top_p=0.9), {'model': 'mini', 'temperature': 0.2, 'messages': [{'role': 'user', 'content': 'How much does it cost?'}], 'top_p': 0.9})"
+        },
+        {
+          "nome": "without extras, only the 3 base keys",
+          "codigo": "_check(sorted(build_request('a').keys()), ['messages', 'model', 'temperature'])"
+        },
+        {
+          "nome": "two extras at once",
+          "codigo": "req = build_request('b', seed=42, stop='end')\n_check(req['seed'], 42)\n_check(req['stop'], 'end')"
+        },
+        {
+          "nome": "the message carries the prompt",
+          "codigo": "_check(build_request('new prompt')['messages'], [{'role': 'user', 'content': 'new prompt'}])"
+        }
+      ],
+      "dicas": [
+        "`**extras` in the signature collects into a dict every keyword argument you did NOT declare — build the base dictionary and then pour the extras into it.",
+        "Build the dict with `model`, `temperature` and `messages` (a list with one role/content dict) and call `req.update(extras)` before the return.",
+        "`req = {\"model\": model, \"temperature\": temperature, \"messages\": [{\"role\": \"user\", \"content\": prompt}]}`, then `req.update(extras)` and `return req`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t2-02",
+      "nivel": "funcoes",
+      "tier": 2,
+      "conceitos": [
+        "lambda",
+        "dicts",
+        "listas"
+      ],
+      "titulo": "Cost ranking",
+      "explicacao_md": null,
+      "enunciado_md": "Your gateway routes each request to the cheapest model that can handle the task. First step: rank by cost.\n\nWrite `sort_by_cost(models)`: it takes a list of dicts with the keys `\"name\"` and `\"cost_per_1k\"` and returns **only the names**, from cheapest to most expensive. Models with equal cost keep their original order. Empty list → empty list.\n\nExample:\n\n```python\nsort_by_cost([\n  {\"name\": \"mock-4\", \"cost_per_1k\": 30.0},\n  {\"name\": \"mini\", \"cost_per_1k\": 0.15},\n])\n# [\"mini\", \"mock-4\"]\n```\n\nCall `sorted` with `key=lambda ...`.",
+      "starter_code": "def sort_by_cost(models):\n    ...\n",
+      "solucao_referencia": "def sort_by_cost(models):\n    ordered = sorted(models, key=lambda m: m[\"cost_per_1k\"])\n    names = []\n    for m in ordered:\n        names.append(m[\"name\"])\n    return names\n",
+      "testes_visiveis": [
+        {
+          "nome": "three models",
+          "codigo": "models = [{'name': 'mock-4', 'cost_per_1k': 30.0}, {'name': 'mini', 'cost_per_1k': 0.15}, {'name': 'mock-claude', 'cost_per_1k': 15.0}]\n_check(sort_by_cost(models), ['mini', 'mock-claude', 'mock-4'])"
+        },
+        {
+          "nome": "already in order",
+          "codigo": "_check(sort_by_cost([{'name': 'a', 'cost_per_1k': 1.0}, {'name': 'b', 'cost_per_1k': 2.0}]), ['a', 'b'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "reversed order",
+          "codigo": "data = [{'name': 'expensive', 'cost_per_1k': 99.0}, {'name': 'medium', 'cost_per_1k': 5.0}, {'name': 'cheap', 'cost_per_1k': 0.5}]\n_check(sort_by_cost(data), ['cheap', 'medium', 'expensive'])"
+        },
+        {
+          "nome": "empty list",
+          "codigo": "_check(sort_by_cost([]), [])"
+        },
+        {
+          "nome": "a tie keeps the original order",
+          "codigo": "data = [{'name': 'a', 'cost_per_1k': 2.0}, {'name': 'b', 'cost_per_1k': 2.0}, {'name': 'c', 'cost_per_1k': 1.0}]\n_check(sort_by_cost(data), ['c', 'a', 'b'])"
+        },
+        {
+          "nome": "a single model",
+          "codigo": "_check(sort_by_cost([{'name': 'solo', 'cost_per_1k': 3.0}]), ['solo'])"
+        },
+        {
+          "nome": "numeric order, not alphabetical",
+          "codigo": "_check(sort_by_cost([{'name': 'ten', 'cost_per_1k': 10.0}, {'name': 'two', 'cost_per_1k': 2.0}]), ['two', 'ten'])"
+        }
+      ],
+      "dicas": [
+        "`sorted` accepts a `key` parameter: a function that takes ONE item and returns the value used for comparison — that's where the lambda comes in. Python's sort is stable: ties keep their order.",
+        "`sorted(models, key=lambda m: m[\"cost_per_1k\"])` sorts the dicts; then walk the result pulling out just the `name` field.",
+        "`ordered = sorted(models, key=lambda m: m[\"cost_per_1k\"])`, then a for that runs `names.append(m[\"name\"])` and `return names`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t2-03",
+      "nivel": "funcoes",
+      "tier": 2,
+      "conceitos": [
+        "funcoes",
+        "lambda",
+        "loops"
+      ],
+      "titulo": "Batch transformation",
+      "explicacao_md": null,
+      "enunciado_md": "Preprocessing pipelines apply the SAME transformation to thousands of texts before generating embeddings — and the transformation changes from project to project. The solution: take it as an argument.\n\nWrite `apply_to_batch(func, texts)` that applies the function `func` to each item of `texts` and returns the list of results, in the same order. Empty list → empty list.\n\nExample: `apply_to_batch(len, [\"rag\", \"prompt\"])` → `[3, 6]`\n\nThe tests pass ready-made functions, lambdas and even methods like `str.strip` — to your code, it makes zero difference: they're all callable.",
+      "starter_code": "def apply_to_batch(func, texts):\n    ...\n",
+      "solucao_referencia": "def apply_to_batch(func, texts):\n    results = []\n    for text in texts:\n        results.append(func(text))\n    return results\n",
+      "testes_visiveis": [
+        {
+          "nome": "with len",
+          "codigo": "_check(apply_to_batch(len, ['rag', 'prompt']), [3, 6])"
+        },
+        {
+          "nome": "with a lambda",
+          "codigo": "_check(apply_to_batch(lambda t: t.upper(), ['rag', 'llm']), ['RAG', 'LLM'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "with a defined function",
+          "codigo": "def tag(t):\n    return '<' + t + '>'\n_check(apply_to_batch(tag, ['a', 'b']), ['<a>', '<b>'])"
+        },
+        {
+          "nome": "empty list",
+          "codigo": "_check(apply_to_batch(len, []), [])"
+        },
+        {
+          "nome": "with str.strip",
+          "codigo": "_check(apply_to_batch(str.strip, ['  a ', 'b ']), ['a', 'b'])"
+        },
+        {
+          "nome": "order preserved",
+          "codigo": "_check(apply_to_batch(lambda x: x * 2, [3, 1, 2]), [6, 2, 4])"
+        }
+      ],
+      "dicas": [
+        "A function is a value like any other: `func` arrives as an argument and you run it with `func(item)` — parentheses only when you call it.",
+        "Loop over `texts` with a for, apply `func(text)` to each item and collect the results in a new list.",
+        "`results = []`, then `for text in texts: results.append(func(text))` and `return results`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t2-04",
+      "nivel": "funcoes",
+      "tier": 2,
+      "conceitos": [
+        "args-kwargs",
+        "f-strings"
+      ],
+      "titulo": "Parameter audit",
+      "explicacao_md": null,
+      "enunciado_md": "To audit costs, the gateway records EXACTLY which parameters each LLM call was made with — whatever they happen to be.\n\nWrite `log_params(**params)` that accepts **any** set of keyword arguments and returns a string with the `key=value` pairs separated by spaces, in **alphabetical order of key**. Without arguments → an empty string.\n\nExample: `log_params(temperature=0.7, model=\"mock-4\")` → `\"model=mock-4 temperature=0.7\"`",
+      "starter_code": "def log_params(**params):\n    ...\n",
+      "solucao_referencia": "def log_params(**params):\n    parts = []\n    for key in sorted(params):\n        parts.append(f\"{key}={params[key]}\")\n    return \" \".join(parts)\n",
+      "testes_visiveis": [
+        {
+          "nome": "two parameters",
+          "codigo": "_check(log_params(temperature=0.7, model='mock-4'), 'model=mock-4 temperature=0.7')"
+        },
+        {
+          "nome": "one parameter",
+          "codigo": "_check(log_params(seed=42), 'seed=42')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "without parameters",
+          "codigo": "_check(log_params(), '')"
+        },
+        {
+          "nome": "three keys in alphabetical order",
+          "codigo": "_check(log_params(top_p=0.9, max_tokens=100, model='m'), 'max_tokens=100 model=m top_p=0.9')"
+        },
+        {
+          "nome": "call order doesn't matter",
+          "codigo": "_check(log_params(stream=True, model='x'), 'model=x stream=True')"
+        },
+        {
+          "nome": "sorts by KEY, not by the whole pair",
+          "codigo": "_check(log_params(a='x', a1='y'), 'a=x a1=y')"
+        }
+      ],
+      "dicas": [
+        "`**params` collects all keyword arguments into a dict — the keys are the names passed in the call. And `sorted(a_dict)` returns the keys in alphabetical order.",
+        "Loop over `sorted(params)`, build each piece with `f\"{key}={params[key]}\"` and join everything with `\" \".join(...)`.",
+        "`parts.append(f\"{key}={params[key]}\")` inside the for over `sorted(params)`; at the end, `return \" \".join(parts)` — with an empty dict, join already returns `\"\"` by itself."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t3-01",
+      "nivel": "funcoes",
+      "tier": 3,
+      "conceitos": [
+        "parametros-default",
+        "escopo",
+        "listas"
+      ],
+      "titulo": "The ghost history",
+      "explicacao_md": "Python's most famous gotcha: the **mutable default**.\n\n```python\ndef add(x, items=[]):       # [] is created ONCE, when the def runs\n    items.append(x)\n    return items\n\nadd(1)                      # [1]\nadd(2)                      # [1, 2]  <- the SAME list!\n\ndef add_ok(x, items=None):  # the fix: a None sentinel\n    if items is None:\n        items = []          # a new list on EVERY call\n    items.append(x)\n    return items\n```\n\nThe default is evaluated only once, at definition time — every call without the argument shares the same object. In a chatbot, that turns into one user reading another user's history.\n\nAnother scoping rule in this tier: an inner function can see the outer function's variables (a closure), but to REASSIGN them it has to declare them `nonlocal`.",
+      "enunciado_md": "The starter code logs chatbot events — and carries Python's most famous bug: in production, a new user was seeing the previous user's history.\n\nFix the function to the signature `record(event, history=None)`:\n\n- `history` left out (or `None`) → create a **new** list, add the event and return it\n- a list passed explicitly → add the event **to that same list** (without copying) and return it\n\nThe bug in action: today, `record(\"a\")` followed by `record(\"b\")` returns `[\"a\", \"b\"]` — the correct behavior is for each call without a history to return only its own event: `[\"b\"]`.",
+      "starter_code": "def record(event, history=[]):\n    \"\"\"Records an event and returns the history.\n\n    CLASSIC BUG: the mutable default [] is created only ONCE, at the def —\n    every call without `history` shares the SAME list.\n\n    Contract for the fix:\n    - the default becomes None (a sentinel)\n    - history None -> create a NEW list on every call\n    - a list passed explicitly -> add to it directly (without copying)\n    \"\"\"\n    history.append(event)\n    return history\n",
+      "solucao_referencia": "def record(event, history=None):\n    if history is None:\n        history = []\n    history.append(event)\n    return history\n",
+      "testes_visiveis": [
+        {
+          "nome": "the first call",
+          "codigo": "_check(record('login'), ['login'])"
+        },
+        {
+          "nome": "calls without a history are independent",
+          "codigo": "record('first')\n_check(record('second'), ['second'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "three calls in a row",
+          "codigo": "record('a')\nrecord('b')\n_check(record('c'), ['c'])"
+        },
+        {
+          "nome": "an explicit list is reused",
+          "codigo": "h = ['start']\nr = record('end', h)\n_check(r, ['start', 'end'])\nassert r is h, 'When a list is passed, add to IT directly (without copying)'"
+        },
+        {
+          "nome": "another event",
+          "codigo": "_check(record('timeout-742'), ['timeout-742'])"
+        },
+        {
+          "nome": "an explicit empty list is filled in place",
+          "codigo": "empty = []\nr = record('ev', empty)\n_check(r, ['ev'])\nassert r is empty, 'An empty list passed explicitly must be filled in place (check is None, not truthiness)'"
+        }
+      ],
+      "dicas": [
+        "The `[]` in the signature is created ONCE, when the def runs — not on every call. Every call without `history` sees (and dirties) the same list.",
+        "Swap the default for `None` and create the list INSIDE the function: `if history is None:` — comparing with None goes through `is`.",
+        "`def record(event, history=None):` → `if history is None: history = []` → `history.append(event)` → `return history`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t3-02",
+      "nivel": "funcoes",
+      "tier": 3,
+      "conceitos": [
+        "args-kwargs",
+        "funcoes"
+      ],
+      "titulo": "Usage meter",
+      "explicacao_md": null,
+      "enunciado_md": "Each gateway model accumulates token usage from many calls — and dirty data must NOT slip through.\n\nWrite `record_usage(model, *tokens)` with the EXACT signature (one positional + `*tokens`):\n\n- no tokens given → `ValueError`\n- any token that isn't an `int` → `TypeError`\n- a valid case → returns `{\"model\": model, \"calls\": N, \"total\": sum}`\n\nTo **stop** the function with an error, write `raise` followed by the type and a message — you'll see this in depth later; here the mechanics are enough:\n\n```python\nraise ValueError(\"no tokens provided\")\nraise TypeError(f\"invalid token: {t!r}\")\n```\n\nAnd `isinstance(x, int)` tells you whether a value is an integer.\n\nExample: `record_usage(\"mock-4\", 100, 50)` → `{\"model\": \"mock-4\", \"calls\": 2, \"total\": 150}`\n\nA gotcha covered by the tests: `record_usage(\"a\", 10, model=\"b\")` has to raise `TypeError` — `model` received twice. With the right signature, Python takes care of that by itself.",
+      "starter_code": "def record_usage(model, *tokens):\n    \"\"\"Consolidates a model's token usage.\n\n    Contract:\n    - EXACT signature: model (positional) + *tokens\n    - no tokens -> ValueError\n    - a token that isn't an int -> TypeError\n    - valid -> {\"model\": model, \"calls\": N, \"total\": sum}\n    \"\"\"\n    # Validate BEFORE adding: first the \"no tokens\" case, then each token.\n    # Only trust what you checked yourself — not the error sum might raise by accident.\n    ...\n",
+      "solucao_referencia": "def record_usage(model, *tokens):\n    if not tokens:\n        raise ValueError(\"no tokens provided\")\n    for t in tokens:\n        if not isinstance(t, int):\n            raise TypeError(f\"invalid token: {t!r}\")\n    return {\"model\": model, \"calls\": len(tokens), \"total\": sum(tokens)}\n",
+      "testes_visiveis": [
+        {
+          "nome": "two calls added up",
+          "codigo": "_check(record_usage('mock-4', 100, 50), {'model': 'mock-4', 'calls': 2, 'total': 150})"
+        },
+        {
+          "nome": "no tokens raises ValueError",
+          "codigo": "try:\n    record_usage('mock-4')\n    assert False, 'With no tokens, the function should raise ValueError'\nexcept ValueError:\n    pass"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "a single token",
+          "codigo": "_check(record_usage('mini', 7), {'model': 'mini', 'calls': 1, 'total': 7})"
+        },
+        {
+          "nome": "a text token raises TypeError",
+          "codigo": "try:\n    record_usage('m', 10, 'twenty')\n    assert False, 'A token that is not an int should raise TypeError'\nexcept TypeError:\n    pass"
+        },
+        {
+          "nome": "model positional AND keyword raises TypeError",
+          "codigo": "try:\n    record_usage('mock-4', 10, model='mini')\n    assert False, 'Passing model twice (positional and keyword) should raise TypeError'\nexcept TypeError:\n    pass"
+        },
+        {
+          "nome": "four tokens",
+          "codigo": "_check(record_usage('turbo', 1, 2, 3, 4), {'model': 'turbo', 'calls': 4, 'total': 10})"
+        },
+        {
+          "nome": "a float token raises TypeError",
+          "codigo": "try:\n    record_usage('m', 10, 1.5)\n    assert False, 'A float token (not an int) should raise TypeError, even if sum would work'\nexcept TypeError:\n    pass"
+        }
+      ],
+      "dicas": [
+        "`*tokens` collects the extra positional arguments into a TUPLE — an empty tuple is 'falsy' in an if, and `isinstance(x, int)` tells you whether a value is an integer.",
+        "Order of the checks: first `if not tokens: raise ValueError(...)`; then a for that raises `TypeError` for any item that fails `isinstance(t, int)`.",
+        "After the checks: `return {\"model\": model, \"calls\": len(tokens), \"total\": sum(tokens)}` — Python raises the duplicate-argument TypeError by itself, if the signature is exact."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t3-03",
+      "nivel": "funcoes",
+      "tier": 3,
+      "conceitos": [
+        "escopo",
+        "funcoes"
+      ],
+      "titulo": "A private counter",
+      "explicacao_md": null,
+      "enunciado_md": "To stay within budget, each agent in your application has a limit on API calls — and each one needs its OWN counter, without a global variable.\n\nWrite `make_counter()` that returns a **function**:\n\n- the returned function takes no arguments\n- each call adds 1 and returns the running total: `1, 2, 3, ...`\n- counters created separately are independent\n\nExample:\n\n```python\nc = make_counter()\nc()          # 1\nc()          # 2\nother = make_counter()\nother()      # 1\n```",
+      "starter_code": "def make_counter():\n    \"\"\"Returns a counter function.\n\n    Contract:\n    - the returned function takes no arguments\n    - each call adds 1 and returns the running total (1, 2, 3, ...)\n    - counters created separately are independent\n    \"\"\"\n    ...\n",
+      "solucao_referencia": "def make_counter():\n    total = 0\n\n    def count():\n        nonlocal total\n        total += 1\n        return total\n\n    return count\n",
+      "testes_visiveis": [
+        {
+          "nome": "counts 1, 2",
+          "codigo": "c = make_counter()\n_check(c(), 1)\n_check(c(), 2)"
+        },
+        {
+          "nome": "returns a function",
+          "codigo": "assert callable(make_counter()), 'make_counter must RETURN a function (without calling it)'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "independent counters",
+          "codigo": "a = make_counter()\nb = make_counter()\na()\na()\na()\n_check(b(), 1)\n_check(a(), 4)"
+        },
+        {
+          "nome": "counts up to 5",
+          "codigo": "c = make_counter()\nfor _ in range(4):\n    c()\n_check(c(), 5)"
+        },
+        {
+          "nome": "the counter returns an integer",
+          "codigo": "c = make_counter()\nassert isinstance(c(), int), 'The counter must return an integer'"
+        }
+      ],
+      "dicas": [
+        "The inner function 'remembers' the outer function's variables even after the outer one has returned — that's a closure. But to REASSIGN (`total += 1`) a variable of the outer function, declare it `nonlocal`.",
+        "Structure: `total = 0` in the outer function; an inner `def count():` with `nonlocal total`; and return `count` WITHOUT parentheses — you're returning the function, not its result.",
+        "`total = 0` → inside `def count():` write `nonlocal total`, `total += 1`, `return total` → and the outer function ends with `return count`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    }
+  ]
+}

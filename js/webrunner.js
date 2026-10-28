@@ -15,13 +15,21 @@
 // O pai só aceita mensagens cujo event.source é o contentWindow do iframe
 // que ele mesmo criou. Um CSP <meta> no srcdoc corta rede/recursos externos.
 
+import { t, idioma } from "./i18n.js";
+
+// id da caixa de erro injetada na página: o CSS dos exercícios pode estilizá-la
+// (#__dojo_erro no conteúdo pt, #__dojo_error no conteúdo en).
+const idCaixaErro = () => (idioma() === "en" ? "__dojo_error" : "__dojo_erro");
+
 const CSP_IFRAME =
   "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; " +
   "img-src data: blob:; font-src data:; media-src data: blob:; base-uri 'none'";
 
 // Harness de testes que roda DENTRO do iframe de teste (origem opaca).
 // Espelha o _verificar pedagógico do runner Python (versão JS).
-const HARNESS = `(function(){
+// Textos (prefixo de erro, elemento ausente) vêm do idioma atual, como JSON.
+const harnessJs = () => `(function(){
+  var ERRO_JS=${JSON.stringify(t("web.erroJs"))},NAO_ACHOU=${JSON.stringify(t("web.naoEncontrado"))};
   function repr(x){
     if(typeof x==="string")return JSON.stringify(x);
     if(x===null)return "null";
@@ -44,17 +52,19 @@ const HARNESS = `(function(){
     var m=ev.data;
     if(!m||m.dojo!=="run"||typeof m.codigo!=="string")return;
     var doc=document,win=window;
-    var caixa=document.getElementById("__dojo_erro");
+    var caixa=document.getElementById(${JSON.stringify(idCaixaErro())});
     var res={dojo:"result",id:m.id,passou:false,esperado:null,obtido:null,mensagem:null,
-      erroPagina:(caixa&&/^Erro no JS:/.test(caixa.textContent))?caixa.textContent:null};
+      erroPagina:(caixa&&caixa.textContent.indexOf(ERRO_JS)===0)?caixa.textContent:null};
     var _verificar=function(obtido,esperado){if(!iguais(obtido,esperado))throw new FalhaWeb(repr(esperado),repr(obtido));};
-    var _clicar=function(sel){var el=doc.querySelector(sel);if(!el)throw new Error("elemento não encontrado para clicar: "+sel);el.click();};
+    var _clicar=function(sel){var el=doc.querySelector(sel);if(!el)throw new Error(NAO_ACHOU+sel);el.click();};
     var _texto=function(sel){var el=doc.querySelector(sel);return el?el.textContent.trim():null;};
     var _esperar=function(){return new Promise(function(r){setTimeout(r,0);});};
     Promise.resolve().then(function(){
+      // _check/_click/_text/_wait: aliases en dos MESMOS helpers
       var fn=new Function("doc","win","_verificar","_clicar","_texto","_esperar",
+        "_check","_click","_text","_wait",
         "return (async () => { "+m.codigo+" })();");
-      return fn(doc,win,_verificar,_clicar,_texto,_esperar);
+      return fn(doc,win,_verificar,_clicar,_texto,_esperar,_verificar,_clicar,_texto,_esperar);
     }).then(function(){res.passou=true;},function(e){
       if(e instanceof FalhaWeb){res.esperado=e.esperado;res.obtido=e.obtido;}
       else res.mensagem=String(e&&e.message?e.message:e);
@@ -72,7 +82,7 @@ export function comporDocumento({ html, css, js }, { harness = false } = {}) {
   // claro fino no lugar de contorno, sombras tintadas suaves (nunca preto
   // chapado nem offset duro). Só seletores de elemento (especificidade
   // mínima): o CSS do exercício sempre pode sobrescrever.
-  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+  return `<!doctype html><html lang="${idioma() === "en" ? "en" : "pt-BR"}"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="${CSP_IFRAME}">
 <style>
 :root{color-scheme:light}
@@ -125,15 +135,16 @@ hr{border:0;height:1px;background:linear-gradient(90deg,transparent,rgba(214,166
 ${(css || "").replace(/<\/style/gi, "<\\/style")}
 </style></head><body>
 <script>
-// caça-erros: um <pre id=__dojo_erro> identificável (não o 1º <pre> qualquer)
-// que também pega erros de SINTAXE/globais que o try/catch abaixo não alcança.
+// caça-erros: um <pre id=__dojo_erro> (en: __dojo_error) identificável (não o
+// 1º <pre> qualquer) que também pega erros de SINTAXE/globais que o try/catch
+// abaixo não alcança.
 function __dojoErro(msg){
-  var b=document.getElementById("__dojo_erro");
-  if(!b){b=document.createElement("pre");b.id="__dojo_erro";b.style.color="#c0392b";b.style.whiteSpace="pre-wrap";document.body.appendChild(b);}
-  b.textContent="Erro no JS: "+msg;
+  var b=document.getElementById(${JSON.stringify(idCaixaErro())});
+  if(!b){b=document.createElement("pre");b.id=${JSON.stringify(idCaixaErro())};b.style.color="#c0392b";b.style.whiteSpace="pre-wrap";document.body.appendChild(b);}
+  b.textContent=${JSON.stringify(t("web.erroJs"))}+msg;
 }
 window.addEventListener("error",function(ev){__dojoErro((ev.error&&ev.error.message)||ev.message||"erro");});
-${harness ? HARNESS : ""}
+${harness ? harnessJs() : ""}
 <\/script>
 ${corpo}
 <script>
@@ -211,7 +222,7 @@ function rodarUmTeste(iframe, codigo) {
     window.addEventListener("message", ouvir);
     timer = setTimeout(() => fim({
       passou: false, esperado: null, obtido: null,
-      mensagem: "o teste não respondeu a tempo (loop infinito ou página travada?)",
+      mensagem: t("web.semResposta"),
       erroPagina: null,
     }), TEMPO_TESTE_MS);
     // origem opaca: o único targetOrigin possível é "*"; do lado de lá o

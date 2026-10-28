@@ -227,7 +227,9 @@ function checar(cond, msg) {
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.waitForSelector("#btn-comecar", { timeout: 30000 });
   await page.click("#btn-comecar");
-  await page.waitForSelector(".no[data-slug]", { timeout: 15000 });
+  // Continuar volta para a tela do hash (aqui, o exercício aberto antes do reload)
+  await page.waitForSelector("#editor", { timeout: 15000 });
+  checar(await page.evaluate(() => location.hash) === ex1, "Continuar após reload voltou ao exercício do hash");
   const aindaFechado = await page.$eval("#teclado-virtual", (el) => el.offsetParent === null);
   checar(aindaFechado, "teclado continuou fechado após reload (config persistiu)");
   await page.click("#btn-teclado");

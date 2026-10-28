@@ -6,6 +6,24 @@ const CDN = "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/";
 
 let pyodide = null;
 let pronto = false;
+let lang = "pt"; // idioma da interface (vem no init e em cada payload)
+
+// worker não enxerga o import map do jogo: os poucos textos dele ficam aqui
+const TEXTOS = {
+  pt: {
+    baixarFalhou: "não consegui baixar ",
+    timeout: "Seu código passou do tempo limite — quase sempre é um loop que nunca termina.",
+    timeoutOriginal: "KeyboardInterrupt (interrompido pelo Dojo)",
+    antesDoInit: "executar antes do init terminar",
+  },
+  en: {
+    baixarFalhou: "couldn't download ",
+    timeout: "Your code went over the time limit — it is almost always a loop that never ends.",
+    timeoutOriginal: "KeyboardInterrupt (stopped by the Dojo)",
+    antesDoInit: "run requested before init finished",
+  },
+};
+const tx = (k) => (TEXTOS[lang] || TEXTOS.pt)[k];
 
 function post(msg) {
   self.postMessage(msg);
@@ -27,11 +45,11 @@ async function init(interruptBuffer) {
     const V = self.location.search; // ex.: "?v=21"
     const [runnerSrc, mocksSrc] = await Promise.all([
       fetch(new URL("../py/runner.py" + V, self.location.href)).then((r) => {
-        if (!r.ok) throw new Error("não consegui baixar py/runner.py");
+        if (!r.ok) throw new Error(tx("baixarFalhou") + "py/runner.py");
         return r.text();
       }),
       fetch(new URL("../py/mocks_ia.py" + V, self.location.href)).then((r) => {
-        if (!r.ok) throw new Error("não consegui baixar py/mocks_ia.py");
+        if (!r.ok) throw new Error(tx("baixarFalhou") + "py/mocks_ia.py");
         return r.text();
       }),
     ]);
@@ -59,9 +77,10 @@ async function carregarPacotes(reqId, pacotes) {
 
 function executar(reqId, payload) {
   if (!pronto) {
-    post({ type: "erro-fatal", msg: "executar antes do init terminar" });
+    post({ type: "erro-fatal", msg: tx("antesDoInit") });
     return;
   }
+  if (payload && (payload.lang === "pt" || payload.lang === "en")) lang = payload.lang;
   try {
     pyodide.globals.set("PAYLOAD_JSON", JSON.stringify(payload));
     const json = pyodide.runPython("runner.executar_json(PAYLOAD_JSON)");
@@ -79,9 +98,8 @@ function executar(reqId, payload) {
           erro: {
             tipo: "Timeout",
             linha: null,
-            mensagem_didatica:
-              "Seu código passou do tempo limite — quase sempre é um loop que nunca termina.",
-            mensagem_original: "KeyboardInterrupt (interrompido pelo Dojo)",
+            mensagem_didatica: tx("timeout"),
+            mensagem_original: tx("timeoutOriginal"),
           },
           testes: [],
         }),
@@ -95,6 +113,7 @@ function executar(reqId, payload) {
 self.onmessage = (ev) => {
   const msg = ev.data || {};
   if (msg.type === "init") {
+    if (msg.lang === "pt" || msg.lang === "en") lang = msg.lang;
     init(msg.interruptBuffer || null);
   } else if (msg.type === "pacotes") {
     carregarPacotes(msg.reqId, msg.pacotes);

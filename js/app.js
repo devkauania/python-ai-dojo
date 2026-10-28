@@ -10,6 +10,7 @@ import * as webrunner from "./webrunner.js";
 import * as mundo from "./mundo.js";
 import { iniciarCursor, atualizarCursor, definirOcupado } from "./cursor.js";
 import { iniciarTeclado, alternarTeclado, acoplarTeclado } from "./teclado.js";
+import { t, definirIdioma, detectarIdioma, idiomaValido } from "./i18n.js";
 
 const A = {
   save: null,
@@ -24,41 +25,21 @@ const A = {
   atoTab: null, // tab de Ato ativa na taskbar (Dojo OS); null = seguir o progresso
   labTab: null, // tab de trilha do Laboratório; null = seguir o progresso
   billyFala: null, // microfala pendente do Billy (sobrevive à troca de exercício)
+  lang: "pt", // idioma da interface + do conteúdo (js/i18n.js)
 };
 
 // ---------------------------------------------------------------------------
 // microfalas do Billy — ele NÃO dá aula (isso é do Cato): só apoia, uma linha.
 // Nunca entrega a resposta; aponta para onde olhar. Sem emoji.
+// As falas moram no dicionário (js/i18n.js): billy.acerto|falha3|dica|pular.
 // ---------------------------------------------------------------------------
-const FALAS_BILLY = {
-  acerto: [
-    "Passou. E saiu da sua cabeça — guarda esse jeito de resolver.",
-    "Verde. Repara que você leu o teste antes de mexer no código; é isso mesmo.",
-    "Funcionou. Bom trabalho.",
-    "É isso. Cada um desses vai te custar menos tempo que o anterior.",
-  ],
-  falha3: [
-    "Erro é informação. Compara o esperado com o obtido — a diferença conta a história.",
-    "Três tentativas é normal. Volta no enunciado antes de mudar mais uma linha.",
-    "Calma, tá perto. Lê a primeira linha vermelha devagar, comigo.",
-  ],
-  dica: [
-    "Pedir dica é estratégia, não desistência.",
-    "A dica aponta o caminho; o passo continua sendo seu.",
-    "Lê a dica e volta pro teu código antes de mudar qualquer coisa.",
-  ],
-  pular: [
-    "Tudo bem pular. Ela volta na revisão e aí você pega.",
-    "Deixa essa descansar — a gente volta nela.",
-  ],
-};
 let billyVez = 0;
 
 // só ENFILEIRA a fala; quem pinta é pintarBilly() — depois do render, quando a
 // ação redesenha a tela (dica, pular), ou na hora, quando não redesenha (rodar).
 function falarBilly(chave) {
-  const linhas = FALAS_BILLY[chave];
-  if (!linhas) return;
+  const linhas = t("billy." + chave);
+  if (!Array.isArray(linhas) || !linhas.length) return;
   A.billyFala = linhas[billyVez++ % linhas.length];
 }
 
@@ -95,12 +76,78 @@ const root = () => document.getElementById("app");
 const salvar = () => storage.salvar(A.save);
 
 // ---------------------------------------------------------------------------
+// idioma: ?lang=pt|en (explícito, ex.: link compartilhado ou testes) > save >
+// navegador (só para quem está começando; save antigo sem lang = pt, que é a
+// língua em que ele jogou até aqui)
+// ---------------------------------------------------------------------------
+function idiomaDaUrl() {
+  try {
+    const l = new URLSearchParams(location.search).get("lang");
+    return idiomaValido(l) ? l : null;
+  } catch {
+    return null;
+  }
+}
+
+// troca de idioma = recarrega (conteúdo, glossário e textos vêm todos do novo
+// idioma). Com save já gravado, o idioma vai no save e a URL fica limpa; num
+// jogo que ainda não gravou nada, vai na URL (gravar só por causa do idioma
+// faria a próxima abertura dizer "bem-vindo de volta" a quem nem começou).
+// A escolha também vai para storage.gravarIdiomaPreferido (chave própria, que
+// não conta como save): sem ela, quem escolhe English e sai antes de abrir um
+// exercício voltava ao idioma do navegador. Trocar DENTRO do jogo (Ajustes)
+// marca a sessão para o boot pular as boas-vindas e voltar à MESMA tela (o
+// hash: #/ex/<id>, #/webex/<id>...); na própria tela de boas-vindas, não.
+const MARCA_TROCA = "pyai_dojo_troca_idioma";
+
+function trocarIdioma(l) {
+  if (!idiomaValido(l) || l === A.lang) return;
+  const persistido = storage.existe();
+  if (A.save) {
+    A.save.config.lang = l;
+    if (persistido) salvar();
+  }
+  storage.gravarIdiomaPreferido(l);
+  if (A.vivo) {
+    try {
+      sessionStorage.setItem(MARCA_TROCA, "1");
+    } catch {
+      /* sem sessionStorage: cai nas boas-vindas, e Continuar volta ao hash */
+    }
+  }
+  const busca = persistido ? "" : "?lang=" + l;
+  const alvo = location.pathname + busca + location.hash;
+  // mesma URL (save gravado e sem ?lang): replace() só mexeria no hash, sem
+  // recarregar — aí o reload é explícito
+  if (alvo === location.pathname + location.search + location.hash) location.reload();
+  else location.replace(alvo);
+}
+
+// consome a marca de troca de idioma (true = o reload veio de Ajustes)
+function veioDeTrocaDeIdioma() {
+  try {
+    const m = sessionStorage.getItem(MARCA_TROCA);
+    sessionStorage.removeItem(MARCA_TROCA);
+    return m === "1";
+  } catch {
+    return false;
+  }
+}
+
+function ligarSeletorIdioma(raiz = document) {
+  raiz.querySelectorAll("[data-lang]").forEach((b) => {
+    b.onclick = () => trocarIdioma(b.dataset.lang);
+  });
+}
+
+// ---------------------------------------------------------------------------
 // boot
 // ---------------------------------------------------------------------------
 async function boot() {
   aplicarTema("auto");
   const { save, corrompido, bruto, novo } = storage.carregar();
   if (corrompido) {
+    A.lang = definirIdioma(idiomaDaUrl() || detectarIdioma());
     A.corrompido = true;
     A.brutoCorrompido = bruto;
     root().innerHTML = ui.telaCorrompido();
@@ -113,12 +160,22 @@ async function boot() {
         await storage.importar(e.target.files[0]);
         location.reload();
       } catch (err) {
-        alert("Não deu para importar: " + err.message);
+        alert(t("importar.falhou", { msg: err.message }));
       }
     };
     return;
   }
   A.save = save;
+  {
+    const daUrl = idiomaDaUrl();
+    const doSave = idiomaValido(save.config.lang) ? save.config.lang : null;
+    const preferido = idiomaValido(storage.idiomaPreferido()) ? storage.idiomaPreferido() : null;
+    A.lang = definirIdioma(daUrl || doSave || (novo ? preferido || detectarIdioma() : "pt"));
+    if (save.config.lang !== A.lang) {
+      save.config.lang = A.lang;
+      if (!novo) salvar(); // save antigo sem idioma (ou ?lang explícito): grava
+    }
+  }
   aplicarTema(save.config.tema);
   aplicarMovimento(save.config);
   juice.configurarJuice(save.config);
@@ -140,9 +197,9 @@ async function boot() {
     juice.tocar("clique");
   }, true);
   try {
-    A.conteudo = await carregarConteudo();
+    A.conteudo = await carregarConteudo(A.lang);
   } catch (e) {
-    root().innerHTML = ui.telaErroFatal("conteúdo: " + e.message);
+    root().innerHTML = ui.telaErroFatal(t("erro.conteudo", { msg: e.message }));
     const btnRec = document.getElementById("btn-recarregar");
     if (btnRec) btnRec.onclick = () => location.reload();
     return;
@@ -153,21 +210,29 @@ async function boot() {
   });
   A.bridge.iniciar(); // começa a baixar o Python já em paralelo
 
-  const node = A.conteudo.trilhaPorSlug.get(save.run_atual.nivel_atual);
-  const recap = !novo && node ? `Último conceito: ${node.titulo}.` : "";
-  root().innerHTML = ui.telaBoasVindas(novo, recap);
-  animarBoasVindas();
-  document.getElementById("btn-comecar").onclick = (ev) => {
-    A.vivo = true;
-    juice.acordarAudio(); // primeiro gesto do usuário: libera o áudio
-    juice.tocar("inicio"); // prova imediata de que o som funciona
-    juice.estourarEm(ev.currentTarget, 1.2);
-    // A HOME/trilha é instantânea e NÃO precisa de Python. O Pyodide carrega em
-    // background; se falhar, o erro só aparece ao tentar RODAR um exercício
-    // Python (o Laboratório Web funciona sem Pyodide).
-    irParaTrilha();
-  };
   window.addEventListener("hashchange", aoMudarHash);
+  if (veioDeTrocaDeIdioma()) {
+    // trocou o idioma em Ajustes no meio do jogo: volta direto para onde estava
+    // (o áudio acorda no próximo pointerdown — juice escuta isso sozinho)
+    A.vivo = true;
+    entrarNoJogo();
+  } else {
+    const node = A.conteudo.trilhaPorSlug.get(save.run_atual.nivel_atual);
+    const recap = !novo && node ? t("bv.recap", { titulo: node.titulo }) : "";
+    root().innerHTML = ui.telaBoasVindas(novo, recap, A.lang);
+    ligarSeletorIdioma();
+    animarBoasVindas();
+    document.getElementById("btn-comecar").onclick = (ev) => {
+      A.vivo = true;
+      juice.acordarAudio(); // primeiro gesto do usuário: libera o áudio
+      juice.tocar("inicio"); // prova imediata de que o som funciona
+      juice.estourarEm(ev.currentTarget, 1.2);
+      // A HOME/trilha é instantânea e NÃO precisa de Python. O Pyodide carrega em
+      // background; se falhar, o erro só aparece ao tentar RODAR um exercício
+      // Python (o Laboratório Web funciona sem Pyodide).
+      entrarNoJogo();
+    };
+  }
   document.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.ctrlKey && !e.metaKey) {
       const btn = document.getElementById("btn-proximo");
@@ -200,10 +265,10 @@ function aoMudarFasePython(fase, msg) {
   if (btn) {
     btn.disabled = fase !== "pronto";
     if (fase === "erro") {
-      setPkgStatus("O ambiente Python não carregou" + (msg ? ` (${msg})` : "") + " — recarregue a página.");
+      setPkgStatus(t("py.naoCarregou", { msg: msg ? ` (${msg})` : "" }));
     } else {
       setPkgStatus(fase === "pronto" ? "" : fase === "reiniciando"
-        ? "Reiniciando o ambiente Python…" : "Preparando o Python…");
+        ? t("py.reiniciando") : t("py.preparando"));
     }
   }
 }
@@ -213,16 +278,16 @@ function setPkgStatus(texto) {
   if (el) el.textContent = texto || "";
 }
 
-// O messageCallback do Pyodide é em inglês ("Loading pandas, ...") — traduz
-// para PT-BR antes de exibir (nenhum texto de UI em inglês).
+// O messageCallback do Pyodide é em inglês ("Loading pandas, ...") — passa
+// pelo dicionário antes de exibir (mesmo tom do resto da interface).
 function traduzirProgresso(msg) {
   const s = String(msg || "");
   const m = s.match(/^(Loading|Loaded)\s+(.+)$/i);
   if (!m) return s;
   const pacotes = m[2].replace(/,\s*/g, ", ");
   return /^Loading/i.test(m[1])
-    ? `Baixando ${pacotes}… (só na primeira vez)`
-    : `Pronto: ${pacotes}`;
+    ? t("py.baixando.primeira", { pacotes })
+    : t("py.pronto", { pacotes });
 }
 
 function aplicarMovimento(config) {
@@ -331,6 +396,19 @@ function navegar(hash) {
 function irParaTrilha() {
   A.sessao = novaSessao();
   navegar("#/mapa");
+}
+
+// Começar/Continuar: com um hash de tela (#/ex/<id>, #/webex/<id>, #/web...)
+// vai para ELA — é o caso do reload da troca de idioma e de um link direto;
+// sem hash (ou #/mapa), a HOME de sempre.
+function entrarNoJogo() {
+  const h = location.hash;
+  if (h && h !== "#" && h !== "#/" && h !== "#/mapa") {
+    A.sessao = novaSessao();
+    aoMudarHash();
+  } else {
+    irParaTrilha();
+  }
 }
 
 function irParaProximo() {
@@ -545,7 +623,7 @@ function abrirExercicio(ex, { modoLivre = false, modoDan = false, revisao = null
   render();
   // pacotes lazy já podem começar a baixar
   if (ex.pacotes?.length && A.bridge.fase === "pronto") {
-    setPkgStatus(`Baixando ${ex.pacotes.join(", ")}…`);
+    setPkgStatus(t("py.baixando", { pacotes: ex.pacotes.join(", ") }));
     A.bridge.garantirPacotes(ex.pacotes).then(() => setPkgStatus("")).catch(() => {});
   }
 }
@@ -570,9 +648,9 @@ function ligarExercicio() {
   // se o Pyodide JÁ falhou antes desta tela existir, nenhum evento de fase vem
   // mais: mostra o erro agora em vez de "Preparando…" eterno.
   if (A.bridge.fase === "erro") {
-    setPkgStatus("O ambiente Python não carregou — recarregue a página (o Lab Web funciona sem ele).");
+    setPkgStatus(t("py.naoCarregou.web"));
   } else if (A.bridge.fase !== "pronto") {
-    setPkgStatus("Preparando o Python…");
+    setPkgStatus(t("py.preparando"));
   }
   document.getElementById("btn-restaurar").onclick = () => {
     editor.value = ex.starter_code;
@@ -606,7 +684,7 @@ async function aoRodar() {
   salvar();
   try {
     if (ex.pacotes?.length) {
-      setPkgStatus(`Baixando ${ex.pacotes.join(", ")}…`);
+      setPkgStatus(t("py.baixando", { pacotes: ex.pacotes.join(", ") }));
       await A.bridge.garantirPacotes(ex.pacotes);
       setPkgStatus("");
     }
@@ -623,7 +701,7 @@ async function aoRodar() {
     // falha ao preparar pacotes (offline/CDN) — nunca engolir em silêncio
     setPkgStatus("");
     const msg = e && e.message ? e.message : String(e);
-    tratarResultado(A.bridge._resultadoFatal("não consegui preparar o ambiente: " + msg), codigo);
+    tratarResultado(A.bridge._resultadoFatal(t("py.prepararFalhou", { msg })), codigo);
   } finally {
     clearTimeout(spinnerTimer);
     btn.classList.remove("rodando");
@@ -634,10 +712,22 @@ async function aoRodar() {
 
 // o resultado nasce abaixo do editor+teclado: traz para a vista (sem pular se
 // já está visível). Movimento reduzido = sem animação.
+// Rola SÓ o tubo (#tv-scroll) e só o necessário para o começo do painel
+// aparecer: scrollIntoView rolava todos os ancestrais e, com block "nearest",
+// empurrava as barras de título das janelas e o topo da aula para fora da tela.
 function mostrarPainel(painel) {
-  if (!painel || !painel.scrollIntoView) return;
+  const tubo = document.getElementById("tv-scroll");
+  if (!painel || !tubo) return;
   const reduz = document.documentElement.getAttribute("data-reduz") === "1";
-  requestAnimationFrame(() => painel.scrollIntoView({ block: "nearest", behavior: reduz ? "auto" : "smooth" }));
+  requestAnimationFrame(() => {
+    const rt = tubo.getBoundingClientRect();
+    const rp = painel.getBoundingClientRect();
+    // basta mostrar o começo do painel (o título do resultado + 1-2 linhas), não
+    // ele todo: em telas grandes isso costuma caber sem rolar nada
+    const mostrar = Math.min(rp.height, 140);
+    const falta = rp.top + mostrar + 12 - rt.bottom;
+    if (falta > 0) tubo.scrollBy({ top: falta, behavior: reduz ? "auto" : "smooth" });
+  });
 }
 
 function tratarResultado(resultado, codigo) {
@@ -759,10 +849,10 @@ function mostrarTempo(painel, tempo) {
   if (tempo.anterior != null) {
     const d = tempo.anterior - tempo.atual;
     comp = d > 0
-      ? `<span class="tempo-melhora">▼ ${ui.fmtTempo(d)} mais rápido que seu recorde!</span>`
-      : `<span class="tempo-comp">recorde: ${ui.fmtTempo(h.pb_tempo)}</span>`;
+      ? `<span class="tempo-melhora">${t("tempo.maisRapido", { t: ui.fmtTempo(d) })}</span>`
+      : `<span class="tempo-comp">${t("tempo.recorde", { t: ui.fmtTempo(h.pb_tempo) })}</span>`;
   } else {
-    comp = `<span class="tempo-comp">seu primeiro tempo aqui</span>`;
+    comp = `<span class="tempo-comp">${t("tempo.primeiro")}</span>`;
   }
   const div = document.createElement("div");
   div.className = "tempo-caixa";
@@ -772,15 +862,15 @@ function mostrarTempo(painel, tempo) {
 }
 
 function mostrarToastRecorde(tempo) {
-  const t = document.createElement("div");
-  t.className = "toast-recorde";
-  t.textContent = `Novo recorde! ${ui.fmtTempo(tempo.atual)}`;
-  document.body.appendChild(t);
+  const toast = document.createElement("div");
+  toast.className = "toast-recorde";
+  toast.textContent = t("tempo.toast", { t: ui.fmtTempo(tempo.atual) });
+  document.body.appendChild(toast);
   if (window.gsap) {
-    window.gsap.fromTo(t, { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "back.out(1.6)" });
-    window.gsap.to(t, { x: 40, opacity: 0, delay: 2.4, duration: 0.4, onComplete: () => t.remove() });
+    window.gsap.fromTo(toast, { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "back.out(1.6)" });
+    window.gsap.to(toast, { x: 40, opacity: 0, delay: 2.4, duration: 0.4, onComplete: () => toast.remove() });
   } else {
-    setTimeout(() => t.remove(), 2800);
+    setTimeout(() => toast.remove(), 2800);
   }
 }
 
@@ -1274,6 +1364,7 @@ function aoProximoWeb() {
 function abrirConfig() {
   mostrarModal(ui.modalConfig(A), () => {
     document.getElementById("btn-modal-fechar").onclick = fecharModal;
+    document.getElementById("sel-idioma").onchange = (e) => trocarIdioma(e.target.value);
     document.getElementById("sel-tema").onchange = (e) => {
       A.save.config.tema = e.target.value;
       aplicarTema(e.target.value);
@@ -1309,13 +1400,14 @@ function abrirConfig() {
         await storage.importar(e.target.files[0]);
         location.reload();
       } catch (err) {
-        alert("Não deu para importar: " + err.message);
+        alert(t("importar.falhou", { msg: err.message }));
       }
     };
     document.getElementById("btn-resetar").onclick = () => {
-      if (confirm("Zerar TODO o progresso? Isso não pode ser desfeito (exporte antes, se quiser).")) {
+      if (confirm(t("cfg.zerar.confirmar"))) {
         storage.resetar();
-        location.reload();
+        // o save (e o idioma escolhido nele) some; o idioma atual sobrevive na URL
+        location.replace(location.pathname + "?lang=" + A.lang);
       }
     };
   });

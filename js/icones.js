@@ -146,10 +146,12 @@ export const AVATAR_CUBO = `<svg viewBox="0 0 40 40" aria-hidden="true">
 // caindo a 45°. Cores literais (a cor da faixa é a cor da faixa em qualquer
 // tema); contorno fino #8a7358 como hoje.
 // ---------------------------------------------------------------------------
+import { t } from "./i18n.js";
+
 export function iconeFaixa(faixa, tam = 18) {
   const cores = { branca: "#e6e9ed", azul: "#4f8fd9", roxa: "#9b6dd6", marrom: "#a0714f", preta: "#2a2a2e" };
   const c = cores[faixa] || cores.branca;
-  return `<svg width="${tam}" height="${tam}" viewBox="0 0 24 24" aria-label="faixa ${faixa}" class="faixa-ico">` +
+  return `<svg width="${tam}" height="${tam}" viewBox="0 0 24 24" aria-label="${t("faixa.aria", { faixa: t("cor." + faixa) })}" class="faixa-ico">` +
     `<path d="M9 16h3l-4 4H5z" fill="${c}" stroke="#8a7358" stroke-width="1" stroke-linejoin="miter"/>` +
     `<path d="M12 16h3l4 4h-3z" fill="${c}" stroke="#8a7358" stroke-width="1" stroke-linejoin="miter"/>` +
     `<rect x="2" y="9" width="20" height="6" fill="${c}" stroke="#8a7358" stroke-width="1"/>` +

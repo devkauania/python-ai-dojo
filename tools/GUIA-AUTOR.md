@@ -48,7 +48,8 @@ curto, descritivo, e nos ocultos não pode entregar a resposta.
   - `assert cond, "mensagem em PT-BR"` — para checagens de tipo/propriedade.
   - `_stdout` — o que o código do aluno imprimiu (string).
   - `_mocks` — o módulo de mocks: `_mocks.roteirizar_falhas(rota, [429, 200], retry_after=2)`,
-    `_mocks.roteirizar_erros_llm(['rate_limit', None])`, `_mocks.relogio()`
+    `_mocks.roteirizar_erros_llm(['rate_limit', None])` (eventos: `rate_limit`,
+    `args_invalidos`, `multi_blocos`, `vetor_zero` = embedding de norma zero), `_mocks.relogio()`
     (segundos virtuais — `time.sleep` e `asyncio.sleep` avançam esse relógio sem
     esperar de verdade), `_mocks.historico_http` (lista de chamadas),
     `_mocks.embed_texto(texto)` (o mesmo embedding dos clientes).
@@ -59,6 +60,13 @@ curto, descritivo, e nos ocultos não pode entregar a resposta.
   testes — teste que inspeciona `.chamadas` deve criar o PRÓPRIO client:
   `c = OpenAI()` dentro do teste, passando-o para a função do aluno.
 - Cada teste roda numa CÓPIA do namespace; todos os testes rodam sempre.
+- Conteúdo em inglês (`content/en/`) usa os ALIASES em inglês dos mesmos
+  objetos: `_check`/`_run`, `_mocks.http_history`, `_mocks.clock()`,
+  `_mocks.script_failures`, `_mocks.script_llm_errors`, `_mocks.embed_text`,
+  `client.calls`, chaves `method`/`path`/`clock` nos registros http, eventos
+  `"invalid_args"`/`"multi_block"`/`"zero_vector"` em `script_llm_errors` e, no Lab Web,
+  `_click`/`_text`/`_wait` e a caixa de erro `#__dojo_error`. Tabela completa
+  em `docs/I18N.md`.
 
 ## Proibições (o verify rejeita)
 

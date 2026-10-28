@@ -4,7 +4,11 @@
 Uso:
     python -m venv .venv-verify        (ou: uv venv --python 3.12 .venv-verify)
     .venv-verify\\Scripts\\python -m pip install -r tools\\requirements-verify.txt
-    .venv-verify\\Scripts\\python -X utf8 tools\\verify.py [--id ID] [--ato ATO] [--nivel SLUG]
+    .venv-verify\\Scripts\\python -X utf8 tools\\verify.py [--id ID] [--ato ATO] [--nivel SLUG] [--lang pt|en]
+
+Idioma: --lang pt (padrão) lê content/*.json; --lang en lê content/en/*.json
+(mesma estrutura — ver tools/i18n_check.py) e roda o runner/mocks em inglês
+(payload["lang"]). O PT continua byte-idêntico ao verify monolíngue.
 
 O que faz:
   1. Carrega content/manifest.json + todos os content/*.json declarados.
@@ -35,6 +39,13 @@ from collections import defaultdict
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONTENT = os.path.join(RAIZ, "content")
+LANG = "pt"  # trocado por --lang; vai no payload do runner
+IDIOMAS = ("pt", "en")
+
+
+def pasta_conteudo(lang):
+    """content/ para pt; content/en/ para en (mesmos nomes de arquivo)."""
+    return os.path.join(RAIZ, "content", "en") if lang == "en" else os.path.join(RAIZ, "content")
 TIMEOUT_EXTERNO = 20  # >= timeout_s de qualquer exercício (max 15) + folga
 
 XP_BASE = {1: 10, 2: 15, 3: 25}
@@ -301,6 +312,7 @@ def montar_payload(ex, codigo):
         "mocks": ex["mocks"],
         "arquivos": ex.get("arquivos", {}),
         "timeout_s": ex.get("timeout_s", 15 if ex["pacotes"] else 5),
+        "lang": LANG,
     }, ensure_ascii=False)
 
 
@@ -367,7 +379,14 @@ def main():
     parser.add_argument("--id", help="verifica só o exercício com este id")
     parser.add_argument("--ato", help="verifica só um ato (ex.: ato2) — bosses: 'bosses'")
     parser.add_argument("--nivel", help="verifica só um nível (slug, ex.: texto)")
+    parser.add_argument("--lang", choices=IDIOMAS, default="pt",
+                        help="idioma do conteúdo e do runner (padrão: pt)")
     args = parser.parse_args()
+    global CONTENT, LANG
+    LANG = args.lang
+    CONTENT = pasta_conteudo(args.lang)
+    if args.lang != "pt":
+        print(f"Idioma: {args.lang} ({os.path.relpath(CONTENT, RAIZ)})")
     filtrado = bool(args.id or args.ato or args.nivel)
 
     os.environ["PYTHONHASHSEED"] = "0"
