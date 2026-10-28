@@ -8,7 +8,7 @@ import * as ui from "./ui.js";
 import * as juice from "./juice.js";
 import * as webrunner from "./webrunner.js";
 import * as mundo from "./mundo.js";
-import { iniciarCursor, atualizarCursor } from "./cursor.js";
+import { iniciarCursor, atualizarCursor, definirOcupado } from "./cursor.js";
 import { iniciarTeclado, alternarTeclado, acoplarTeclado } from "./teclado.js";
 
 const A = {
@@ -143,6 +143,8 @@ async function boot() {
     A.conteudo = await carregarConteudo();
   } catch (e) {
     root().innerHTML = ui.telaErroFatal("conteúdo: " + e.message);
+    const btnRec = document.getElementById("btn-recarregar");
+    if (btnRec) btnRec.onclick = () => location.reload();
     return;
   }
   A.bridge = new PyBridge({
@@ -240,11 +242,20 @@ function animarBoasVindas() {
     document.querySelectorAll(".bv-sub, .bv-cta").forEach((el) => (el.style.opacity = "1"));
     return;
   }
+  // só anima o que existe na tela (seletor ausente = GSAP avisa "target not found")
+  const alvo = (sel) => {
+    const els = document.querySelectorAll(sel);
+    return els.length ? els : null;
+  };
   const tl = gsap.timeline({ delay: 0.15 });
-  tl.from(".bv-cubos > span", { y: -70, opacity: 0, duration: 0.6, stagger: 0.12, ease: "back.out(1.6)" })
-    .to(".palavra-inner", { y: 0, duration: 0.7, stagger: 0.06, ease: "power3.out" }, "-=0.25")
-    .to(".bv-sub", { opacity: 1, duration: 0.6, ease: "power2.out" }, "-=0.35")
-    .to(".bv-cta", { opacity: 1, duration: 0.6, ease: "power2.out" }, "-=0.4");
+  const cubos = alvo(".bv-cubos > span");
+  const palavras = alvo(".palavra-inner");
+  const sub = alvo(".bv-sub");
+  const cta = alvo(".bv-cta");
+  if (cubos) tl.from(cubos, { y: -70, opacity: 0, duration: 0.6, stagger: 0.12, ease: "back.out(1.6)" });
+  if (palavras) tl.to(palavras, { y: 0, duration: 0.7, stagger: 0.06, ease: "power3.out" }, cubos ? "-=0.25" : 0);
+  if (sub) tl.to(sub, { opacity: 1, duration: 0.6, ease: "power2.out" }, tl.duration() ? "-=0.35" : 0);
+  if (cta) tl.to(cta, { opacity: 1, duration: 0.6, ease: "power2.out" }, tl.duration() ? "-=0.4" : 0.1);
 }
 
 let _mqEscuro = null;
@@ -274,7 +285,10 @@ function aoMudarHash() {
   if (h.startsWith("#/ex/")) {
     const id = h.slice(5);
     const ex = A.conteudo.porId.get(id);
-    if (ex) abrirExercicio(ex, {});
+    // porId também guarda os exercícios do Lab Web: um #/ex/<id web> (URL
+    // digitada, favorito velho) quebrava o render (node da trilha undefined)
+    if (ex && A.conteudo.trilhaPorSlug.has(ex.nivel)) abrirExercicio(ex, {});
+    else if (ex && A.conteudo.webLab.includes(ex)) navegar("#/webex/" + id);
     else navegar("#/mapa");
   } else if (h === "#/livre") {
     A.tela = { nome: "livre" };
@@ -585,6 +599,7 @@ async function aoRodar() {
   const editor = document.getElementById("editor");
   const codigo = editor.value;
   A.rodando = true;
+  definirOcupado(true); // ampulheta do Dojo OS enquanto o Python roda
   const btn = document.getElementById("btn-rodar");
   const spinnerTimer = setTimeout(() => btn.classList.add("rodando"), 400);
   engine.registrarTentativa(A.save, ex.id, codigo);
@@ -613,7 +628,16 @@ async function aoRodar() {
     clearTimeout(spinnerTimer);
     btn.classList.remove("rodando");
     A.rodando = false;
+    definirOcupado(false);
   }
+}
+
+// o resultado nasce abaixo do editor+teclado: traz para a vista (sem pular se
+// já está visível). Movimento reduzido = sem animação.
+function mostrarPainel(painel) {
+  if (!painel || !painel.scrollIntoView) return;
+  const reduz = document.documentElement.getAttribute("data-reduz") === "1";
+  requestAnimationFrame(() => painel.scrollIntoView({ block: "nearest", behavior: reduz ? "auto" : "smooth" }));
 }
 
 function tratarResultado(resultado, codigo) {
@@ -688,6 +712,7 @@ function tratarResultado(resultado, codigo) {
   }
 
   painel.innerHTML = ui.painelResultado(resultado, ex, xpGanho);
+  mostrarPainel(painel);
 
   // ---- juice + best-time ----
   if (houveOk) {
@@ -1115,6 +1140,7 @@ async function aoRodarWeb() {
   if (A.rodando) return;
   juice.acordarAudio();
   A.rodando = true;
+  definirOcupado(true);
   const ex = A.sessao.exAtual;
   const btn = document.getElementById("btn-rodar");
   btn.classList.add("rodando");
@@ -1126,6 +1152,7 @@ async function aoRodarWeb() {
   } finally {
     btn.classList.remove("rodando");
     A.rodando = false;
+    definirOcupado(false);
   }
 }
 
@@ -1160,6 +1187,7 @@ function tratarResultadoWeb(resultado) {
     }
   }
   painel.innerHTML = ui.painelResultadoWeb(resultado, xpGanho);
+  mostrarPainel(painel);
   if (houveOk) {
     const tempo = registrarTempoSolve(ex);
     juice.tocar(tempo && tempo.novoRecorde ? "recorde" : "sucesso");
@@ -1210,7 +1238,7 @@ function pedirSolucaoWeb() {
       }
       const codigoComentado = (ex.editaveis || ["js"]).map((t) => {
         const sol = ex["solucao_" + t] != null ? ex["solucao_" + t] : ex["web_" + t];
-        return `/* ${t.toUpperCase()} */\n${sol || ""}`;
+        return `/* ${t.toUpperCase()} */\n${String(sol || "").replace(/^(?:[ \t]*\r?\n)+/, "")}`;
       }).join("\n\n");
       const exFake = { titulo: ex.titulo, solucao_referencia: codigoComentado };
       mostrarModal(ui.modalSolucaoCorpo(exFake), () => {

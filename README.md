@@ -22,7 +22,7 @@ calls. So every "API" in the game is a deterministic mock that behaves like the 
 
 ## What's inside
 
-| | |
+| Feature | Details |
 |---|---|
 | **273 Python exercises** | 4 acts (language fundamentals → data, text and robustness → APIs and numbers → AI engineering) + 5 multi-stage bosses, each in 3 difficulty tiers |
 | **30 Web Lab exercises** | HTML/CSS/JS with a live preview: fix the back end, fix the front end, build the UI, wire front ↔ back |
@@ -38,7 +38,7 @@ index.html + js/          single-page app, no framework
  ├─ engine.js             game rules: XP, streaks, belts, Leitner review
  ├─ pybridge.js  ──────►  pyworker.js (Web Worker running Pyodide 0.27.7 / CPython 3.12.7)
  │                         └─ py/runner.py + py/mocks_ia.py  (the same files the offline verifier runs)
- ├─ webrunner.js          Web Lab: runs DOM assertions against the student's page in an iframe
+ ├─ webrunner.js          Web Lab: runs DOM assertions inside a sandboxed iframe (postMessage)
  └─ storage.js            localStorage with schema migration, export/import
 content/*.json            exercise bank: statement, starter, reference solution, visible + hidden tests
 ```
@@ -104,14 +104,37 @@ drafted by AI agents, one per level, into separate fragments. Each fragment had 
 desktop, the windows, and the tutors Cato and Billy) was generated with Google Gemini and
 sliced into sprites.
 
+## Security model
+
+Everything runs in the visitor's browser; there is no backend and no account. The things
+that could carry someone else's code are a save file you import and the Web Lab page code,
+so they are treated as untrusted:
+
+- **Saves are normalised.** Imported files and whatever is already in `localStorage` go
+  through a whitelist with type coercion (`normalizarSave` in `js/storage.js`): numbers must
+  be finite, strings are length-capped, unknown keys are dropped, and stored Web Lab code is
+  kept only as truncated `html`/`css`/`js` strings. Every save-derived value is escaped again
+  before it reaches `innerHTML`.
+- **Web Lab code runs in an opaque origin.** The preview and test iframes use
+  `sandbox="allow-scripts allow-forms"` without `allow-same-origin`, so page code cannot read
+  the game's DOM or storage. The test harness is injected into the iframe and talks to the
+  game only through `postMessage` (`ready` → `run` → `result`), and both sides check
+  `event.source`. The iframe document also carries its own CSP that blocks network access.
+- **Deploy headers.** `vercel.json` sets a Content-Security-Policy (scripts only from the site
+  and the pinned Pyodide path on jsDelivr, `wasm-unsafe-eval` for WebAssembly, no framing),
+  plus `X-Frame-Options: DENY`, `nosniff`, a strict referrer policy and a minimal
+  permissions policy, next to the COOP/COEP headers. `tools/serve.py` reads the same header
+  list from `vercel.json`, so local play sees exactly the production policy.
+
+The CSP still allows `'unsafe-inline'` and `'unsafe-eval'` for scripts: the import map is
+inline, and the sandboxed Web Lab iframes (which inherit the page policy) run the student's
+inline scripts and the test harness.
+
 ## Known limitations
 
 - The UI and the exercises are in Portuguese only.
 - The first load needs the internet, because Pyodide comes from a CDN.
 - It's designed for desktop with a keyboard. It opens on mobile, but it isn't comfortable.
-- Web Lab previews run student code in a same-origin `srcdoc` iframe, because the tests
-  need DOM access. That is fine for a single-user local game, but it is not a sandbox for
-  untrusted third-party code.
 
 ## License
 

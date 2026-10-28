@@ -3,10 +3,67 @@
 // - Preview ao vivo num <iframe sandbox>.
 // - Verificação: roda asserts que enxergam o DOM/JS da página (doc, win),
 //   com o mesmo _verificar pedagógico do runner Python.
-// Tudo local, offline; o código é do próprio aluno (sandbox allow-same-origin
-// só para o preview do usuário — seguro num app local).
+//
+// Modelo de segurança: o código da página pode vir de um save IMPORTADO (entrada
+// não confiável), então preview e testes rodam em iframes sandbox SEM
+// allow-same-origin -> origem opaca: o código do iframe não alcança o DOM, o
+// localStorage nem o JS do jogo. Os testes rodam DENTRO do iframe (harness
+// injetado no srcdoc) e conversam com o pai só por postMessage:
+//   iframe -> pai  {dojo:"ready"}                       (página carregou)
+//   pai -> iframe  {dojo:"run", id, codigo}             (roda 1 teste)
+//   iframe -> pai  {dojo:"result", id, passou, ...}     (resultado)
+// O pai só aceita mensagens cujo event.source é o contentWindow do iframe
+// que ele mesmo criou. Um CSP <meta> no srcdoc corta rede/recursos externos.
 
-export function comporDocumento({ html, css, js }) {
+const CSP_IFRAME =
+  "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; " +
+  "img-src data: blob:; font-src data:; media-src data: blob:; base-uri 'none'";
+
+// Harness de testes que roda DENTRO do iframe de teste (origem opaca).
+// Espelha o _verificar pedagógico do runner Python (versão JS).
+const HARNESS = `(function(){
+  function repr(x){
+    if(typeof x==="string")return JSON.stringify(x);
+    if(x===null)return "null";
+    if(x===undefined)return "undefined";
+    try{return JSON.stringify(x);}catch(e){return String(x);}
+  }
+  function iguais(a,b){
+    if(typeof a==="number"&&typeof b==="number")return Math.abs(a-b)<1e-9||a===b;
+    if(Array.isArray(a)&&Array.isArray(b))return a.length===b.length&&a.every(function(x,i){return iguais(x,b[i]);});
+    if(a&&b&&typeof a==="object"&&typeof b==="object"){
+      var ka=Object.keys(a),kb=Object.keys(b);
+      return ka.length===kb.length&&ka.every(function(k){return iguais(a[k],b[k]);});
+    }
+    return a===b;
+  }
+  function FalhaWeb(esperado,obtido){this.esperado=esperado;this.obtido=obtido;}
+  var pai=window.parent;
+  window.addEventListener("message",function(ev){
+    if(ev.source!==pai)return;
+    var m=ev.data;
+    if(!m||m.dojo!=="run"||typeof m.codigo!=="string")return;
+    var doc=document,win=window;
+    var caixa=document.getElementById("__dojo_erro");
+    var res={dojo:"result",id:m.id,passou:false,esperado:null,obtido:null,mensagem:null,
+      erroPagina:(caixa&&/^Erro no JS:/.test(caixa.textContent))?caixa.textContent:null};
+    var _verificar=function(obtido,esperado){if(!iguais(obtido,esperado))throw new FalhaWeb(repr(esperado),repr(obtido));};
+    var _clicar=function(sel){var el=doc.querySelector(sel);if(!el)throw new Error("elemento não encontrado para clicar: "+sel);el.click();};
+    var _texto=function(sel){var el=doc.querySelector(sel);return el?el.textContent.trim():null;};
+    var _esperar=function(){return new Promise(function(r){setTimeout(r,0);});};
+    Promise.resolve().then(function(){
+      var fn=new Function("doc","win","_verificar","_clicar","_texto","_esperar",
+        "return (async () => { "+m.codigo+" })();");
+      return fn(doc,win,_verificar,_clicar,_texto,_esperar);
+    }).then(function(){res.passou=true;},function(e){
+      if(e instanceof FalhaWeb){res.esperado=e.esperado;res.obtido=e.obtido;}
+      else res.mensagem=String(e&&e.message?e.message:e);
+    }).then(function(){pai.postMessage(res,"*");});
+  });
+  window.addEventListener("load",function(){setTimeout(function(){pai.postMessage({dojo:"ready"},"*");},0);});
+})();`;
+
+export function comporDocumento({ html, css, js }, { harness = false } = {}) {
   // injeta o CSS no <head> e o JS no fim do <body>. Se o html já é um
   // documento completo, envolvemos mesmo assim de forma tolerante.
   const corpo = html || "";
@@ -16,6 +73,7 @@ export function comporDocumento({ html, css, js }) {
   // chapado nem offset duro). Só seletores de elemento (especificidade
   // mínima): o CSS do exercício sempre pode sobrescrever.
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="${CSP_IFRAME}">
 <style>
 :root{color-scheme:light}
 /* céu do entardecer: gradiente vertical pêssego→âmbar + dois halos difusos
@@ -75,6 +133,7 @@ function __dojoErro(msg){
   b.textContent="Erro no JS: "+msg;
 }
 window.addEventListener("error",function(ev){__dojoErro((ev.error&&ev.error.message)||ev.message||"erro");});
+${harness ? HARNESS : ""}
 <\/script>
 ${corpo}
 <script>
@@ -84,7 +143,6 @@ ${(js || "").replace(/<\/script/gi, "<\\/script")}
   __dojoErro(e&&e.message?e.message:String(e));
 }
 <\/script>
-<div id="__dojo_pronto" hidden></div>
 </body></html>`;
 }
 
@@ -94,71 +152,71 @@ export function renderizarPreview(iframe, arquivos) {
 }
 
 // ---------------------------------------------------------------------------
-// comparação pedagógica (espelha o _verificar do runner Python, versão JS)
+// execução dos testes num iframe FRESCO (sem vazamento de estado), origem opaca
 // ---------------------------------------------------------------------------
-function repr(x) {
-  if (typeof x === "string") return JSON.stringify(x);
-  if (x === null) return "null";
-  if (x === undefined) return "undefined";
-  try {
-    return JSON.stringify(x);
-  } catch {
-    return String(x);
-  }
-}
+const TEMPO_PRONTO_MS = 3000;  // espera o {dojo:"ready"}; depois roda mesmo assim
+const TEMPO_TESTE_MS = 10000;  // um teste que nunca responde vira falha, não trava
 
-function iguais(a, b) {
-  if (typeof a === "number" && typeof b === "number") {
-    return Math.abs(a - b) < 1e-9 || a === b;
-  }
-  if (Array.isArray(a) && Array.isArray(b)) {
-    return a.length === b.length && a.every((x, i) => iguais(x, b[i]));
-  }
-  if (a && b && typeof a === "object" && typeof b === "object") {
-    const ka = Object.keys(a), kb = Object.keys(b);
-    return ka.length === kb.length && ka.every((k) => iguais(a[k], b[k]));
-  }
-  return a === b;
-}
-
-class FalhaWeb extends Error {
-  constructor(esperado, obtido) {
-    super("verificação falhou");
-    this.esperado = esperado;
-    this.obtido = obtido;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// execução dos testes num iframe FRESCO (sem vazamento de estado)
-// ---------------------------------------------------------------------------
-// Espera o srcdoc renderizar de verdade: ignora o onload do about:blank
-// inicial e faz polling por um sentinela injetado no fim do <body>.
 function criarIframeTeste(arquivos) {
   return new Promise((resolve) => {
     const iframe = document.createElement("iframe");
     // allow-forms: exercícios de formulário precisam disparar o evento submit.
-    iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms");
+    // SEM allow-same-origin: o código do aluno/save não toca o jogo.
+    iframe.setAttribute("sandbox", "allow-scripts allow-forms");
+    iframe.setAttribute("aria-hidden", "true");
+    iframe.tabIndex = -1;
     iframe.style.cssText = "position:absolute;width:800px;height:600px;left:-9999px;top:-9999px;border:0";
-    document.body.appendChild(iframe);
-    iframe.srcdoc = comporDocumento(arquivos);
-    const t0 = Date.now();
-    const checar = () => {
-      let pronto = false;
-      try {
-        const d = iframe.contentDocument;
-        pronto = !!(d && d.readyState === "complete" && d.getElementById("__dojo_pronto"));
-      } catch {
-        pronto = false;
-      }
-      if (pronto || Date.now() - t0 > 3000) {
-        // um tick extra para os handlers de DOMContentLoaded rodarem
-        setTimeout(() => resolve(iframe), 0);
-      } else {
-        setTimeout(checar, 16);
-      }
+    let feito = false;
+    let timer = null;
+    const ouvir = (ev) => {
+      if (ev.source === iframe.contentWindow && ev.data && ev.data.dojo === "ready") fim();
     };
-    checar();
+    function fim() {
+      if (feito) return;
+      feito = true;
+      clearTimeout(timer);
+      window.removeEventListener("message", ouvir);
+      resolve(iframe);
+    }
+    window.addEventListener("message", ouvir);
+    timer = setTimeout(fim, TEMPO_PRONTO_MS);
+    document.body.appendChild(iframe);
+    iframe.srcdoc = comporDocumento(arquivos, { harness: true });
+  });
+}
+
+const curto = (x) => (typeof x === "string" ? x.slice(0, 2000) : null);
+
+function rodarUmTeste(iframe, codigo) {
+  return new Promise((resolve) => {
+    const id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    let timer = null;
+    const ouvir = (ev) => {
+      if (ev.source !== iframe.contentWindow) return;
+      const d = ev.data;
+      if (!d || d.dojo !== "result" || d.id !== id) return;
+      fim({
+        passou: d.passou === true,
+        esperado: curto(d.esperado),
+        obtido: curto(d.obtido),
+        mensagem: curto(d.mensagem),
+        erroPagina: curto(d.erroPagina),
+      });
+    };
+    function fim(r) {
+      clearTimeout(timer);
+      window.removeEventListener("message", ouvir);
+      resolve(r);
+    }
+    window.addEventListener("message", ouvir);
+    timer = setTimeout(() => fim({
+      passou: false, esperado: null, obtido: null,
+      mensagem: "o teste não respondeu a tempo (loop infinito ou página travada?)",
+      erroPagina: null,
+    }), TEMPO_TESTE_MS);
+    // origem opaca: o único targetOrigin possível é "*"; do lado de lá o
+    // harness confere event.source === parent.
+    iframe.contentWindow.postMessage({ dojo: "run", id, codigo: String(codigo || "") }, "*");
   });
 }
 
@@ -169,45 +227,17 @@ export async function rodarTestesWeb(arquivos, testes) {
     // Cada teste roda num iframe FRESCO — isolamento total (cliques de um teste
     // não vazam para o outro), igual ao runner Python (namespace por teste).
     for (const t of testes || []) {
-      const entrada = { nome: t.nome, passou: false, esperado: null, obtido: null, mensagem: null };
       const iframe = await criarIframeTeste(arquivos);
       try {
-        const win = iframe.contentWindow;
-        const doc = iframe.contentDocument;
-        const erroBox = doc.getElementById("__dojo_erro");
-        if (erroBox && /^Erro no JS:/.test(erroBox.textContent)) erroPagina = erroBox.textContent;
-
-        const _verificar = (obtido, esperado) => {
-          if (!iguais(obtido, esperado)) throw new FalhaWeb(repr(esperado), repr(obtido));
-        };
-        const _clicar = (sel) => {
-          const el = doc.querySelector(sel);
-          if (!el) throw new Error(`elemento não encontrado para clicar: ${sel}`);
-          el.click();
-        };
-        const _texto = (sel) => {
-          const el = doc.querySelector(sel);
-          return el ? el.textContent.trim() : null;
-        };
-        const _esperar = () => new Promise((r) => setTimeout(r, 0));
-        // eslint-disable-next-line no-new-func
-        const fn = new Function(
-          "doc", "win", "_verificar", "_clicar", "_texto", "_esperar",
-          `return (async () => { ${t.codigo} })();`
-        );
-        await fn(doc, win, _verificar, _clicar, _texto, _esperar);
-        entrada.passou = true;
-      } catch (e) {
-        if (e instanceof FalhaWeb) {
-          entrada.esperado = e.esperado;
-          entrada.obtido = e.obtido;
-        } else {
-          entrada.mensagem = String(e && e.message ? e.message : e);
-        }
+        const r = await rodarUmTeste(iframe, t.codigo);
+        if (r.erroPagina) erroPagina = r.erroPagina;
+        resultados.push({
+          nome: t.nome, passou: r.passou, esperado: r.esperado,
+          obtido: r.obtido, mensagem: r.mensagem,
+        });
       } finally {
         iframe.remove();
       }
-      resultados.push(entrada);
     }
     return {
       status: resultados.length && resultados.every((r) => r.passou) ? "ok" : "falha_teste",

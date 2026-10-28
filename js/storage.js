@@ -48,6 +48,123 @@ export function novoSave() {
   };
 }
 
+// ---------------------------------------------------------------------------
+// normalizarSave: o save é ENTRADA NÃO CONFIÁVEL (vem de um arquivo importado ou
+// de um localStorage que pode ter sido adulterado). Reconstrói o objeto por
+// whitelist com coerção de tipo: números viram números finitos >= 0, strings
+// viram strings curtas, booleanos só são true se forem exatamente true, e
+// historico[*].web_codigo só guarda html/css/js como string truncada. Nada que
+// sai daqui pode carregar HTML/JS para dentro de um innerHTML como "número".
+// ---------------------------------------------------------------------------
+const CHAVES_PROIBIDAS = new Set(["__proto__", "constructor", "prototype"]);
+const LIMITE = 1e9;
+
+function inteiro(x, padrao = 0, min = 0, max = LIMITE) {
+  const n = typeof x === "number" ? x : (typeof x === "string" && x.trim() !== "" ? Number(x) : NaN);
+  if (!Number.isFinite(n)) return padrao;
+  return Math.min(max, Math.max(min, Math.floor(n)));
+}
+function texto(x, max = 80) {
+  return typeof x === "string" ? x.slice(0, max) : null;
+}
+function chaveOk(k) {
+  return typeof k === "string" && k.length > 0 && k.length <= 120 && !CHAVES_PROIBIDAS.has(k);
+}
+function objeto(x) {
+  return x && typeof x === "object" && !Array.isArray(x) ? x : {};
+}
+
+function normalizarWebCodigo(w) {
+  if (!w || typeof w !== "object" || Array.isArray(w)) return null;
+  const out = {};
+  for (const k of ["html", "css", "js"]) {
+    if (typeof w[k] === "string") out[k] = truncarCodigo(w[k]);
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+function normalizarHistorico(hs) {
+  const out = {};
+  for (const [id, bruto] of Object.entries(objeto(hs))) {
+    if (!chaveOk(id) || !bruto || typeof bruto !== "object") continue;
+    const h = {
+      tentativas: inteiro(bruto.tentativas),
+      resolvido: bruto.resolvido === true,
+      dicas_usadas: inteiro(bruto.dicas_usadas, 0, 0, 10),
+      solucao_vista: bruto.solucao_vista === true,
+      pulado: bruto.pulado === true,
+      xp_ganho: inteiro(bruto.xp_ganho),
+      xp_zerado: bruto.xp_zerado === true,
+      estrela_pendente: bruto.estrela_pendente === true,
+      recuperado: bruto.recuperado === true,
+      ultimo_codigo: typeof bruto.ultimo_codigo === "string" ? truncarCodigo(bruto.ultimo_codigo) : null,
+    };
+    if ("web_codigo" in bruto) h.web_codigo = normalizarWebCodigo(bruto.web_codigo);
+    if (Array.isArray(bruto.tempos)) {
+      h.tempos = bruto.tempos
+        .filter((t) => t && typeof t === "object")
+        .map((t) => ({ t: inteiro(t.t) }))
+        .slice(-8);
+    }
+    if (bruto.pb_tempo != null) {
+      const pb = inteiro(bruto.pb_tempo, -1);
+      if (pb >= 0) h.pb_tempo = pb;
+    }
+    out[id] = h;
+  }
+  return out;
+}
+
+export function normalizarSave(s) {
+  const base = novoSave();
+  const src = objeto(s);
+  const run = objeto(src.run_atual);
+  const streak = objeto(src.streak);
+  const cfg = objeto(src.config);
+  const maestria = {};
+  for (const [c, v] of Object.entries(objeto(src.maestria))) {
+    if (chaveOk(c)) maestria[c] = inteiro(v, 0, 0, 3);
+  }
+  const revisao = (Array.isArray(src.revisao) ? src.revisao : [])
+    .filter((r) => r && typeof r === "object" && chaveOk(r.exercicio_id))
+    .slice(0, 500)
+    .map((r) => ({
+      exercicio_id: r.exercicio_id,
+      caixa: inteiro(r.caixa, 1, 1, 4),
+      criado_pos: inteiro(r.criado_pos),
+      criado_ato: inteiro(r.criado_ato),
+      criado_run: inteiro(r.criado_run, 1),
+      erros: inteiro(r.erros),
+    }));
+  const config = {
+    som: cfg.som !== false,
+    particulas: cfg.particulas !== false,
+    reduzir: cfg.reduzir === true,
+    tema: ["claro", "escuro", "auto"].includes(cfg.tema) ? cfg.tema : "claro",
+  };
+  if (typeof cfg.teclado === "boolean") config.teclado = cfg.teclado;
+  const ultimo = texto(src.ultimo_dia, 10);
+  return {
+    schema_versao: SCHEMA_VERSAO,
+    xp_total: inteiro(src.xp_total),
+    runs_completas: inteiro(src.runs_completas, 0, 0, 3),
+    run_atual: {
+      numero: inteiro(run.numero, 1, 1, 3),
+      tier: inteiro(run.tier, 1, 1, 3),
+      nivel_atual: texto(run.nivel_atual) || base.run_atual.nivel_atual,
+      exercicio_atual: texto(run.exercicio_atual, 120),
+    },
+    streak: { atual: inteiro(streak.atual), melhor: inteiro(streak.melhor) },
+    maestria,
+    revisao,
+    historico: normalizarHistorico(src.historico),
+    dan: { vencidos: inteiro(objeto(src.dan).vencidos, 0, 0, 1000) },
+    dias_praticados: inteiro(src.dias_praticados),
+    ultimo_dia: ultimo && /^\d{4}-\d{2}-\d{2}$/.test(ultimo) ? ultimo : null,
+    config,
+  };
+}
+
 export function carregar() {
   let bruto;
   try {
@@ -87,9 +204,12 @@ export function carregar() {
       // só aqui é corrupção real: dados que nenhuma migração consegue entender
       return { save: null, corrompido: true, bruto };
     }
-    salvar(save); // salvar() já é try/catch que só avisa — nunca derruba o save
   }
-  return { save, corrompido: false, novo: false };
+  // normaliza SEMPRE (inclusive saves já na versão atual): o localStorage pode ter
+  // sido envenenado por um import antigo ou por outra aba. Persiste se mudou.
+  const normal = normalizarSave(save);
+  if (JSON.stringify(normal) !== bruto) salvar(normal); // salvar() só avisa se falhar
+  return { save: normal, corrompido: false, novo: false };
 }
 
 export function salvar(save) {
@@ -141,6 +261,7 @@ export function importar(arquivo) {
           save = migrar(save);
           save.schema_versao += 1;
         }
+        save = normalizarSave(save); // arquivo importado = entrada não confiável
         salvar(save);
         resolve(save);
       } catch (e) {

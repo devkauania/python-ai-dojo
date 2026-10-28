@@ -2,11 +2,15 @@
 // cursor:none SÓ quando o custom está ativo; touch/reduzir devolvem o nativo.
 
 const V = new URL(import.meta.url).search || "";
+// hx/hy = hotspot em pixels NATIVOS do sprite (todos têm 289px de altura).
+// O deslocamento real é hx*k, com k = altura renderizada / altura nativa —
+// assim o ponto quente acompanha o tamanho do cursor (CSS --z) sem recalcular.
+const ALTURA_NATIVA = 289;
 const SPRITES = {
-  seta: { src: `./assets/cursor-seta.png${V}`, dx: -3, dy: -2 },   // ponta no topo-esq
-  mao: { src: `./assets/cursor-mao.png${V}`, dx: -10, dy: -3 },    // ponta do dedo
-  texto: { src: `./assets/cursor-texto.png${V}`, dx: -6, dy: -13 }, // centro do I
-  espera: { src: `./assets/cursor-espera.png${V}`, dx: -11, dy: -13 },
+  seta: { src: `./assets/cursor-seta.png${V}`, hx: 3, hy: 3 },      // ponta no topo-esq
+  mao: { src: `./assets/cursor-mao.png${V}`, hx: 68, hy: 6 },       // ponta do dedo
+  texto: { src: `./assets/cursor-texto.png${V}`, hx: 39, hy: 144 }, // centro do I
+  espera: { src: `./assets/cursor-espera.png${V}`, hx: 80, hy: 144 },
 };
 const SEL_MAO = "button, a, summary, select, label, [role=button], input[type=checkbox], input[type=radio]";
 const SEL_TEXTO = "textarea, input[type=text], input[type=number], input:not([type]), .editor";
@@ -14,6 +18,12 @@ const SEL_TEXTO = "textarea, input[type=text], input[type=number], input:not([ty
 let el = null;
 let modo = "seta";
 let ligado = false;
+let ultimo = null; // último pointermove (p/ trocar o sprite sem esperar o mouse mexer)
+
+function escala() {
+  const alt = el && el.getBoundingClientRect().height;
+  return alt ? alt / ALTURA_NATIVA : 26 / ALTURA_NATIVA;
+}
 
 function podeAtivar() {
   if (window.matchMedia("(pointer: coarse)").matches) return false;
@@ -30,6 +40,7 @@ function aplicar(m) {
 
 function aoMover(e) {
   if (!el) return;
+  ultimo = e;
   const alvo = e.target;
   let m = "seta";
   if (alvo instanceof Element) {
@@ -39,7 +50,8 @@ function aoMover(e) {
   if (document.body.classList.contains("ocupado")) m = "espera";
   aplicar(m);
   const s = SPRITES[modo];
-  el.style.transform = `translate3d(${e.clientX + s.dx}px, ${e.clientY + s.dy}px, 0)`;
+  const k = escala();
+  el.style.transform = `translate3d(${e.clientX - s.hx * k}px, ${e.clientY - s.hy * k}px, 0)`;
   el.style.display = "block";
 }
 
@@ -73,6 +85,13 @@ function desligar() {
   window.removeEventListener("pointermove", aoMover);
   document.documentElement.classList.remove("cursor-os-ativo");
   if (el) { el.remove(); el = null; }
+}
+
+// ampulheta enquanto o Python/os testes rodam: liga/desliga a classe e já
+// reaplica o sprite na última posição (o pointermove pode demorar a vir)
+export function definirOcupado(sim) {
+  document.body.classList.toggle("ocupado", !!sim);
+  if (el && ultimo) aoMover(ultimo);
 }
 
 export function iniciarCursor() {

@@ -852,7 +852,8 @@ export function montarMundo() {
       }
     });
     if (av) {
-      gsap.to(av.querySelector(".marca"), { y: -4, duration: 1.9, ease: "sine.inOut", yoyo: true, repeat: -1 });
+      const marca = av.querySelector(".marca");
+      if (marca) gsap.to(marca, { y: -4, duration: 1.9, ease: "sine.inOut", yoyo: true, repeat: -1 });
       const haloAv = av.querySelector(".avatar-halo");
       if (haloAv) gsap.to(haloAv, { opacity: 0.45, duration: 1.9, ease: "sine.inOut", yoyo: true, repeat: -1 });
     }
@@ -879,7 +880,8 @@ export function montarMundo() {
     const fills = fillHalo ? [fill, fillHalo] : [fill];
     gsap.fromTo(fills, { strokeDashoffset: comprimento },
       { strokeDashoffset: comprimento * (1 - fracao), duration: 1.5, ease: "power2.inOut" });
-    gsap.from(nos.map((el) => el.querySelector(".no-cubo")), {
+    const cubosNos = nos.map((el) => el.querySelector(".no-cubo")).filter(Boolean);
+    if (cubosNos.length) gsap.from(cubosNos, {
       opacity: 0, y: -18, duration: 0.55, stagger: 0.05, ease: "back.out(1.5)", clearProps: "opacity,transform",
     });
     if (av && window.MotionPathPlugin && fracao > 0.01) {
@@ -1080,7 +1082,7 @@ export function cerimoniaCubos(container, _cores = []) {
   ).join("");
   const cubos = container.querySelectorAll(".cer-cubo");
   const gsap = window.gsap;
-  if (!gsap || reduzAtivo()) return;
+  if (!gsap || reduzAtivo() || !cubos.length) return;
   gsap.timeline().from(cubos, {
     y: -90, opacity: 0, duration: 0.55, stagger: 0.16, ease: "bounce.out",
   });

@@ -49,6 +49,10 @@ const ICONE_POR_SLUG = {
 const iconeDoNivel = (slug) => ICONE_POR_SLUG[slug] || "icone-24";
 
 // moldura de janela do Dojo OS (9-slice do chrome-07 via CSS .janela)
+// rótulo curto do custo da dica (o completo vai no title): os 5 botões
+// dica/solução/pular cabem em menos linhas na coluna estreita da aula
+const CUSTO_CURTO = ["", "grátis", "–50%", "XP 0"];
+
 export function janela(titulo, corpo, cls = "") {
   return `<section class="janela ${cls}">
     <div class="janela-barra"><span class="janela-titulo">${esc(titulo)}</span>
@@ -61,6 +65,13 @@ export function janela(titulo, corpo, cls = "") {
 // ---------------------------------------------------------------------------
 // utilidades
 // ---------------------------------------------------------------------------
+// número vindo do save -> texto seguro para innerHTML (defesa em profundidade:
+// o storage já normaliza, mas nenhum valor do save entra cru num template).
+export function num(x) {
+  const n = Number(x);
+  return Number.isFinite(n) ? String(n) : "0";
+}
+
 export function esc(s) {
   return String(s ?? "")
     .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
@@ -79,7 +90,7 @@ export function md(texto) {
   // e uma crase-tripla dentro de `código inline` virava um <pre> no meio da
   // frase, sumindo com o padrão que o aluno precisa copiar.
   resto = resto.replace(/^[ \t]*```(\w*)[ \t]*\n([\s\S]*?)\n[ \t]*```[ \t]*$/gm, (_m, _lang, corpo) => {
-    blocos.push(`<pre class="cod"><code>${esc(corpo.replace(/\n$/, ""))}</code></pre>`);
+    blocos.push(`<pre class="cod"><code>${esc(aparar(corpo))}</code></pre>`);
     return `[[B${blocos.length - 1}]]`;
   });
   // `code` vira placeholder ANTES de negrito/itálico: senão os asteriscos
@@ -195,11 +206,11 @@ export function header(ctx) {
 
   return `<header class="hdr">
     <button class="tb-start" id="btn-config" title="Start — Configurações" aria-label="Start — Configurações">Start</button>
-    <a class="tb-app" href="#/mapa" title="Área de trabalho"><img src="${assetUrl("taskbar-07")}" alt=""><span class="tb-rotulo">Dojo</span></a>
+    <a class="tb-app" href="#/mapa" title="Área de trabalho" aria-label="Dojo — área de trabalho"><img src="${assetUrl("taskbar-07")}" alt=""><span class="tb-rotulo">Dojo</span></a>
     ${tabsAto}
     <div class="hdr-meio">
-      <a class="tb-app" href="#/web"><img src="${assetUrl("taskbar-10")}" alt=""><span class="tb-rotulo">Lab Web</span></a>
-      <a class="tb-app" href="#/progresso"><img src="${assetUrl("taskbar-09")}" alt=""><span class="tb-rotulo">Progresso</span></a>
+      <a class="tb-app" href="#/web" title="Lab Web" aria-label="Lab Web"><img src="${assetUrl("taskbar-10")}" alt=""><span class="tb-rotulo">Lab Web</span></a>
+      <a class="tb-app" href="#/progresso" title="Progresso" aria-label="Progresso"><img src="${assetUrl("taskbar-09")}" alt=""><span class="tb-rotulo">Progresso</span></a>
       ${progressoNivel}
     </div>
     <span class="tb-espaco"></span>
@@ -208,9 +219,9 @@ export function header(ctx) {
         title="Teclado virtual (teclas que faltam no seu teclado: \\ | { } ~ ...)"
         aria-label="Alternar teclado virtual" aria-pressed="${tecladoAberto}">
         <img src="${assetUrl("keycap")}" alt=""><span class="tb-rotulo">Teclado</span></button>
-      ${streak > 0 ? `<span class="hdr-streak" id="hdr-streak">${ICONE_RAIO}${streak}</span>` : ""}
-      ${fila > 0 ? `<a class="hdr-fila" href="#/mapa">${fila} rev</a>` : ""}
-      <span class="hdr-xp" id="hdr-xp" title="XP total"><img src="${assetUrl("taskbar-12")}" alt="">${save.xp_total} XP</span>
+      ${streak > 0 ? `<span class="hdr-streak" id="hdr-streak">${ICONE_RAIO}${num(streak)}</span>` : ""}
+      ${fila > 0 ? `<a class="hdr-fila" href="#/mapa">${num(fila)} rev</a>` : ""}
+      <span class="hdr-xp" id="hdr-xp" title="XP total"><img src="${assetUrl("taskbar-12")}" alt="">${num(save.xp_total)} XP</span>
       <span class="tb-relogio" id="tb-relogio">${hora.slice(0, 2)}<i class="pisca">:</i>${hora.slice(3)}</span>
     </div>
   </header>`;
@@ -226,7 +237,7 @@ export function telaErroFatal(msg) {
       <p>O jogo precisa de internet no primeiro carregamento (o Python roda no seu
       navegador, mas é baixado do CDN uma única vez). Verifique a conexão e recarregue.</p>
       <p class="mono peq">${esc(msg || "")}</p>
-      <button class="btn btn-primario" onclick="location.reload()">Recarregar</button>`)}
+      <button class="btn btn-primario" id="btn-recarregar">Recarregar</button>`)}
   </div>`;
 }
 
@@ -249,12 +260,16 @@ export function telaBoasVindas(novo, recap) {
       ${novo
         ? `<p class="sub bv-sub">Python para IA, um exercício de cada vez. Código de verdade rodando no seu navegador, com feedback imediato.</p>`
         : `<p class="sub bv-sub">Bem-vindo de volta.${recap ? " " + esc(recap) : ""}</p>`}
-      <div class="tutor-fala" style="margin-top:14px">
+      <!-- o botão fica na coluna do Cato (ao lado do retrato), não numa linha
+           própria abaixo: a janela termina onde o conteúdo termina -->
+      <div class="tutor-fala bv-fala">
         <img class="tutor-retrato" src="${assetUrl("tutor-gato")}" alt="Cato, seu tutor">
-        <p class="peq">O Cato te espera na área de trabalho. Cada nível é um programa:
-        clique duas… não, UMA vez já abre.</p>
-      </div>
-      <p class="bv-cta" style="margin-top:16px"><button class="btn btn-primario btn-grande" id="btn-comecar" data-som-proprio>${novo ? "Começar" : "Continuar"}</button></p>`)}
+        <div class="bv-lado">
+          <p class="peq">O Cato te espera na área de trabalho. Cada nível é um programa:
+          clique duas… não, UMA vez já abre.</p>
+          <p class="bv-cta"><button class="btn btn-primario btn-grande" id="btn-comecar" data-som-proprio>${novo ? "Começar" : "Continuar"}</button></p>
+        </div>
+      </div>`, "janela-bv")}
   </div>`;
 }
 
@@ -325,7 +340,7 @@ export function telaMapa(ctx) {
 
   const leiame = janela("leia-me.txt", `
     <h1>Python AI Dojo</h1>
-    <p class="sub">Run ${save.run_atual.numero} · ${NOMES_FAIXA[fx]} · ${save.xp_total} XP</p>
+    <p class="sub">Run ${num(save.run_atual.numero)} · ${esc(NOMES_FAIXA[fx])} · ${num(save.xp_total)} XP</p>
     <div class="linha-botoes">
       ${proximo ? `<button class="btn btn-primario" id="btn-continuar">Continuar: ${esc(proxNode.titulo)}</button>` : ""}
       <button class="btn btn-peq" id="btn-progresso">Progresso</button>
@@ -375,12 +390,12 @@ export function telaProgresso(ctx) {
     <p class="sub">Como você evolui pela prática.</p></div><a class="btn btn-fantasma" href="#/mapa">‹ Voltar</a></div>`;
 
   html += `<div class="progresso-grade reveal">
-    <div class="stat-card"><div class="num">${save.xp_total}</div><div class="lab">XP total</div></div>
+    <div class="stat-card"><div class="num">${num(save.xp_total)}</div><div class="lab">XP total</div></div>
     <div class="stat-card"><div class="num">${resolvidos}</div><div class="lab">exercícios resolvidos</div></div>
     <div class="stat-card"><div class="num">${resolvidos ? Math.round((semDica / resolvidos) * 100) : 0}%</div><div class="lab">sem dica</div></div>
-    <div class="stat-card"><div class="num">${save.streak.melhor}</div><div class="lab">melhor streak</div></div>
+    <div class="stat-card"><div class="num">${num(save.streak.melhor)}</div><div class="lab">melhor streak</div></div>
     <div class="stat-card"><div class="num">${conceitosTres}/${totalConceitos}</div><div class="lab">conceitos ★★★</div></div>
-    <div class="stat-card"><div class="num">${dias}</div><div class="lab">dias praticados</div></div>
+    <div class="stat-card"><div class="num">${num(dias)}</div><div class="lab">dias praticados</div></div>
   </div>`;
 
   html += `<h3 class="reveal">Evolução dos seus tempos <span class="peq">— comparando as duas resoluções mais recentes</span></h3>`;
@@ -401,6 +416,14 @@ export function telaProgresso(ctx) {
     html += `</div>`;
   }
   return `<div class="mapa">${janela("progresso.log", html)}</div>`;
+}
+
+// dicas reveladas: o Cato fala DENTRO da própria janela, logo abaixo dos botões
+// de dica (antes ficavam soltas no papel de parede, abaixo da aula inteira)
+function dicasArea(dicasHtml) {
+  return `<div class="dicas-area" id="dicas-area">${dicasHtml ? `<div class="janela-tutor tutor-fala">
+    <img class="tutor-retrato" src="${assetUrl("tutor-gato")}" alt="Cato">
+    <div class="tutor-dicas">${dicasHtml}</div></div>` : ""}</div>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -436,7 +459,7 @@ export function telaExercicio(ctx) {
   }
   const botoesDica = [];
   for (let i = sessao.dicaRevelada + 1; i <= 3; i++) {
-    botoesDica.push(`<button class="btn btn-peq" data-dica="${i}" id="btn-dica-${i}">Dica ${i} · ${custoDica[i]}</button>`);
+    botoesDica.push(`<button class="btn btn-peq" data-dica="${i}" id="btn-dica-${i}" title="Dica ${i}: ${custoDica[i]}">Dica ${i} · ${CUSTO_CURTO[i]}</button>`);
   }
 
   const contexto = sessao.emRevisao
@@ -450,7 +473,7 @@ export function telaExercicio(ctx) {
   return `<div class="ex-layout">
     <aside class="ex-sidebar" id="ex-sidebar">
       ${conteudo.manifest.atos.map((ato, ai) => {
-        const aberto = ai === node.atoIdx;
+        const aberto = node ? ai === node.atoIdx : ai === 0;
         return `<details ${aberto ? "open" : ""}><summary>${esc(ato.titulo)}</summary>
           ${ato.niveis.map((n) => {
             const p = engine.progressoNivel(save, conteudo, n.slug, ex.tier);
@@ -462,30 +485,23 @@ export function telaExercicio(ctx) {
       }).join("")}
     </aside>
     <section class="ex-enunciado">
-      <div class="ex-cab">
-        <a class="btn btn-fantasma btn-peq" href="#/mapa">‹ Área de trabalho</a>
-        <span class="peq">${esc(node.atoTitulo)} · ${esc(node.titulo)} · tier ${ex.tier} · ${idx + 1}/${exsNivel.length}</span>
-        ${contexto}
-      </div>
       ${janela("leia-me.txt — aula do Cato", `
+        <div class="ex-cab">
+          <a class="btn btn-fantasma btn-peq" href="#/mapa">‹ Área de trabalho</a>
+          ${contexto}
+        </div>
         <div class="aula-cab">
           <img class="tutor-retrato tutor-mini" src="${assetUrl("tutor-gato")}" alt="Cato, o professor">
-          <div><h2>${esc(ex.titulo)}</h2><p class="peq aula-fala">Cato ensina:</p></div>
+          <div><h2>${esc(ex.titulo)}</h2><p class="peq aula-fala">${node ? `${esc(node.atoTitulo)} · ${esc(node.titulo)} · ` : ""}tier ${ex.tier} · ${idx + 1}/${exsNivel.length}</p></div>
         </div>
+        <div class="linha-botoes dicas-botoes">
+          ${botoesDica.join("")}
+          <button class="btn btn-peq" id="btn-solucao" title="Ver a solução: o XP deste exercício vira 0 e ele entra na fila de revisão">Solução · XP 0</button>
+          <button class="btn btn-peq" id="btn-pular" title="Pular: XP 0 neste exercício e ele entra na fila de revisão">Pular · XP 0</button>
+        </div>
+        ${dicasArea(dicasHtml)}
         ${explicacao}
         <div class="enunciado">${md(ex.enunciado_md)}</div>`)}
-      <div class="dicas-area" id="dicas-area">
-        ${dicasHtml ? janela("Tutor — Cato", `
-          <div class="tutor-fala">
-            <img class="tutor-retrato" src="${assetUrl("tutor-gato")}" alt="Cato">
-            <div class="tutor-dicas">${dicasHtml}</div>
-          </div>`, "janela-tutor") : ""}
-        <div class="linha-botoes">
-          ${botoesDica.join("")}
-          <button class="btn btn-peq btn-fantasma" id="btn-solucao">Ver solução · XP = 0 + revisão</button>
-          <button class="btn btn-peq btn-fantasma" id="btn-pular">Pular · XP 0 + revisão</button>
-        </div>
-      </div>
     </section>
     <section class="ex-editor">
       ${janela("resolucao.py — Billy", `
@@ -499,7 +515,6 @@ export function telaExercicio(ctx) {
             autocapitalize="off" aria-label="Editor de código Python">${esc(codigo)}</textarea>
         </div>
       </div>
-      <p class="billy-fala oculto" id="billy-fala" aria-live="polite"></p>
       <div id="vk-slot" class="vk-slot"></div>
       <div class="editor-acoes">
         <button class="btn btn-primario" id="btn-rodar">Rodar <span class="atalho">Ctrl+Enter</span></button>
@@ -507,6 +522,9 @@ export function telaExercicio(ctx) {
         <span class="pkg-status peq" id="pkg-status"></span>
         <button class="btn btn-primario oculto" id="btn-proximo">Próximo <span class="atalho">Enter</span></button>
       </div>
+      <!-- a microfala do Billy vem DEPOIS do Rodar: ela aparecia entre o
+           editor e o botão e o empurrava 40px para baixo da taskbar -->
+      <p class="billy-fala oculto" id="billy-fala" aria-live="polite"></p>
       <div class="resultados" id="resultados" aria-live="polite"></div>`)}
     </section>
   </div>`;
@@ -548,7 +566,7 @@ export function painelResultado(resultado, ex, xpGanho) {
     html += `<div class="res res-ok">
       <span class="check-svg"><svg viewBox="0 0 32 32"><path class="check-path" d="M6 17l7 7 13-15" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg></span>
       <span class="res-titulo">Todos os testes passaram!</span>
-      ${xpGanho > 0 ? `<span class="xp-badge" id="xp-badge">+${xpGanho} XP</span>` : ""}
+      ${xpGanho > 0 ? `<span class="xp-badge" id="xp-badge">+${num(xpGanho)} XP</span>` : ""}
     </div>`;
   } else {
     html += `<div class="res res-falha"><p class="res-titulo">${falhas.length} de ${r.testes.length} teste(s) falharam — sem penalidade, ajuste e rode de novo.</p></div>`;
@@ -602,7 +620,7 @@ export function telaFimNivel(ctx, slug, revisoesDevidas) {
           return `<li>${h.resolvido ? "✓" : "·"} ${esc(e.titulo)} ${semDica ? '<span class="peq">sem dica</span>' : ""}</li>`;
         }).join("")}
       </ul>
-      <p>${xpNivel} XP neste nível · streak ${save.streak.atual}</p>
+      <p>${num(xpNivel)} XP neste nível · streak ${num(save.streak.atual)}</p>
       <p><strong>Você agora sabe:</strong> ${esc(resumoConceitos)}.</p>
       <div class="barra-fim"><span class="barra-fim-fill" id="barra-fim"></span></div>
       <div class="linha-botoes">
@@ -660,7 +678,7 @@ export function telaFimRun(ctx) {
     <h2>Faixa ${fxNova}</h2>
     <p>${st.xp} XP na run · ${Math.round(st.pctSemDica * 100)}% sem dica · ${st.resolvidos} exercícios</p>
     ${!desbloqueou && tier < 3 ? `<p class="peq">Para destravar a run ${proximoTier}, alcance ${piso} XP
-      (você tem ${save.xp_total}) — a fila de revisão recupera XP.</p>` : ""}
+      (você tem ${num(save.xp_total)}) — a fila de revisão recupera XP.</p>` : ""}
     ${tier < 3 && exAtual && exProx ? `<div class="preview-tier">
       <p class="peq">O mesmo problema, no próximo tier:</p>
       <div class="preview-lado-a-lado">
@@ -684,9 +702,9 @@ export function telaFaixaPreta(ctx) {
     <h1>Faixa preta</h1>
     <p class="preta-sub">Dojo concluído — Python para IA</p>
     <div class="preta-stats">
-      <div><span class="num">${save.xp_total}</span><span>XP</span></div>
+      <div><span class="num">${num(save.xp_total)}</span><span>XP</span></div>
       <div><span class="num">${total}</span><span>exercícios</span></div>
-      <div><span class="num">${save.streak.melhor}</span><span>melhor streak</span></div>
+      <div><span class="num">${num(save.streak.melhor)}</span><span>melhor streak</span></div>
       <div><span class="num">${Math.round(engine.pctConceitos3Estrelas(save, conteudo) * 100)}%</span><span>conceitos ★★★</span></div>
     </div>
     <div class="linha-botoes">
@@ -818,7 +836,7 @@ export function telaLaboratorio(ctx) {
     const feito = !!(h && h.resolvido);
     const cat = ROTULO_CATEGORIA[ex.categoria] || ex.categoria;
     const rotulo = feito
-      ? `${ex.titulo} — ${cat}, concluído, ${h.xp_ganho || 0} XP ganho`
+      ? `${ex.titulo} — ${cat}, concluído, ${num(h.xp_ganho)} XP ganho`
       : `${ex.titulo} — ${cat}, não concluído, vale ${ex.xp} XP`;
     icones += `<button class="no nivel ${feito ? "feito" : ""}" data-webid="${esc(ex.id)}"
       style="--i:${i}" title="${esc(cat)} · ${esc(ex.titulo)}" aria-label="${esc(rotulo)}">
@@ -828,7 +846,7 @@ export function telaLaboratorio(ctx) {
       </span>
       <span class="no-etiqueta">
         <span class="no-nome"><span class="no-rotulo">${esc(ex.titulo)}</span></span>
-        <span class="no-sub">${feito ? `+${h.xp_ganho || 0} XP` : `${ex.xp} XP`}</span>
+        <span class="no-sub">${feito ? `+${num(h.xp_ganho)} XP` : `${ex.xp} XP`}</span>
       </span>
     </button>`;
   });
@@ -845,7 +863,7 @@ export function telaLaboratorio(ctx) {
     <h1>Laboratório Web</h1>
     <p class="sub">Conserte e construa telas de verdade, com preview ao vivo.</p>
     <p class="lab-hero-num"><strong>${feitos}</strong> de ${total} concluídos
-      <span class="peq">· ${xpGanho} XP no laboratório</span></p>
+      <span class="peq">· ${num(xpGanho)} XP no laboratório</span></p>
     <div class="lab-prog" role="progressbar" aria-valuemin="0" aria-valuemax="${total}"
       aria-valuenow="${feitos}"
       aria-label="Progresso geral do laboratório: ${feitos} de ${total} exercícios concluídos">
@@ -885,7 +903,7 @@ export function telaExercicioWeb(ctx) {
   const custoDica = ["", "Grátis", "–50% XP", "XP = 0"];
   const botoesDica = [];
   for (let i = sessao.dicaRevelada + 1; i <= 3; i++) {
-    botoesDica.push(`<button class="btn btn-peq" data-dica="${i}" id="btn-dica-${i}">Dica ${i} · ${custoDica[i]}</button>`);
+    botoesDica.push(`<button class="btn btn-peq" data-dica="${i}" id="btn-dica-${i}" title="Dica ${i}: ${custoDica[i]}">Dica ${i} · ${CUSTO_CURTO[i]}</button>`);
   }
 
   // editores só para arquivos editáveis; fixos ficam como referência colapsada
@@ -905,31 +923,24 @@ export function telaExercicioWeb(ctx) {
 
   return `<div class="web-layout">
     <section class="ex-enunciado">
-      <div class="ex-cab">
-        <a class="btn btn-fantasma btn-peq" href="#/web">‹ Laboratório</a>
-        <span class="peq">${esc(NIVEL_WEB[ex.nivel] || ex.nivel)}</span>
-        <span class="chip">${esc(ROTULO_CATEGORIA[ex.categoria] || ex.categoria)}</span>
-      </div>
       ${janela("briefing.txt — aula do Cato", `
+        <div class="ex-cab">
+          <a class="btn btn-fantasma btn-peq" href="#/web">‹ Laboratório</a>
+          <span class="chip">${esc(ROTULO_CATEGORIA[ex.categoria] || ex.categoria)}</span>
+        </div>
         <div class="aula-cab">
           <img class="tutor-retrato tutor-mini" src="${assetUrl("tutor-gato")}" alt="Cato, o professor">
-          <div><h2>${esc(ex.titulo)}</h2><p class="peq aula-fala">Cato ensina:</p></div>
+          <div><h2>${esc(ex.titulo)}</h2><p class="peq aula-fala">${esc(NIVEL_WEB[ex.nivel] || ex.nivel)}</p></div>
         </div>
+        <div class="linha-botoes dicas-botoes">
+          ${botoesDica.join("")}
+          <button class="btn btn-peq" id="btn-solucao" title="Ver a solução: o XP deste exercício vira 0">Solução · XP 0</button>
+          <button class="btn btn-peq" id="btn-pular" title="Pular este exercício">Pular</button>
+        </div>
+        ${dicasArea(dicasHtml)}
         ${explicacao}
         <div class="enunciado">${md(ex.enunciado_md)}</div>
         ${fixosHtml}`)}
-      <div class="dicas-area" id="dicas-area">
-        ${dicasHtml ? janela("Tutor — Cato", `
-          <div class="tutor-fala">
-            <img class="tutor-retrato" src="${assetUrl("tutor-gato")}" alt="Cato">
-            <div class="tutor-dicas">${dicasHtml}</div>
-          </div>`, "janela-tutor") : ""}
-        <div class="linha-botoes">
-          ${botoesDica.join("")}
-          <button class="btn btn-peq btn-fantasma" id="btn-solucao">Ver solução · XP = 0</button>
-          <button class="btn btn-peq btn-fantasma" id="btn-pular">Pular</button>
-        </div>
-      </div>
     </section>
     <section class="web-trabalho">
       ${janela("editor.web — Billy", `
@@ -939,17 +950,19 @@ export function telaExercicioWeb(ctx) {
           title="Billy — o código é o balão dele; de vez em quando ele solta uma linha">
         <div class="web-editores">${editores}</div>
       </div>
-      <p class="billy-fala oculto" id="billy-fala" aria-live="polite"></p>
       <div id="vk-slot" class="vk-slot"></div>
       <div class="editor-acoes">
         <button class="btn btn-primario" id="btn-rodar">Rodar testes <span class="atalho">Ctrl+Enter</span></button>
         <button class="btn btn-primario oculto" id="btn-proximo">Próximo <span class="atalho">Enter</span></button>
       </div>
+      <!-- a microfala do Billy vem DEPOIS do Rodar: ela aparecia entre o
+           editor e o botão e o empurrava 40px para baixo da taskbar -->
+      <p class="billy-fala oculto" id="billy-fala" aria-live="polite"></p>
       <div class="resultados" id="resultados" aria-live="polite"></div>`)}
       ${janela("preview.exe", `
       <div class="web-preview-caixa">
         <div class="web-preview-cab"><span class="rotulo">Preview ao vivo</span><span class="peq">atualiza enquanto você digita</span></div>
-        <iframe id="web-preview" class="web-preview" sandbox="allow-scripts allow-same-origin allow-forms" title="Preview"></iframe>
+        <iframe id="web-preview" class="web-preview" sandbox="allow-scripts allow-forms" title="Preview"></iframe>
       </div>`)}
     </section>
   </div>`;
@@ -966,7 +979,7 @@ export function painelResultadoWeb(resultado, xpGanho) {
     html += `<div class="res res-ok">
       <span class="check-svg"><svg viewBox="0 0 32 32"><path class="check-path" d="M6 17l7 7 13-15" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg></span>
       <span class="res-titulo">Funcionou! Todos os testes passaram.</span>
-      ${xpGanho > 0 ? `<span class="xp-badge" id="xp-badge">+${xpGanho} XP</span>` : ""}
+      ${xpGanho > 0 ? `<span class="xp-badge" id="xp-badge">+${num(xpGanho)} XP</span>` : ""}
     </div>`;
   } else {
     html += `<div class="res res-falha"><p class="res-titulo">${falhas.length} de ${r.testes.length} teste(s) ainda falham — ajuste e rode de novo.</p>
@@ -1008,11 +1021,17 @@ export function modalSolucao(ex) {
   </div>`;
 }
 
+// código exibido num <pre>: sem linhas em branco no topo (o <pre> as mostra
+// como uma 1ª linha vazia) nem espaço sobrando no fim
+function aparar(codigo) {
+  return String(codigo ?? "").replace(/^(?:[ \t]*\r?\n)+/, "").replace(/\s+$/, "");
+}
+
 export function modalSolucaoCorpo(ex) {
   return `<div class="modal-fundo" id="modal-fundo">
     <div class="modal modal-larga" role="dialog" aria-modal="true">
       <h3>Solução — ${esc(ex.titulo)}</h3>
-      <pre class="cod"><code>${esc(ex.solucao_referencia)}</code></pre>
+      <pre class="cod"><code>${esc(aparar(ex.solucao_referencia))}</code></pre>
       <p class="peq">O exercício foi marcado como concluído e entrou na fila de revisão.</p>
       <div class="linha-botoes"><button class="btn btn-primario" id="btn-modal-fechar">Entendi</button></div>
     </div>
@@ -1074,7 +1093,7 @@ export function abrirCertificado(ctx) {
     <h1>Dojo concluído — Python para IA</h1>
     <p>Trilha completa: fundamentos, dados e robustez, APIs e números, engenharia de IA.</p>
     <p class="faixa">Faixa preta</p>
-    <p class="stats">${total} exercícios resolvidos · ${save.xp_total} XP · melhor streak ${save.streak.melhor}</p>
+    <p class="stats">${num(total)} exercícios resolvidos · ${num(save.xp_total)} XP · melhor streak ${num(save.streak.melhor)}</p>
     <p class="stats">Python AI Dojo — jogo local, código real, zero atalhos.</p>
     </div><script>window.print()<\/script></body></html>`);
   w.document.close();

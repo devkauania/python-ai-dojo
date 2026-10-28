@@ -6,6 +6,7 @@ Por que existe (em vez de abrir o index.html direto):
 - No Windows, o mimetypes le o registro e pode servir .js como text/plain,
   o que mata <script type="module"> -- por isso o extensions_map e FORCADO.
 """
+import json
 import os
 import sys
 import threading
@@ -14,6 +15,27 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 PORTA = 8321
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _headers_globais():
+    """Headers de seguranca do deploy (CSP, COOP/COEP, XFO, nosniff...) lidos do
+    PROPRIO vercel.json -- fonte unica: o servidor local serve exatamente o que a
+    Vercel serve, entao uma violacao de CSP aparece aqui antes de ir ao ar."""
+    try:
+        with open(os.path.join(RAIZ, "vercel.json"), encoding="utf-8") as f:
+            cfg = json.load(f)
+        for bloco in cfg.get("headers", []):
+            if bloco.get("source") == "/(.*)":
+                return [(h["key"], h["value"]) for h in bloco.get("headers", [])]
+    except (OSError, ValueError, KeyError) as e:
+        print(f"aviso: nao consegui ler os headers do vercel.json ({e}); usando so COOP/COEP")
+    return [
+        ("Cross-Origin-Opener-Policy", "same-origin"),
+        ("Cross-Origin-Embedder-Policy", "credentialless"),
+    ]
+
+
+HEADERS_GLOBAIS = _headers_globais()
 
 
 class DojoHandler(SimpleHTTPRequestHandler):
@@ -30,6 +52,12 @@ class DojoHandler(SimpleHTTPRequestHandler):
         ".wasm": "application/wasm",
         ".py": "text/x-python; charset=utf-8",
         ".svg": "image/svg+xml",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp": "image/webp",
+        ".ico": "image/x-icon",
+        ".woff2": "font/woff2",
         ".txt": "text/plain; charset=utf-8",
         "": "application/octet-stream",
     }
@@ -37,8 +65,10 @@ class DojoHandler(SimpleHTTPRequestHandler):
     def end_headers(self):
         # COOP/COEP habilitam crossOriginIsolated -> SharedArrayBuffer -> SIGINT
         # no worker. `credentialless` dispensa CORP nos recursos do jsdelivr.
-        self.send_header("Cross-Origin-Opener-Policy", "same-origin")
-        self.send_header("Cross-Origin-Embedder-Policy", "credentialless")
+        # O resto (CSP, X-Frame-Options, nosniff, Referrer/Permissions-Policy)
+        # vem do vercel.json -- ver _headers_globais().
+        for chave, valor in HEADERS_GLOBAIS:
+            self.send_header(chave, valor)
         # Caching: o index.html (ponto de entrada) e SEMPRE fresco -- ele carrega o
         # import map com os ?v= atuais. Todo o resto (js/css/conteudo/py) e
         # versionado por ?v=N (bump = URL nova = cache miss = busca fresca), entao e

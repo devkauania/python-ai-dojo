@@ -45,6 +45,13 @@ vercel --prod
   igual** — só cai no caminho degradado: o ambiente Python é reiniciado.
   *(Testado: num servidor estático puro, sem nenhum header, o jogo abre, roda
   Python de verdade e o Lab Web funciona.)*
+- **Segurança**: `Content-Security-Policy` (scripts só do próprio site e do
+  Pyodide fixado no jsDelivr, `wasm-unsafe-eval` para o WebAssembly, nada de
+  ser embutido em iframe de terceiros), `X-Frame-Options: DENY`,
+  `X-Content-Type-Options: nosniff`, `Referrer-Policy` e `Permissions-Policy`.
+  O `tools/serve.py` lê essa MESMA lista do `vercel.json`, então uma violação
+  de CSP aparece no console local antes de ir ao ar. Em outro host (Cloudflare,
+  Netlify), copie esses headers para o `_headers`.
 - **Cache**: `index.html` sempre fresco (ele carrega o import map versionado) e
   todo o resto com cache eterno, já que cada arquivo é versionado por `?v=N`.
 

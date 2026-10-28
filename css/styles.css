@@ -54,10 +54,18 @@ html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
 :root {
   --tvx: max(14px, calc((100vw - 160vh) / 2));
   --tvy: 14px;
+  /* escala da UI por faixa de tela: 1 até ~1600px, 1.25 em 1080p, 1.5 em 1440p.
+     Aplicada com zoom só no CONTEÚDO (.main, telas centrais, modais, itens da
+     taskbar) — nunca no #app, senão os offsets fixos da taskbar multiplicam. */
+  --z: 1;
 }
+@media (min-width: 1700px) and (min-height: 1000px) { :root { --z: 1.25; } }
+@media (min-width: 2300px) and (min-height: 1300px) { :root { --z: 1.5; } }
+/* altura da taskbar (borda de 2px incluída) — a área rolável termina acima dela */
+:root { --hdr-h: calc(54px * var(--z) + 2px); }
 body {
   /* a SALA é o fundo de verdade (nativa 3168x1344, 21:9) */
-  background: #241c14 url("../assets/sala.png?v=56") center bottom / cover fixed no-repeat;
+  background: #241c14 url("../assets/sala.png?v=59") center bottom / cover fixed no-repeat;
   image-rendering: pixelated;
   color: var(--ink);
   font: 14px/1.6 var(--mono);
@@ -65,7 +73,7 @@ body {
 /* a tela da TV: a CENA mora DENTRO do buraco do tubo. --cena é trocada por
    tela/ato (js/ui.js): cada ato e o laboratório podem ter o seu cenário, com
    fallback para o papel de parede padrão enquanto a arte não existir. */
-:root { --cena: url("../assets/wallpaper.png?v=56"); }
+:root { --cena: url("../assets/wallpaper.png?v=59"); }
 body::before {
   content: ""; position: fixed; z-index: -1;
   inset: calc(var(--tvy) + 26px) calc(var(--tvx) + 34px) calc(var(--tvy) + 42px);
@@ -76,8 +84,10 @@ body::before {
 /* a área útil do tubo: contêiner de scroll — o conteúdo NUNCA passa da moldura */
 #tv-scroll {
   position: fixed; z-index: 0;
-  top: calc(var(--tvy) + 26px); bottom: calc(var(--tvy) + 42px);
-  left: calc(var(--tvx) + 34px); right: calc(var(--tvx) + 34px);
+  /* começa/termina na borda interna da moldura (30/40px) e ACIMA da taskbar:
+     nada rola por baixo dela e a barra de rolagem fica inteira à vista */
+  top: calc(var(--tvy) + 30px); bottom: calc(var(--tvy) + 44px + var(--hdr-h));
+  left: calc(var(--tvx) + 40px); right: calc(var(--tvx) + 40px);
   overflow-y: auto; overflow-x: hidden;
 }
 /* a moldura da TV por cima de tudo que é tela (buraco é transparente) */
@@ -86,7 +96,7 @@ body::after {
   inset: var(--tvy) var(--tvx);
   border: 30px solid transparent;
   border-width: 30px 40px 48px 40px;
-  border-image: url("../assets/tv-moldura.png?v=56") 92 168 98 150 / 30px 40px 48px 40px stretch;
+  border-image: url("../assets/tv-moldura.png?v=59") 92 168 98 150 / 30px 40px 48px 40px stretch;
   image-rendering: pixelated;
 }
 /* botões rotativos (sprite separado — não estica com a moldura) e antena */
@@ -94,14 +104,14 @@ html::after {
   content: ""; position: fixed; z-index: 81; pointer-events: none;
   right: calc(var(--tvx) + 2px); bottom: calc(var(--tvy) + 40px);
   width: 36px; height: 70px;
-  background: url("../assets/tv-botoes.png?v=56") center / contain no-repeat;
+  background: url("../assets/tv-botoes.png?v=59") center / contain no-repeat;
   image-rendering: pixelated;
 }
 html::before {
   content: ""; display: none; position: fixed; z-index: 3; pointer-events: none;
   right: calc(var(--tvx) - 290px); bottom: 20px;
   width: 160px; height: 330px;
-  background: url("../assets/tv-antena.png?v=56") center bottom / contain no-repeat;
+  background: url("../assets/tv-antena.png?v=59") center bottom / contain no-repeat;
   image-rendering: pixelated;
 }
 /* antena só quando há sala de sobra dos lados (ultrawide de verdade) */
@@ -132,7 +142,7 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   border: 9px solid transparent;
-  border-image: url("../assets/chrome-11.png?v=56") 16 fill / 9px stretch;
+  border-image: url("../assets/chrome-11.png?v=59") 16 fill / 9px stretch;
   image-rendering: pixelated;
   background: none; color: var(--ink);
   padding: 2px 10px; font-size: 13px; font-weight: 700; cursor: pointer;
@@ -140,7 +150,7 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
 }
 .btn:hover:not(:disabled) { filter: brightness(1.05); }
 .btn:active:not(:disabled), .btn.afundado {
-  border-image-source: url("../assets/chrome-12.png?v=56");
+  border-image-source: url("../assets/chrome-12.png?v=59");
   transform: translateY(1px);
 }
 .btn:disabled { opacity: 0.5; cursor: default; }
@@ -157,6 +167,8 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
 .linha-botoes { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
 :focus-visible { outline: 2px dashed var(--os-marrom-3); outline-offset: 2px; }
 .editor:focus-visible { outline-offset: -2px; }
+/* na taskbar escura o anel marrom sumia: dourado (paleta do XP/relógio), por dentro */
+.hdr :focus-visible { outline: 2px solid #ffd97a; outline-offset: -4px; }
 .btn.realce { outline: 3px solid var(--glow); outline-offset: 2px; }
 
 /* ---------------------------------------------------------------- janela */
@@ -164,7 +176,7 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
   position: relative;
   border: 8px solid transparent;
   border-top-width: 38px;
-  border-image: url("../assets/chrome-07.png?v=56") 58 17 17 17 fill / 38px 8px 8px 8px stretch;
+  border-image: url("../assets/chrome-07.png?v=59") 58 17 17 17 fill / 38px 8px 8px 8px stretch;
   image-rendering: pixelated;
   margin-top: 18px;
   text-align: left;
@@ -180,9 +192,9 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
 .janela-titulo { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .janela-btns { display: inline-flex; gap: 4px; }
 .jbt { width: 22px; height: 22px; display: inline-block; background: center / contain no-repeat; }
-.jbt-min { background-image: url("../assets/chrome-04.png?v=56"); }
-.jbt-max { background-image: url("../assets/chrome-05.png?v=56"); }
-.jbt-x { background-image: url("../assets/chrome-06.png?v=56"); }
+.jbt-min { background-image: url("../assets/chrome-04.png?v=59"); }
+.jbt-max { background-image: url("../assets/chrome-05.png?v=59"); }
+.jbt-x { background-image: url("../assets/chrome-06.png?v=59"); }
 .janela-corpo { padding: 10px 12px; }
 .janela-corpo > :first-child { margin-top: 0; }
 
@@ -195,8 +207,14 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
   padding: 14px 18px; margin-top: 16px; text-align: left;
 }
 .painel-erro { border-color: var(--erro); }
-.tela-centro { max-width: 640px; margin: 6vh auto 0; text-align: center; padding: 0 20px; }
+.tela-centro { max-width: 640px; margin: 6vh auto 0; text-align: center; padding: 0 20px 24px; }
 .tela-centro .janela { text-align: left; }
+/* boas-vindas: janela do tamanho do conteúdo (sem sobra abaixo do Cato) */
+.tela-bv .janela-bv { width: fit-content; max-width: min(560px, 100%); margin: 0 auto; }
+.bv-fala { margin-top: 14px; align-items: center; }
+.bv-lado { display: flex; flex-direction: column; gap: 12px; }
+.bv-lado .peq { margin: 0; }
+.bv-lado .bv-cta { margin: 0; }
 
 /* --------------------------------------------------------------- taskbar */
 .hdr {
@@ -204,32 +222,43 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
   left: calc(var(--tvx) + 38px); right: calc(var(--tvx) + 38px);
   bottom: calc(var(--tvy) + 44px);
   display: flex; align-items: center; gap: 6px;
-  height: 54px; padding: 4px 8px;
-  background: url("../assets/taskbar-05.png?v=56") repeat-x left center / auto 100%;
+  height: calc(54px * var(--z)); padding: 4px 8px;
+  background: url("../assets/taskbar-05.png?v=59") repeat-x left center / auto 100%;
   image-rendering: pixelated;
   border-top: 2px solid var(--os-marrom-3);
   font-size: 12.5px;
+  overflow: hidden; min-width: 0;
 }
+.hdr > * { zoom: var(--z); }
 .tb-start {
-  flex-shrink: 0; width: 104px; height: 42px; border: 0; cursor: pointer;
-  background: url("../assets/taskbar-01.png?v=56") center / 100% 100% no-repeat;
+  /* proporção nativa da arte (195x72): 114x42 não achata o "Start" */
+  flex-shrink: 0; width: 114px; height: 42px; border: 0; cursor: pointer;
+  background: url("../assets/taskbar-01.png?v=59") center / 100% 100% no-repeat;
   color: transparent; font-size: 0;
-  image-rendering: pixelated;
+  image-rendering: auto; /* arte reduzida: pixelated perde traços ao reduzir */
 }
-.tb-start:active { background-image: url("../assets/taskbar-02.png?v=56"); }
+.tb-start:active { background-image: url("../assets/taskbar-02.png?v=59"); }
 .tb-app {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  height: 40px; padding: 0 12px; cursor: pointer;
+  height: 40px; padding: 0 8px; cursor: pointer;
   border: 8px solid transparent;
-  border-image: url("../assets/taskbar-03.png?v=56") 18 fill / 8px stretch;
+  border-image: url("../assets/taskbar-03.png?v=59") 18 fill / 8px stretch;
   image-rendering: pixelated;
-  color: #f6eede; font-family: var(--mono); font-size: 12.5px; font-weight: 700;
+  /* reset do <button> do navegador: o ButtonFace cinza vazava pelos cantos
+     transparentes do 9-slice (pontinhos nos 4 cantos das abas Ato/Teclado) */
+  background: none; appearance: none; -webkit-appearance: none; margin: 0;
+  color: #f6eede; font-family: var(--mono); font-size: 12.5px; font-weight: 700; line-height: 20px;
   text-decoration: none; text-shadow: 1px 1px 0 var(--os-marrom-3);
-  white-space: nowrap;
+  white-space: nowrap; flex-shrink: 0;
 }
+/* abas de ato/trilha encolhem antes de empurrar o relógio para fora da TV */
+.tb-ato { flex: 0 1 auto; min-width: 0; padding: 0 6px; overflow: hidden; text-overflow: ellipsis; }
+.hdr-xp, .hdr-streak, .hdr-prog, .hdr-fila { white-space: nowrap; }
+/* rótulos só onde cabem; os ícones têm title/aria-label */
+@media (max-width: 1700px) { .hdr .tb-rotulo { display: none; } }
 .tb-app:hover { filter: brightness(1.12); }
 .tb-app.ativo, .tb-app:active {
-  border-image-source: url("../assets/taskbar-04.png?v=56");
+  border-image-source: url("../assets/taskbar-04.png?v=59");
   transform: translateY(1px);
 }
 .tb-app img { width: 20px; height: 20px; }
@@ -246,25 +275,27 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
   flex-shrink: 0; min-width: 92px; height: 40px;
   display: inline-flex; align-items: center; justify-content: center;
   border: 8px solid transparent;
-  border-image: url("../assets/taskbar-06.png?v=56") 24 fill / 8px stretch;
+  border-image: url("../assets/taskbar-06.png?v=59") 24 fill / 8px stretch;
   image-rendering: pixelated;
   color: #ffd97a; font-weight: 700; letter-spacing: 1px;
   text-shadow: 1px 1px 0 #000;
 }
 .barra-ato { width: 120px; height: 10px; background: var(--os-marrom-3); border: 1px solid var(--os-marrom-2); overflow: hidden; }
-.barra-ato-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=56") repeat-x left center / auto 100%; }
+.barra-ato-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=59") repeat-x left center / auto 100%; }
 .faixa-ico { vertical-align: -4px; }
 
 /* ------------------------------------------------------------------ main
    O conteúdo vive dentro da tela da TV: respiro extra p/ o bezel. */
 .main {
-  max-width: min(1040px, calc(100vw - 2 * var(--tvx) - 120px));
+  max-width: min(1040px, calc((100vw - 2 * var(--tvx) - 120px) / var(--z)));
   margin: 0 auto;
-  padding: 22px 20px 116px; /* 116 = respiro p/ a taskbar dentro do tubo */
+  padding: 22px 20px 24px; /* a área rolável já termina acima da taskbar */
 }
-.main-mapa { max-width: min(1280px, calc(100vw - 2 * var(--tvx) - 120px)); }
+.main, #app > .tela-centro, #app > .tela-preta { zoom: var(--z); }
+/* desktop: ícones colados na borda esquerda da tela, como num OS de verdade */
+.main-mapa { max-width: calc((100vw - 2 * var(--tvx) - 120px) / var(--z)); }
 /* exercícios: o código merece a horizontal — usa a tela da TV quase toda */
-.main-exercicio, .main-exercicioWeb { max-width: min(1560px, calc(100vw - 2 * var(--tvx) - 120px)); }
+.main-exercicio, .main-exercicioWeb { max-width: min(1560px, calc((100vw - 2 * var(--tvx) - 120px) / var(--z))); }
 
 /* --------------------------------------------------- mapa = área de trabalho
    Espaço negativo: ícones em COLUNA à esquerda (como desktop clássico), a
@@ -315,11 +346,19 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
 /* ------------------------------------------------------------- exercício
    Espaço negativo: o GATO fala numa coluna estreita à esquerda; o CÓDIGO
    domina a horizontal à direita, com o teclado logo abaixo da caixa. */
-.ex-layout { display: grid; grid-template-columns: minmax(280px, 400px) minmax(460px, 1.7fr); gap: 22px; align-items: start; }
+.ex-layout { display: grid; grid-template-columns: minmax(280px, max(400px, 32%)) minmax(460px, 1fr); gap: 22px; align-items: start; }
 .ex-sidebar { display: none; }
-.ex-cab { display: inline-flex; gap: 10px; align-items: center; margin-bottom: 8px; color: var(--ink); flex-wrap: wrap; background: rgba(242, 235, 206, 0.85); border: 1px solid var(--os-borda); padding: 4px 10px; }
-.ex-cab .peq { color: var(--ink-soft); }
-.ex-cab .peq { flex: 1; }
+/* barra de navegação da aula: 1ª linha DENTRO da janela do Cato (as duas
+   janelas do exercício começam na mesma altura) */
+.ex-cab { display: flex; gap: 8px; align-items: center; margin: 0 0 10px; color: var(--ink); flex-wrap: wrap; }
+.ex-cab .peq { color: var(--ink-soft); flex: 1; }
+/* código da aula: SEM quebra de linha (um comentário quebrado parecia código
+   na linha de baixo, sem o #); linha longa rola na horizontal dentro do bloco */
+.ex-enunciado pre.cod { white-space: pre; overflow-x: auto; overflow-wrap: normal; max-width: 100%; }
+/* dicas/solução/pular moram DENTRO da janela do Cato, logo abaixo do título */
+/* dicas + solução + pular: MESMA pele (btn-peq), uma linha só quando cabe */
+.linha-botoes.dicas-botoes { margin: 0 0 12px; gap: 3px; flex-wrap: wrap; align-items: center; }
+.linha-botoes.dicas-botoes .btn { white-space: nowrap; flex: 0 0 auto; font-size: 11px; padding: 0 3px; letter-spacing: -0.2px; }
 .ex-enunciado h2 { font-size: 18px; margin-bottom: 10px; }
 .explicacao { background: var(--os-creme-2); border: 1px solid var(--os-creme-3); border-left: 4px solid var(--aviso); padding: 12px 16px; margin: 14px 0; }
 .explicacao-rever summary { cursor: pointer; color: var(--ink-soft); font-size: 13px; padding: 6px 0; }
@@ -334,7 +373,7 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
 
 /* papéis fixos dos tutores: o GATO ensina (fala), o CÃO só codifica —
    o balão de fala do cão É a caixa de código ao lado dele */
-.aula-cab { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 8px; }
+.aula-cab { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
 .aula-cab .tutor-mini { width: 64px; }
 .aula-cab h2 { margin: 0 0 2px; }
 .aula-fala { margin: 0; }
@@ -344,14 +383,17 @@ pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
 .cao-codigo .editor-caixa, .cao-codigo .web-editores { flex: 1; min-width: 0; }
 /* microfala do Billy: uma linha só, do lado do editor — ele apoia, não dá aula */
 .billy-fala {
-  margin: 8px 0 0 66px; padding: 6px 11px; font-size: 12.5px; line-height: 1.45;
+  margin: 10px 0 0; padding: 6px 11px; font-size: 12.5px; line-height: 1.45;
   color: var(--ink-soft); background: var(--os-creme-2);
   border: 1px solid var(--os-creme-3); border-left: 4px solid var(--verde);
 }
 .billy-fala::before { content: "Billy: "; font-weight: 700; color: var(--verde-deep); }
 .dica { background: var(--os-creme-2); border: 1px solid var(--os-creme-3); border-left: 4px solid var(--os-marrom); padding: 9px 13px; margin: 0 0 8px; font-size: 13.5px; }
 .dica-num { font-weight: 700; color: var(--os-marrom); margin-right: 6px; font-size: 11.5px; }
-.dicas-area { margin-top: 14px; }
+.dicas-area:empty { display: none; }
+/* a dica revelada mora na janela do Cato, entre os botões e a aula */
+.dicas-area .janela-tutor { margin: 0 0 12px; }
+.dicas-area .tutor-retrato { width: 64px; }
 
 code.glos { position: relative; cursor: help; border-bottom: 1px dotted var(--os-marrom); }
 code.glos:hover, code.glos:focus-visible { background: var(--os-creme-3); outline: none; }
@@ -378,6 +420,7 @@ code.glos:hover .glos-balao, code.glos:focus-visible .glos-balao, code.glos:focu
 .pkg-status { flex: 1; }
 
 .resultados { margin-top: 14px; display: grid; gap: 10px; }
+.resultados, .web-preview-caixa { scroll-margin-bottom: 16px; }
 .res { padding: 12px 15px; background: var(--os-creme-2); border: 2px solid var(--os-borda); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .res-titulo { font-weight: 700; margin: 0; }
 .res-ok { border-color: var(--ok); }
@@ -414,7 +457,7 @@ code.glos:hover .glos-balao, code.glos:focus-visible .glos-balao, code.glos:focu
 .fim-lista { list-style: none; padding: 0; font-size: 13.5px; }
 .fim-lista li { padding: 4px 0; }
 .barra-fim { height: 14px; background: var(--os-marrom-3); border: 1px solid var(--os-marrom-2); overflow: hidden; margin: 16px 0 6px; }
-.barra-fim-fill { display: block; height: 100%; width: 0; background: url("../assets/chrome-22.png?v=56") repeat-x left center / auto 100%; transition: width 600ms steps(12, end); }
+.barra-fim-fill { display: block; height: 100%; width: 0; background: url("../assets/chrome-22.png?v=59") repeat-x left center / auto 100%; transition: width 600ms steps(12, end); }
 .tela-ato h1, .tela-run h1 { margin-top: 3vh; }
 .tela-ato, .tela-run { color: #f6eede; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7); }
 .tela-ato .janela, .tela-run .janela, .tela-preta .janela { color: var(--ink); text-shadow: none; }
@@ -452,6 +495,10 @@ code.glos:hover .glos-balao, code.glos:focus-visible .glos-balao, code.glos:focu
 .nivel { display: flex; flex-direction: column; gap: 4px; text-align: left; background: var(--os-creme-2); border: 2px solid var(--os-borda); padding: 10px 13px; cursor: pointer; color: var(--ink); font-family: var(--mono); font-size: 13px; }
 .nivel:hover:not(:disabled) { background: var(--os-creme-3); }
 .nivel.completo { border-color: var(--ok); }
+/* ícones do Lab Web carregam .nivel só pelo contrato de clique ([data-webid]):
+   o visual é o do ícone de desktop da área de trabalho, sem caixa creme */
+.no.nivel { flex-direction: column; align-items: center; text-align: center; gap: 4px; background: none; border: 2px solid transparent; padding: 6px 2px 4px; color: #fff; font-size: 11.5px; }
+.no.nivel:hover:not(:disabled) { border-color: rgba(242, 235, 206, 0.6); background: rgba(242, 235, 206, 0.14); }
 .nivel.bloqueado { opacity: 0.55; cursor: default; }
 .nivel-nome { font-weight: 650; display: flex; align-items: center; gap: 6px; }
 .nivel-nome .ico { color: var(--ok); }
@@ -462,7 +509,7 @@ code.glos:hover .glos-balao, code.glos:focus-visible .glos-balao, code.glos:focu
 .livre-ex.completo { color: var(--ok); border-color: var(--ok); }
 .lab-hero { background: var(--os-creme-2); border: 2px solid var(--os-borda); padding: 14px 18px; margin: 12px 0 18px; }
 .lab-prog { height: 12px; background: var(--os-marrom-3); border: 1px solid var(--os-marrom-2); overflow: hidden; margin: 10px 0; }
-.lab-prog-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=56") repeat-x left center / auto 100%; }
+.lab-prog-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=59") repeat-x left center / auto 100%; }
 .lab-hero-info { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .lab-hero-num strong { font-size: 20px; color: var(--num-cor); }
 .lab-selo { color: var(--ok); }
@@ -471,14 +518,16 @@ code.glos:hover .glos-balao, code.glos:focus-visible .glos-balao, code.glos:focu
 .lab-trilha { background: var(--os-creme-2); border: 2px solid var(--os-borda); padding: 11px 14px; }
 .lab-trilha-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .lab-trilha-prog { height: 9px; background: var(--os-marrom-3); border: 1px solid var(--os-marrom-2); overflow: hidden; margin: 8px 0; }
-.lab-trilha-prog > span, .lab-trilha-prog i, .lab-trilha-prog .lab-prog-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=56") repeat-x left center / auto 100%; }
+.lab-trilha-prog > span, .lab-trilha-prog i, .lab-trilha-prog .lab-prog-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=59") repeat-x left center / auto 100%; }
 .lab-exs { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
 .lab-ex { display: flex; align-items: center; gap: 8px; background: none; border: 1px solid transparent; padding: 6px 8px; cursor: pointer; color: var(--ink); text-align: left; font-family: var(--mono); font-size: 13px; }
 .lab-ex:hover { background: var(--os-creme-3); }
 .lab-ex.feito { color: var(--ok); }
 .lab-ex-xp { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--num-cor); }
-.lab-continuar { margin-top: 10px; }
-.web-layout { display: grid; grid-template-columns: minmax(280px, 400px) minmax(460px, 1.7fr); gap: 22px; align-items: start; }
+/* o CTA também carrega .nivel (contrato de clique): devolve o 9-slice do .btn */
+.btn.lab-continuar { flex-direction: row; border: 9px solid transparent; border-image: url("../assets/chrome-11.png?v=59") 16 fill / 9px stretch; background: none; padding: 2px 10px; }
+.btn.lab-continuar:active { border-image-source: url("../assets/chrome-12.png?v=59"); }
+.web-layout { display: grid; grid-template-columns: minmax(280px, max(400px, 32%)) minmax(460px, 1fr); gap: 22px; align-items: start; }
 /* Sticky SÓ quando a coluna cabe na tela do tubo: com o teclado acoplado ela
    passa de 950px e o "Preview ao vivo" ficava preso fora da tela/atrás da
    taskbar enquanto o sticky estava engatado. */
@@ -489,7 +538,7 @@ code.glos:hover .glos-balao, code.glos:focus-visible .glos-balao, code.glos:focu
 .web-editor { min-height: 120px; }
 .web-preview-caixa { margin-top: 18px; }
 .web-preview-cab { display: flex; justify-content: space-between; align-items: center; padding: 4px 0 6px; }
-.web-preview { width: 100%; height: 260px; border: 2px solid var(--os-marrom-3); background: #fff; display: block; }
+.web-preview { width: 100%; height: clamp(200px, 28vh, 360px); border: 2px solid var(--os-marrom-3); background: #fff; display: block; }
 .web-fixos { margin: 10px 0; }
 .web-fixos summary { cursor: pointer; color: var(--ink-soft); font-size: 13px; padding: 6px 0; }
 
@@ -497,9 +546,9 @@ code.glos:hover .glos-balao, code.glos:focus-visible .glos-balao, code.glos:focu
 /* o modal vive DENTRO da tela do tubo (o bezel é opaco e fica por cima) */
 .modal-fundo { position: fixed; inset: calc(var(--tvy) + 26px) calc(var(--tvx) + 34px) calc(var(--tvy) + 44px); background: rgba(30, 18, 8, 0.55); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 18px; }
 .modal {
-  position: relative;
+  position: relative; zoom: var(--z);
   border: 8px solid transparent; border-top-width: 38px;
-  border-image: url("../assets/chrome-07.png?v=56") 58 17 17 17 fill / 38px 8px 8px 8px stretch;
+  border-image: url("../assets/chrome-07.png?v=59") 58 17 17 17 fill / 38px 8px 8px 8px stretch;
   image-rendering: pixelated;
   padding: 14px 16px; max-width: 500px; width: 100%;
   box-shadow: 8px 8px 0 rgba(30, 18, 8, 0.45);
@@ -511,12 +560,15 @@ code.glos:hover .glos-balao, code.glos:focus-visible .glos-balao, code.glos:focu
 }
 /* desconta o bezel da TV (inset + borda inferior) para o rodapé do modal —
    e o botão que fecha — nunca ficar escondido sob a moldura */
-.modal-larga { max-width: 720px; max-height: calc(100vh - 2 * var(--tvy) - 140px); overflow-y: auto; }
+/* o modal NÃO rola (o overflow cortava o título, que mora na borda de 38px):
+   quem rola é o código da solução */
+.modal-larga { max-width: 720px; overflow: visible; }
+.modal-larga > pre.cod { max-height: calc((100vh - 2 * var(--tvy) - 320px) / var(--z)); overflow: auto; }
 .config-linha { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--os-creme-3); }
 select { background: var(--os-creme); color: var(--ink); border: 2px solid var(--os-borda); padding: 5px 8px; font-size: 13px; font-family: var(--mono); }
 input[type="text"], input[type="number"] {
   border: 8px solid transparent;
-  border-image: url("../assets/chrome-21.png?v=56") 20 fill / 8px stretch;
+  border-image: url("../assets/chrome-21.png?v=59") 20 fill / 8px stretch;
   background: none; font-family: var(--mono); font-size: 13px; color: var(--ink);
 }
 .switch { position: relative; width: 46px; height: 24px; flex-shrink: 0; }
@@ -530,7 +582,7 @@ input[type="text"], input[type="number"] {
 /* ------------------------------------------------------- scrollbars do OS */
 ::-webkit-scrollbar { width: 16px; height: 16px; }
 ::-webkit-scrollbar-track { background: var(--os-creme-3); border-left: 1px solid var(--os-borda); }
-::-webkit-scrollbar-thumb { background: var(--os-creme) url("../assets/chrome-15.png?v=56") center / 10px auto no-repeat; border: 2px solid var(--os-borda); }
+::-webkit-scrollbar-thumb { background: var(--os-creme) url("../assets/chrome-15.png?v=59") center / 10px auto no-repeat; border: 2px solid var(--os-borda); }
 ::-webkit-scrollbar-corner { background: var(--os-creme-3); }
 pre.cod::-webkit-scrollbar-track, .editor::-webkit-scrollbar-track { background: #16100a; border: 0; }
 pre.cod::-webkit-scrollbar-thumb, .editor::-webkit-scrollbar-thumb { background-color: #5d4632; border-color: #16100a; }
@@ -579,7 +631,7 @@ body.vk-aberto .vk-slot #teclado-virtual { display: block; }
 .vk-tecla {
   position: relative; height: 46px; flex: 0 0 var(--vk-u); min-width: 0;
   border: 12px solid transparent;
-  border-image: url("../assets/keycap.png?v=56") 42 / 12px stretch;
+  border-image: url("../assets/keycap.png?v=59") 42 / 12px stretch;
   image-rendering: pixelated;
   background: #e9e2ca; background-clip: padding-box;
   color: var(--ink); font-family: var(--mono); font-size: 13px; font-weight: 700;
@@ -597,14 +649,24 @@ body.vk-aberto .vk-slot #teclado-virtual { display: block; }
   --vk-u: calc((100% - 66px) / 15.3);
 }
 .vk-slot .vk-tecla { height: 42px; font-size: 12px; }
-/* acoplado, o teclado é parte do fluxo: o main não precisa de respiro extra */
-body.vk-aberto .main { padding-bottom: 92px; }
+/* telas baixas (altura em px de CSS já descontada a escala --z): teclado e
+   editor compactos para o "Rodar" caber acima da taskbar sem rolar */
+@media (max-height: 940px),
+  (min-width: 1700px) and (min-height: 1000px) and (max-height: 1175px),
+  (min-width: 2300px) and (min-height: 1300px) and (max-height: 1410px) {
+  body.vk-aberto .editor:not(.web-editor) { min-height: 180px; }
+  .vk-slot .vk-tecla { height: 32px; }
+  .vk-slot .vk-linha { gap: 4px; margin-bottom: 4px; }
+}
 
 /* ------------------------------------------------------------- cursor OS */
 .cursor-os-ativo, .cursor-os-ativo * { cursor: none; }
 #cursor-os {
-  position: fixed; top: 0; left: 0; width: 26px; z-index: 200;
-  pointer-events: none; image-rendering: pixelated; display: none;
+  /* os 4 sprites têm a MESMA altura (289) e larguras diferentes: fixar a
+     ALTURA deixa todos do mesmo tamanho (~1px de CSS por pixel da arte);
+     auto = redução de qualidade (pixelated perde contorno ao reduzir) */
+  position: fixed; top: 0; left: 0; height: calc(26px * var(--z)); width: auto; z-index: 200;
+  pointer-events: none; image-rendering: auto; display: none;
 }
 
 @media (max-width: 1100px) {
@@ -612,9 +674,9 @@ body.vk-aberto .main { padding-bottom: 92px; }
   :root { --tvx: 0px; --tvy: 0px; }
   body::before { inset: 0; }
   body::after, html::before, html::after { display: none !important; }
-  #tv-scroll { top: 0; bottom: 0; left: 0; right: 0; }
+  #tv-scroll { top: 0; bottom: var(--hdr-h); left: 0; right: 0; }
   .hdr { left: 0; right: 0; bottom: 0; }
-  .main { max-width: 1000px; padding: 20px 20px 92px; }
+  .main { max-width: 1000px; padding: 20px 20px 24px; }
   #teclado-virtual { bottom: 64px; }
   .toast-recorde { top: 20px; right: 20px; }
   .modal-fundo { inset: 0; }
@@ -633,8 +695,8 @@ body.vk-aberto .main { padding-bottom: 92px; }
   .esp-obt, .preview-lado-a-lado { grid-template-columns: 1fr; }
   .hdr { flex-wrap: nowrap; overflow-x: auto; }
   .hdr-meio .tb-rotulo, .tb-app .tb-rotulo { display: none; }
-  .tb-start { width: 84px; }
-  .main { padding: 16px 12px 84px; }
+  .tb-start { width: 84px; height: 31px; }
+  .main { padding: 16px 12px 24px; }
 }
 :root[data-reduz="1"] *, :root[data-reduz="1"] *::before, :root[data-reduz="1"] *::after {
   animation-duration: 0.01ms !important; transition-duration: 0.01ms !important;
