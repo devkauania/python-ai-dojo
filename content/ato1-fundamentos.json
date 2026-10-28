@@ -1,0 +1,2613 @@
+{
+  "ato": "ato1",
+  "titulo": "Fundamentos da Linguagem",
+  "exercicios": [
+    {
+      "id": "ato1-variaveis-t1-01",
+      "nivel": "variaveis",
+      "tier": 1,
+      "conceitos": [
+        "variaveis",
+        "operadores"
+      ],
+      "titulo": "Contador de tokens",
+      "explicacao_md": "Você chegou. Bom. Duas peças sustentam tudo o que vem depois — presta atenção nelas agora e você não volta aqui.\n\nUma **variável** é um nome que guarda um valor. Uma **função** recebe valores, faz uma conta e **devolve** o resultado com `return`. Sem `return`, ela devolve `None` — ou seja, nada.\n\n```python\ntokens = 120           # int: número inteiro\npreco = 0.002          # float: número com casas decimais\n\ndef soma(a, b):        # a e b são os valores que chegam\n    total = a + b      # + soma, - subtrai, * multiplica, / divide\n    return total       # é isto que sai da função\n```\n\nNos exercícios o `def` já vem pronto: você escreve o corpo. Aquele `...` no meio do código é só um marcador de \"escreva aqui\" — apague e ponha o seu código no lugar.\n\nNo fim deste jogo você monta um RAG inteiro, sozinho. Ele começa aqui: somando tokens.",
+      "enunciado_md": "Toda chamada a um modelo de IA é medida em **tokens**: os do prompt que você envia (entrada) e os da resposta que recebe (saída). O custo sai do total.\n\n`total_tokens(entrada, saida)` devolve a **soma** dos dois — um número inteiro.\n\nExemplo: `total_tokens(120, 80)` → `200`",
+      "starter_code": "def total_tokens(entrada, saida):\n    # Deixei o esqueleto pronto; o miolo é seu.\n    # Os dois números chegam em entrada e saida.\n    # Lembra: o resultado só sai daqui com return.\n    ...\n",
+      "solucao_referencia": "def total_tokens(entrada, saida):\n    total = entrada + saida\n    return total\n",
+      "testes_visiveis": [
+        {
+          "nome": "soma básica",
+          "codigo": "_verificar(total_tokens(120, 80), 200)"
+        },
+        {
+          "nome": "entrada zero",
+          "codigo": "_verificar(total_tokens(0, 50), 50)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outros valores",
+          "codigo": "_verificar(total_tokens(7, 3), 10)"
+        },
+        {
+          "nome": "números grandes",
+          "codigo": "_verificar(total_tokens(1000, 2500), 3500)"
+        },
+        {
+          "nome": "retorna número inteiro",
+          "codigo": "assert isinstance(total_tokens(2, 3), int), 'A função deve retornar um int, não ' + type(total_tokens(2, 3)).__name__"
+        }
+      ],
+      "dicas": [
+        "O `+` soma os dois números — mas o resultado só sai da função com `return`; sem ele, a função devolve None.",
+        "Guarde a soma numa variável (`total = entrada + saida`) e retorne essa variável na linha seguinte.",
+        "`total = entrada + saida` e depois `return total` (ou direto: `return entrada + saida`)."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t1-02",
+      "nivel": "variaveis",
+      "tier": 1,
+      "conceitos": [
+        "operadores",
+        "tipos-primitivos"
+      ],
+      "titulo": "O preço de cada mil",
+      "explicacao_md": null,
+      "enunciado_md": "APIs de LLM cobram por **mil** tokens: um preço de `0.02` significa 0.02 a cada 1000 tokens.\n\n`custo_chamada(tokens, preco_por_1000)` devolve quanto custou a chamada.\n\nO operador `/` divide (e sempre devolve `float`); `*` multiplica.\n\nExemplo: `custo_chamada(500, 0.02)` → `0.01` (meio milhar custa metade do preço)",
+      "starter_code": "def custo_chamada(tokens, preco_por_1000):\n    # O preço é por MIL tokens, não por token — esse é o pulo do gato.\n    # Descubra quantos \"milhares\" foram usados e cobre o preço por eles.\n    ...\n",
+      "solucao_referencia": "def custo_chamada(tokens, preco_por_1000):\n    return tokens / 1000 * preco_por_1000\n",
+      "testes_visiveis": [
+        {
+          "nome": "meio milhar",
+          "codigo": "_verificar(custo_chamada(500, 0.02), 0.01)"
+        },
+        {
+          "nome": "mil tokens custam o preço cheio",
+          "codigo": "_verificar(custo_chamada(1000, 0.02), 0.02)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro preço",
+          "codigo": "_verificar(custo_chamada(250, 0.04), 0.01)"
+        },
+        {
+          "nome": "zero tokens, custo zero",
+          "codigo": "_verificar(custo_chamada(0, 0.5), 0.0)"
+        },
+        {
+          "nome": "mais de mil tokens",
+          "codigo": "_verificar(custo_chamada(2000, 0.03), 0.06)"
+        }
+      ],
+      "dicas": [
+        "Teste de sanidade: se entrarem exatamente 1000 tokens, o custo tem de dar o preço cheio. Que conta com `tokens` e `1000` produz esse resultado?",
+        "São duas etapas numa expressão só: `tokens / 1000` dá os milhares, e aí é multiplicar pelo preço de cada milhar.",
+        "`return tokens / 1000 * preco_por_1000`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t1-03",
+      "nivel": "variaveis",
+      "tier": 1,
+      "conceitos": [
+        "operadores",
+        "tipos-primitivos"
+      ],
+      "titulo": "Temperatura na faixa",
+      "explicacao_md": null,
+      "enunciado_md": "A `temperature` controla a criatividade de um modelo — e as APIs só aceitam valores de 0 a 2. Fora disso, a chamada falha.\n\nUma comparação devolve `True` ou `False` (o tipo `bool`): `preco > 0` pergunta \"preço é maior que zero?\". O operador `and` só é verdadeiro quando as **duas** condições são.\n\n`temperatura_valida(t)` devolve `True` se `t` está entre 0 e 2, **incluindo** as pontas; senão, `False`.\n\nExemplo: `temperatura_valida(0.7)` → `True`; `temperatura_valida(3)` → `False`",
+      "starter_code": "def temperatura_valida(t):\n    # São duas perguntas ao mesmo tempo: não é baixo demais? não é alto demais?\n    # Cada comparação já devolve True/False sozinha — junte as duas.\n    # \"Incluindo as pontas\" muda o sinal que você usa: pense em 0 e em 2.\n    ...\n",
+      "solucao_referencia": "def temperatura_valida(t):\n    return t >= 0 and t <= 2\n",
+      "testes_visiveis": [
+        {
+          "nome": "valor comum é válido",
+          "codigo": "_verificar(temperatura_valida(0.7), True)"
+        },
+        {
+          "nome": "3 passa do limite",
+          "codigo": "_verificar(temperatura_valida(3), False)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "borda inferior",
+          "codigo": "_verificar(temperatura_valida(0), True)"
+        },
+        {
+          "nome": "borda superior",
+          "codigo": "_verificar(temperatura_valida(2), True)"
+        },
+        {
+          "nome": "negativo é inválido",
+          "codigo": "_verificar(temperatura_valida(-0.5), False)"
+        },
+        {
+          "nome": "retorna booleano de verdade",
+          "codigo": "assert temperatura_valida(1) is True and temperatura_valida(9) is False, 'Retorne True/False, não outro tipo'"
+        }
+      ],
+      "dicas": [
+        "São duas perguntas ao mesmo tempo: \"não é baixo demais?\" E \"não é alto demais?\". Cada comparação já devolve True/False sozinha.",
+        "Combine as duas com `and` e retorne a expressão direto — não precisa de if.",
+        "`return t >= 0 and t <= 2`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t1-04",
+      "nivel": "variaveis",
+      "tier": 1,
+      "conceitos": [
+        "condicionais",
+        "operadores"
+      ],
+      "titulo": "Rota rápida ou completa",
+      "explicacao_md": null,
+      "enunciado_md": "Gateways de IA roteiam: prompt curto vai para um modelo rápido e barato; prompt longo, para o modelo completo. O roteamento começa num `if`:\n\n```python\nif condicao:\n    return \"sim\"     # sai daqui se a condição for True\nelse:\n    return \"nao\"     # sai daqui no resto dos casos\n```\n\n`escolher_rota(tamanho)`: se `tamanho` (número de caracteres do prompt) for **menor que 200**, devolve `\"rapida\"`; caso contrário, `\"completa\"`.\n\nExemplo: `escolher_rota(50)` → `\"rapida\"`",
+      "starter_code": "def escolher_rota(tamanho):\n    # Duas saídas possíveis: uma condição só decide qual return roda.\n    # Cuidado com a borda: 200 exato cai de que lado?\n    ...\n",
+      "solucao_referencia": "def escolher_rota(tamanho):\n    if tamanho < 200:\n        return \"rapida\"\n    else:\n        return \"completa\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "prompt curto",
+          "codigo": "_verificar(escolher_rota(50), 'rapida')"
+        },
+        {
+          "nome": "prompt longo",
+          "codigo": "_verificar(escolher_rota(500), 'completa')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "um abaixo da borda",
+          "codigo": "_verificar(escolher_rota(199), 'rapida')"
+        },
+        {
+          "nome": "borda exata vai para a completa",
+          "codigo": "_verificar(escolher_rota(200), 'completa')"
+        },
+        {
+          "nome": "prompt vazio",
+          "codigo": "_verificar(escolher_rota(0), 'rapida')"
+        }
+      ],
+      "dicas": [
+        "Duas saídas possíveis pedem `if`/`else`: uma condição decide qual `return` roda.",
+        "A condição é `tamanho < 200` — repare que 200 exato NÃO é menor que 200, então cai no else.",
+        "`if tamanho < 200: return \"rapida\"` e no `else: return \"completa\"` (cada return na sua linha, indentado)."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t1-05",
+      "nivel": "variaveis",
+      "tier": 1,
+      "conceitos": [
+        "condicionais",
+        "operadores"
+      ],
+      "titulo": "Termostato de estilo",
+      "explicacao_md": null,
+      "enunciado_md": "Temperatura baixa deixa o modelo previsível; alta, criativo. Com mais de duas faixas, o `elif` entra entre o `if` e o `else` — o Python testa de cima para baixo e para na **primeira** condição verdadeira.\n\nEscreva `classificar_estilo(temperatura)`:\n\n- menor que `0.4` → `\"preciso\"`\n- menor que `1.0` → `\"equilibrado\"`\n- caso contrário → `\"criativo\"`\n\nExemplo: `classificar_estilo(0.7)` → `\"equilibrado\"`",
+      "starter_code": "def classificar_estilo(temperatura):\n    # Três faixas, três saídas. O elif entra entre o if e o else.\n    # O Python para na PRIMEIRA condição verdadeira — então a ordem importa:\n    # comece pela faixa mais baixa e vá subindo.\n    ...\n",
+      "solucao_referencia": "def classificar_estilo(temperatura):\n    if temperatura < 0.4:\n        return \"preciso\"\n    elif temperatura < 1.0:\n        return \"equilibrado\"\n    else:\n        return \"criativo\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "bem baixa",
+          "codigo": "_verificar(classificar_estilo(0.2), 'preciso')"
+        },
+        {
+          "nome": "meio do caminho",
+          "codigo": "_verificar(classificar_estilo(0.7), 'equilibrado')"
+        },
+        {
+          "nome": "bem alta",
+          "codigo": "_verificar(classificar_estilo(1.5), 'criativo')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "borda 0.4",
+          "codigo": "_verificar(classificar_estilo(0.4), 'equilibrado')"
+        },
+        {
+          "nome": "borda 1.0",
+          "codigo": "_verificar(classificar_estilo(1.0), 'criativo')"
+        },
+        {
+          "nome": "zero absoluto",
+          "codigo": "_verificar(classificar_estilo(0), 'preciso')"
+        },
+        {
+          "nome": "quase na borda de cima",
+          "codigo": "_verificar(classificar_estilo(0.99), 'equilibrado')"
+        }
+      ],
+      "dicas": [
+        "O Python testa as condições de cima para baixo e para na primeira verdadeira — por isso o segundo teste não precisa repetir \"e é maior que 0.4\".",
+        "Estrutura: `if temperatura < 0.4:` … `elif temperatura < 1.0:` … `else:` — um return dentro de cada ramo.",
+        "`if temperatura < 0.4: return \"preciso\"`, `elif temperatura < 1.0: return \"equilibrado\"`, `else: return \"criativo\"`."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t2-01",
+      "nivel": "variaveis",
+      "tier": 2,
+      "conceitos": [
+        "condicionais",
+        "operadores"
+      ],
+      "titulo": "Modelo sob orçamento",
+      "explicacao_md": "No tier 2 as decisões são compostas — como num gateway real, que pesa mais de uma coisa antes de cada chamada.\n\nDuas formas de combinar condições:\n\n```python\n# and na mesma linha (as duas têm de valer):\nif latencia < 100 and cache_livre:\n    ...\n\n# ou um if dentro de outro, decidindo em etapas:\nif latencia < 100:\n    if cache_livre:\n        ...\n```\n\nPrompt grande sem verba que cubra o modelo grande **não** cai para o modelo pequeno: cada modelo tem o seu próprio preço.",
+      "enunciado_md": "Seu gateway escolhe o modelo pelo tamanho do prompt **e** pelo orçamento disponível para a chamada:\n\n- prompt grande (`tokens > 500`) exige o `\"mock-4\"`, que custa `0.10` — sem orçamento para ele, `\"recusado\"`\n- prompt pequeno (até 500) usa o `\"mock-mini\"`, que custa `0.01` — sem orçamento nem para ele, `\"recusado\"`\n\n`escolher_modelo(tokens, orcamento)` devolve `\"mock-4\"`, `\"mock-mini\"` ou `\"recusado\"`. \"Cobrir\" é o orçamento ser **maior ou igual** ao custo.\n\nExemplos: `escolher_modelo(800, 0.50)` → `\"mock-4\"`; `escolher_modelo(100, 0.05)` → `\"mock-mini\"`; `escolher_modelo(800, 0.02)` → `\"recusado\"`",
+      "starter_code": "def escolher_modelo(tokens, orcamento):\n    # Duas perguntas em ordem: o tamanho decide QUAL modelo seria usado;\n    # o orçamento decide se dá para pagar por ELE.\n    # Prompt grande com verba de mini não vira mini — é recusado.\n    ...\n",
+      "solucao_referencia": "def escolher_modelo(tokens, orcamento):\n    if tokens > 500 and orcamento >= 0.10:\n        return \"mock-4\"\n    if tokens <= 500 and orcamento >= 0.01:\n        return \"mock-mini\"\n    return \"recusado\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "grande com verba",
+          "codigo": "_verificar(escolher_modelo(800, 0.50), 'mock-4')"
+        },
+        {
+          "nome": "pequeno com verba",
+          "codigo": "_verificar(escolher_modelo(100, 0.05), 'mock-mini')"
+        },
+        {
+          "nome": "grande sem verba",
+          "codigo": "_verificar(escolher_modelo(800, 0.02), 'recusado')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "bordas: 501 tokens e verba exata",
+          "codigo": "_verificar(escolher_modelo(501, 0.10), 'mock-4')"
+        },
+        {
+          "nome": "bordas: 500 tokens e verba mínima",
+          "codigo": "_verificar(escolher_modelo(500, 0.01), 'mock-mini')"
+        },
+        {
+          "nome": "pequeno sem verba nenhuma",
+          "codigo": "_verificar(escolher_modelo(300, 0.005), 'recusado')"
+        },
+        {
+          "nome": "grande com verba só de mini",
+          "codigo": "_verificar(escolher_modelo(2000, 0.09), 'recusado')"
+        }
+      ],
+      "dicas": [
+        "Decida em duas etapas: o tamanho define QUAL modelo seria usado; o orçamento define se dá para pagar por ELE. Prompt grande com verba de mini é recusado — não cai para o mini.",
+        "Dá para achatar em três casos: grande E verba >= 0.10; pequeno E verba >= 0.01; todo o resto é \"recusado\".",
+        "`if tokens > 500 and orcamento >= 0.10: return \"mock-4\"`, depois `if tokens <= 500 and orcamento >= 0.01: return \"mock-mini\"`, e por fim `return \"recusado\"`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t2-02",
+      "nivel": "variaveis",
+      "tier": 2,
+      "conceitos": [
+        "condicionais",
+        "operadores"
+      ],
+      "titulo": "Faixas do dashboard",
+      "explicacao_md": null,
+      "enunciado_md": "O dashboard de custos do gateway agrupa cada chamada numa faixa para o relatório mensal.\n\n`faixa_custo(custo)` devolve a faixa como texto:\n\n- exatamente `0` → `\"gratis\"`\n- menor que `0.01` → `\"barato\"`\n- menor que `0.10` → `\"medio\"`\n- caso contrário → `\"caro\"`\n\nAtenção às bordas: `0.01` exato já é `\"medio\"`, e `0.10` exato já é `\"caro\"`.\n\nExemplos: `faixa_custo(0.005)` → `\"barato\"`; `faixa_custo(0.01)` → `\"medio\"`; `faixa_custo(0.25)` → `\"caro\"`",
+      "starter_code": "def faixa_custo(custo):\n    # if/elif/else em ordem crescente: cada faixa só é testada se as anteriores\n    # falharam — então \"menor que 0.10\" já quer dizer \"pelo menos 0.01\".\n    # As bordas usam < , não <= . Comece pelo caso especial: custo == 0.\n    ...\n",
+      "solucao_referencia": "def faixa_custo(custo):\n    if custo == 0:\n        return \"gratis\"\n    elif custo < 0.01:\n        return \"barato\"\n    elif custo < 0.10:\n        return \"medio\"\n    else:\n        return \"caro\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "custo zero",
+          "codigo": "_verificar(faixa_custo(0), 'gratis')"
+        },
+        {
+          "nome": "meio centavo",
+          "codigo": "_verificar(faixa_custo(0.005), 'barato')"
+        },
+        {
+          "nome": "cinco centavos",
+          "codigo": "_verificar(faixa_custo(0.05), 'medio')"
+        },
+        {
+          "nome": "chamada cara",
+          "codigo": "_verificar(faixa_custo(0.25), 'caro')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "borda 0.01",
+          "codigo": "_verificar(faixa_custo(0.01), 'medio')"
+        },
+        {
+          "nome": "borda 0.10",
+          "codigo": "_verificar(faixa_custo(0.10), 'caro')"
+        },
+        {
+          "nome": "quase nada, mas não zero",
+          "codigo": "_verificar(faixa_custo(0.0001), 'barato')"
+        },
+        {
+          "nome": "um fio abaixo de 0.10",
+          "codigo": "_verificar(faixa_custo(0.099), 'medio')"
+        }
+      ],
+      "dicas": [
+        "Faixas em ordem crescente com if/elif/else: cada teste só roda se os anteriores falharam — então \"menor que 0.10\" já significa \"pelo menos 0.01\".",
+        "Comece pelo caso especial `custo == 0`; depois `< 0.01`, depois `< 0.10`; o else fica com \"caro\". As bordas usam `<`, não `<=`.",
+        "`if custo == 0: return \"gratis\"`, `elif custo < 0.01: return \"barato\"`, `elif custo < 0.10: return \"medio\"`, `else: return \"caro\"`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t2-03",
+      "nivel": "variaveis",
+      "tier": 2,
+      "conceitos": [
+        "conversao-tipos",
+        "condicionais"
+      ],
+      "titulo": "Tudo chega como texto",
+      "explicacao_md": "Parâmetros vindos de formulário web ou de variável de ambiente chegam **sempre como texto**: `\"0.7\"`, `\"512\"`. Texto e número são coisas diferentes — para fazer conta, converta primeiro.\n\n```python\nfloat(\"0.7\")   # 0.7  (texto -> float)\nint(\"512\")     # 512  (texto -> int)\n```\n\nConverta, guarde num nome, e só então compare com a faixa. A ordem é essa: primeiro o número existe, depois você valida.",
+      "enunciado_md": "Parâmetros chegam como texto e precisam virar número, com um padrão de segurança quando o valor não serve.\n\nEscreva duas funções (o texto sempre representa um número válido):\n\n- `ler_temperatura(texto)`: converte para `float`. Se o valor estiver na faixa 0 a 2 (pontas incluídas), devolve o próprio valor; se cair fora, devolve o padrão `1.0`\n- `ler_max_tokens(texto)`: converte para `int`. Se o valor for maior que zero, devolve o próprio valor; se for zero ou negativo, devolve o padrão `256`\n\nExemplos: `ler_temperatura(\"0.7\")` → `0.7`; `ler_temperatura(\"5\")` → `1.0`; `ler_max_tokens(\"512\")` → `512`; `ler_max_tokens(\"0\")` → `256`",
+      "starter_code": "def ler_temperatura(texto):\n    # Converta primeiro (float), guarde num nome, valide depois.\n    # \"Fora da faixa\" são duas pontas: baixo demais OU alto demais.\n    ...\n\ndef ler_max_tokens(texto):\n    # Mesmo desenho: int primeiro, e um padrão para quando não serve.\n    ...\n",
+      "solucao_referencia": "def ler_temperatura(texto):\n    t = float(texto)\n    if t < 0 or t > 2:\n        return 1.0\n    return t\n\ndef ler_max_tokens(texto):\n    n = int(texto)\n    if n <= 0:\n        return 256\n    return n\n",
+      "testes_visiveis": [
+        {
+          "nome": "temperatura normal",
+          "codigo": "_verificar(ler_temperatura('0.7'), 0.7)"
+        },
+        {
+          "nome": "temperatura absurda cai no padrão",
+          "codigo": "_verificar(ler_temperatura('5'), 1.0)"
+        },
+        {
+          "nome": "max_tokens normal",
+          "codigo": "_verificar(ler_max_tokens('512'), 512)"
+        },
+        {
+          "nome": "zero tokens cai no padrão",
+          "codigo": "_verificar(ler_max_tokens('0'), 256)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "borda válida",
+          "codigo": "_verificar(ler_temperatura('2'), 2.0)"
+        },
+        {
+          "nome": "temperatura negativa",
+          "codigo": "_verificar(ler_temperatura('-0.5'), 1.0)"
+        },
+        {
+          "nome": "tokens negativos",
+          "codigo": "_verificar(ler_max_tokens('-50'), 256)"
+        },
+        {
+          "nome": "um token já vale",
+          "codigo": "_verificar(ler_max_tokens('1'), 1)"
+        },
+        {
+          "nome": "max_tokens é int de verdade",
+          "codigo": "assert isinstance(ler_max_tokens('300'), int), 'ler_max_tokens deve retornar int, não ' + type(ler_max_tokens('300')).__name__"
+        }
+      ],
+      "dicas": [
+        "Converta primeiro, valide depois: o texto vira número com float()/int(), e só então dá para comparar com a faixa.",
+        "Guarde a conversão numa variável (`t = float(texto)`); se `t < 0 or t > 2`, retorne o padrão `1.0` — senão retorne `t`. O mesmo desenho vale para o int.",
+        "Duas comparações ligadas por `or` cobrem o estar fora da faixa (`t < 0 or t > 2`), e a função precisa de dois returns: um para o padrão, outro para o valor que passou."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t2-04",
+      "nivel": "variaveis",
+      "tier": 2,
+      "conceitos": [
+        "tipos-primitivos",
+        "condicionais",
+        "operadores"
+      ],
+      "titulo": "Cachear ou gerar?",
+      "explicacao_md": null,
+      "enunciado_md": "Cachear respostas de LLM economiza dinheiro real — mas só faz sentido quando a resposta é **determinística**: com `temperature` acima de 0, cada chamada pode vir diferente.\n\n`decidir_cache(temperatura, ja_respondida)` — `temperatura` é `0` ou um número positivo, e `ja_respondida` é um `bool` que diz se a pergunta já tem resposta guardada:\n\n- `temperatura` maior que 0 → `\"gerar\"` (cache não vale a pena)\n- `temperatura` igual a 0 e `ja_respondida` → `\"cache\"`\n- `temperatura` igual a 0 e ainda sem resposta → `\"gerar-e-guardar\"`\n\nExemplo: `decidir_cache(0, True)` → `\"cache\"`; `decidir_cache(0.7, True)` → `\"gerar\"`",
+      "starter_code": "def decidir_cache(temperatura, ja_respondida):\n    # A primeira pergunta elimina metade dos casos: acima de zero, nunca cacheia.\n    # Depois dela, você já SABE que a temperatura é zero — só resta o bool.\n    ...\n",
+      "solucao_referencia": "def decidir_cache(temperatura, ja_respondida):\n    if temperatura > 0:\n        return \"gerar\"\n    if ja_respondida:\n        return \"cache\"\n    return \"gerar-e-guardar\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "determinística e já vista",
+          "codigo": "_verificar(decidir_cache(0, True), 'cache')"
+        },
+        {
+          "nome": "criativa nunca cacheia",
+          "codigo": "_verificar(decidir_cache(0.7, True), 'gerar')"
+        },
+        {
+          "nome": "determinística inédita",
+          "codigo": "_verificar(decidir_cache(0, False), 'gerar-e-guardar')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "zero float também é zero",
+          "codigo": "_verificar(decidir_cache(0.0, True), 'cache')"
+        },
+        {
+          "nome": "bem criativa e inédita",
+          "codigo": "_verificar(decidir_cache(1.5, False), 'gerar')"
+        },
+        {
+          "nome": "zero float inédita",
+          "codigo": "_verificar(decidir_cache(0.0, False), 'gerar-e-guardar')"
+        },
+        {
+          "nome": "pouco acima de zero já descarta o cache",
+          "codigo": "_verificar(decidir_cache(0.3, True), 'gerar')"
+        }
+      ],
+      "dicas": [
+        "A primeira pergunta elimina metade dos casos: temperatura acima de zero nunca usa cache, não importa o resto.",
+        "Trate `temperatura > 0` primeiro com um return; depois disso você SABE que é zero — só resta olhar o bool `ja_respondida`.",
+        "`if temperatura > 0: return \"gerar\"`, depois `if ja_respondida: return \"cache\"` e por fim `return \"gerar-e-guardar\"`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t3-01",
+      "nivel": "variaveis",
+      "tier": 3,
+      "conceitos": [
+        "conversao-tipos",
+        "tipos-primitivos",
+        "operadores"
+      ],
+      "titulo": "A soma que emendou",
+      "explicacao_md": "No tier 3 os dados chegam sujos — e o Python NÃO converte tipos sozinho:\n\n```python\n\"2\" + 2      # TypeError: str não soma com int\n\"2\" + \"2\"    # \"22\" — texto \"soma\" emendando!\nint(\"120\")   # 120 (aceita espaços nas pontas: int(\" 15 \") -> 15)\nfloat(\"0.7\") # 0.7\n```\n\nOutras armadilhas do tier: `0`, `\"\"` e `None` são todos \"falsos\" num `if`, mas significam coisas diferentes — ausência se detecta com `is None`. E floats somam com ruído (`0.1 + 0.2` → `0.30000000000000004`); `round(valor, casas)` limpa o número para exibição.",
+      "enunciado_md": "Os campos `entrada` e `saida` vêm do log do gateway como **texto** — e o código abaixo foi para produção somando texto: `\"120\" + \"80\"` virou `\"12080\"` e o relatório de custos explodiu.\n\nConserte `somar_tokens(entrada, saida)` para retornar a soma **numérica**, como `int`.\n\nContrato: os dois textos sempre representam inteiros, possivelmente com espaços nas pontas (`\" 15 \"`).\n\nExemplo: `somar_tokens(\"120\", \"80\")` → `200`",
+      "starter_code": "def somar_tokens(entrada, saida):\n    # BUG que foi pra produção: entrada e saida chegam como TEXTO (\"120\", \"80\"),\n    # e a linha abaixo EMENDA em vez de somar -> \"12080\".\n    # Contrato: sempre texto de inteiro, pode ter espaços nas pontas (\" 15 \").\n    # Conserte para devolver a soma numérica (int). Os valores precisam virar\n    # número ANTES da conta.\n    return entrada + saida\n",
+      "solucao_referencia": "def somar_tokens(entrada, saida):\n    return int(entrada) + int(saida)\n",
+      "testes_visiveis": [
+        {
+          "nome": "soma de verdade, não emenda",
+          "codigo": "_verificar(somar_tokens('120', '80'), 200)"
+        },
+        {
+          "nome": "números pequenos",
+          "codigo": "_verificar(somar_tokens('1', '2'), 3)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "espaços nas pontas",
+          "codigo": "_verificar(somar_tokens(' 15 ', '5'), 20)"
+        },
+        {
+          "nome": "vira mil",
+          "codigo": "_verificar(somar_tokens('999', '1'), 1000)"
+        },
+        {
+          "nome": "zeros em texto",
+          "codigo": "_verificar(somar_tokens('0', '0'), 0)"
+        },
+        {
+          "nome": "o resultado é int",
+          "codigo": "assert isinstance(somar_tokens('4', '6'), int), 'Retorne um int, não ' + type(somar_tokens('4', '6')).__name__"
+        }
+      ],
+      "dicas": [
+        "O `+` entre duas strings emenda, não soma — os valores precisam virar números ANTES da conta.",
+        "`int(texto)` converte texto de inteiro em int e já ignora espaços das pontas — converta os DOIS argumentos.",
+        "`return int(entrada) + int(saida)`"
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t3-02",
+      "nivel": "variaveis",
+      "tier": 3,
+      "conceitos": [
+        "truthiness",
+        "condicionais",
+        "tipos-primitivos"
+      ],
+      "titulo": "Zero não é ausência",
+      "explicacao_md": null,
+      "enunciado_md": "O usuário pode pedir uma `temperature` — ou não informar nada, e aí o campo chega como `None`. Quando informado, `pedida` é um número.\n\nEscreva `temperatura_final(pedida)`:\n\n- não informado (`None`) → devolve o padrão `0.7`\n- informado e dentro da faixa 0 a 2 (pontas incluídas) → devolve `pedida` como veio\n- informado mas fora da faixa → devolve `0.7`\n\nCuidado: `0` é pedido legítimo (determinismo máximo) e tem que voltar `0` — não caia na armadilha de tratar `0` como \"não informado\".\n\nExemplo: `temperatura_final(None)` → `0.7`; `temperatura_final(0)` → `0`; `temperatura_final(3)` → `0.7`",
+      "starter_code": "def temperatura_final(pedida):\n    # Contrato:\n    # - pedida é None quando o usuário NÃO informou -> retorne 0.7\n    # - 0 é valor legítimo (não confunda com None!)\n    # - fora da faixa 0..2 -> retorne 0.7\n    ...\n",
+      "solucao_referencia": "def temperatura_final(pedida):\n    if pedida is None:\n        return 0.7\n    if 0 <= pedida <= 2:\n        return pedida\n    return 0.7\n",
+      "testes_visiveis": [
+        {
+          "nome": "não informado usa o padrão",
+          "codigo": "_verificar(temperatura_final(None), 0.7)"
+        },
+        {
+          "nome": "valor válido passa direto",
+          "codigo": "_verificar(temperatura_final(1.5), 1.5)"
+        },
+        {
+          "nome": "zero é zero, não é ausência",
+          "codigo": "_verificar(temperatura_final(0), 0)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "zero float também sobrevive",
+          "codigo": "_verificar(temperatura_final(0.0), 0.0)"
+        },
+        {
+          "nome": "borda superior é válida",
+          "codigo": "_verificar(temperatura_final(2), 2)"
+        },
+        {
+          "nome": "acima da faixa cai no padrão",
+          "codigo": "_verificar(temperatura_final(2.5), 0.7)"
+        },
+        {
+          "nome": "negativo cai no padrão",
+          "codigo": "_verificar(temperatura_final(-0.5), 0.7)"
+        }
+      ],
+      "dicas": [
+        "`0`, `\"\"` e `None` são todos \"falsos\" num if — `if not pedida:` não distingue \"pediu zero\" de \"não pediu nada\". Ausência tem teste específico.",
+        "Teste `pedida is None` PRIMEIRO e retorne o padrão; depois valide a faixa — em Python dá para encadear comparações: `0 <= pedida <= 2`.",
+        "`if pedida is None: return 0.7`; depois `if 0 <= pedida <= 2: return pedida`; por fim `return 0.7`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-variaveis-t3-03",
+      "nivel": "variaveis",
+      "tier": 3,
+      "conceitos": [
+        "operadores",
+        "tipos-primitivos"
+      ],
+      "titulo": "Duas divisões, dois destinos",
+      "explicacao_md": null,
+      "enunciado_md": "Python tem duas divisões: `/` sempre devolve float (`7 / 2` → `3.5`); `//` descarta a parte decimal (`7 // 2` → `3`). Usar a errada corrompe métricas em silêncio.\n\nEscreva duas funções para o dashboard:\n\n- `media_por_chamada(total_tokens, n_chamadas)`: média de tokens por chamada, arredondada a **2 casas** com `round(valor, 2)`. Se `n_chamadas` for `0`, devolve `0.0` sem dividir\n- `lotes_necessarios(n_prompts, por_lote)`: quantos lotes para processar tudo, arredondando para **CIMA** (7 prompts em lotes de 5 → 2 lotes). Divisão exata não sobe lote (10 em lotes de 5 → 2). O resultado deve ser `int`, e sem prompts (`0`) → `0` lotes\n\nExemplos: `media_por_chamada(1000, 3)` → `333.33`; `lotes_necessarios(11, 5)` → `3`; `lotes_necessarios(10, 5)` → `2`",
+      "starter_code": "def media_por_chamada(total_tokens, n_chamadas):\n    # Arredonde a 2 casas com round(valor, 2).\n    # n_chamadas == 0 -> devolva 0.0 sem dividir (nunca divida por zero).\n    ...\n\ndef lotes_necessarios(n_prompts, por_lote):\n    # Arredonda para CIMA e devolve int; sem prompts (0) -> 0 lotes.\n    # Divisão exata NÃO sobe lote — pense em como \"empurrar\" só quando sobra.\n    ...\n",
+      "solucao_referencia": "def media_por_chamada(total_tokens, n_chamadas):\n    if n_chamadas == 0:\n        return 0.0\n    return round(total_tokens / n_chamadas, 2)\n\ndef lotes_necessarios(n_prompts, por_lote):\n    return (n_prompts + por_lote - 1) // por_lote\n",
+      "testes_visiveis": [
+        {
+          "nome": "média com dízima arredondada",
+          "codigo": "_verificar(media_por_chamada(1000, 3), 333.33)"
+        },
+        {
+          "nome": "11 prompts, lotes de 5",
+          "codigo": "_verificar(lotes_necessarios(11, 5), 3)"
+        },
+        {
+          "nome": "divisão exata não sobe lote",
+          "codigo": "_verificar(lotes_necessarios(10, 5), 2)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "média não-inteira",
+          "codigo": "_verificar(media_por_chamada(7, 2), 3.5)"
+        },
+        {
+          "nome": "zero chamadas não explode",
+          "codigo": "_verificar(media_por_chamada(500, 0), 0.0)"
+        },
+        {
+          "nome": "um prompt sozinho ocupa um lote",
+          "codigo": "_verificar(lotes_necessarios(1, 100), 1)"
+        },
+        {
+          "nome": "nada a processar",
+          "codigo": "_verificar(lotes_necessarios(0, 10), 0)"
+        },
+        {
+          "nome": "lotes é int de verdade",
+          "codigo": "assert isinstance(lotes_necessarios(9, 4), int), 'lotes_necessarios deve retornar int — use //, não /'"
+        }
+      ],
+      "dicas": [
+        "Na média, `//` jogaria fora os decimais (7 // 2 dá 3, não 3.5) — use `/` e depois `round`. Nos lotes é o contrário: o resultado precisa ser um int.",
+        "Divisão por zero derruba o programa: teste `n_chamadas == 0` antes. Para arredondar para cima só com `//`: some `por_lote - 1` ao total antes de dividir.",
+        "`return round(total_tokens / n_chamadas, 2)` (com o if do zero antes) e `return (n_prompts + por_lote - 1) // por_lote`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t1-01",
+      "nivel": "texto",
+      "tier": 1,
+      "conceitos": [
+        "metodos-string",
+        "normalizacao-texto"
+      ],
+      "titulo": "Faxina no prompt",
+      "explicacao_md": "Aqui **texto é a matéria-prima**: prompt, resposta, log — tudo chega como string. Os tokens que você somou no nível passado nasceram todos de strings como estas. Vale conhecer bem as ferramentas.\n\nUm método de string devolve uma string **nova**; a original nunca muda:\n\n```python\ntexto = \"  Oi, Dojo!  \"\ntexto.strip()   # \"Oi, Dojo!\"      (tira espaços das pontas)\ntexto.lower()   # \"  oi, dojo!  \"  (minúsculas)\n```\n\nComo cada método devolve uma string, você **encadeia**: `texto.strip().lower()`. É isto que você vai fazer o tempo todo.",
+      "enunciado_md": "Antes de enviar texto para um modelo, quase sempre normalizamos a entrada.\n\nComplete a função `normalizar(texto)` para:\n\n- remover espaços e quebras de linha das **pontas**\n- converter tudo para **minúsculas**\n\nExemplo: `normalizar(\"  Olá, Mundo!  \")` → `\"olá, mundo!\"`",
+      "starter_code": "def normalizar(texto):\n    # Duas limpezas, na ordem que fizer sentido: as pontas e a caixa.\n    # Cada método devolve uma string nova — encadeie ou guarde o resultado.\n    ...\n",
+      "solucao_referencia": "def normalizar(texto):\n    return texto.strip().lower()\n",
+      "testes_visiveis": [
+        {
+          "nome": "remove espaços e converte",
+          "codigo": "_verificar(normalizar('  Olá, Mundo!  '), 'olá, mundo!')"
+        },
+        {
+          "nome": "só maiúsculas",
+          "codigo": "_verificar(normalizar('PYTHON'), 'python')"
+        },
+        {
+          "nome": "quebras de linha e tabs",
+          "codigo": "_verificar(normalizar('\\n\\tOi\\n'), 'oi')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "texto já limpo",
+          "codigo": "_verificar(normalizar('já limpo'), 'já limpo')"
+        },
+        {
+          "nome": "retorna uma string de verdade",
+          "codigo": "assert isinstance(normalizar('Abc'), str), 'A função deve retornar uma string, não ' + type(normalizar('Abc')).__name__"
+        },
+        {
+          "nome": "mistura de tudo",
+          "codigo": "_verificar(normalizar('  ChatGPT É Legal \\n'), 'chatgpt é legal')"
+        }
+      ],
+      "dicas": [
+        "Métodos de string devolvem uma string NOVA — guarde ou encadeie o resultado; chamar `texto.strip()` sozinho numa linha não muda `texto`.",
+        "O resultado de `texto.strip()` é uma string, então aceita `.lower()` em seguida, na mesma expressão.",
+        "`return texto.strip().lower()`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t1-02",
+      "nivel": "texto",
+      "tier": 1,
+      "conceitos": [
+        "f-strings",
+        "strings"
+      ],
+      "titulo": "Crachá do modelo",
+      "explicacao_md": null,
+      "enunciado_md": "F-strings montam texto com valores dentro: `f\"modelo={nome}\"` insere o valor de `nome` no lugar das chaves.\n\nEscreva `descrever(modelo, temperatura)` que retorna **exatamente** o texto no formato:\n\n```\nmodelo=mock-4 temperature=0.7\n```\n\n(com os valores recebidos, claro). Exemplo: `descrever(\"mock-4\", 0.7)` → `\"modelo=mock-4 temperature=0.7\"`",
+      "starter_code": "def descrever(modelo, temperatura):\n    # Uma f-string começa com f antes das aspas; o que está entre chaves vira valor.\n    # O formato tem de sair EXATO — repare no = e no espaço entre os dois campos.\n    ...\n",
+      "solucao_referencia": "def descrever(modelo, temperatura):\n    return f\"modelo={modelo} temperature={temperatura}\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "mock-4 com 0.7",
+          "codigo": "_verificar(descrever('mock-4', 0.7), 'modelo=mock-4 temperature=0.7')"
+        },
+        {
+          "nome": "outro modelo",
+          "codigo": "_verificar(descrever('mock-claude', 0.0), 'modelo=mock-claude temperature=0.0')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "temperatura 1.0",
+          "codigo": "_verificar(descrever('mini', 1.0), 'modelo=mini temperature=1.0')"
+        },
+        {
+          "nome": "nome com hífen",
+          "codigo": "_verificar(descrever('mock-4-mini', 0.3), 'modelo=mock-4-mini temperature=0.3')"
+        }
+      ],
+      "dicas": [
+        "Uma f-string começa com `f` antes das aspas: `f\"texto {variavel}\"` — o que está entre chaves é substituído pelo valor.",
+        "São dois pares de chaves na mesma f-string: `f\"modelo={modelo} temperature={temperatura}\"` — repare no espaço entre eles.",
+        "`return f\"modelo={modelo} temperature={temperatura}\"`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t1-03",
+      "nivel": "texto",
+      "tier": 1,
+      "conceitos": [
+        "slicing",
+        "strings"
+      ],
+      "titulo": "Janela de contexto",
+      "explicacao_md": null,
+      "enunciado_md": "Modelos têm limite de contexto — texto demais precisa ser cortado.\n\nFatiar strings: `texto[:5]` pega os 5 primeiros caracteres; `texto[2:]` pula os 2 primeiros.\n\nEscreva `truncar(texto, limite)` que retorna só os primeiros `limite` caracteres de `texto`.\n\nExemplo: `truncar(\"python para ia\", 6)` → `\"python\"`",
+      "starter_code": "def truncar(texto, limite):\n    # Você já viu a fatia texto[:N]. Aqui o N não é fixo: é o que chegou.\n    # Fatiar não quebra se o limite passar do tamanho — pode confiar nisso.\n    ...\n",
+      "solucao_referencia": "def truncar(texto, limite):\n    return texto[:limite]\n",
+      "testes_visiveis": [
+        {
+          "nome": "corta em 6",
+          "codigo": "_verificar(truncar('python para ia', 6), 'python')"
+        },
+        {
+          "nome": "corta em 3",
+          "codigo": "_verificar(truncar('embedding', 3), 'emb')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "limite maior que o texto",
+          "codigo": "_verificar(truncar('oi', 10), 'oi')"
+        },
+        {
+          "nome": "limite zero",
+          "codigo": "_verificar(truncar('texto', 0), '')"
+        },
+        {
+          "nome": "texto com acentos",
+          "codigo": "_verificar(truncar('atenção total', 7), 'atenção')"
+        }
+      ],
+      "dicas": [
+        "Fatiar não quebra se o limite passar do tamanho: `\"oi\"[:10]` devolve `\"oi\"` sem erro.",
+        "A fatia que você quer começa do início, então o lado esquerdo dos dois-pontos fica vazio — preencha só o lado direito com o limite.",
+        "`return texto[:limite]`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t1-04",
+      "nivel": "texto",
+      "tier": 1,
+      "conceitos": [
+        "metodos-string"
+      ],
+      "titulo": "Etiquetas para o prompt",
+      "explicacao_md": null,
+      "enunciado_md": "Para colocar uma lista de tags dentro de um prompt, juntamos os itens num texto só.\n\n`\", \".join(lista)` cola os itens da lista usando `\", \"` como separador.\n\nEscreva `juntar_tags(tags)` que recebe uma lista de strings e retorna todas unidas por vírgula e espaço.\n\nExemplo: `juntar_tags([\"rag\", \"llm\", \"python\"])` → `\"rag, llm, python\"`",
+      "starter_code": "def juntar_tags(tags):\n    # Quem junta é o SEPARADOR, não a lista: é a string que chama o .join.\n    # Qual string? A que fica ENTRE os itens no resultado.\n    ...\n",
+      "solucao_referencia": "def juntar_tags(tags):\n    return \", \".join(tags)\n",
+      "testes_visiveis": [
+        {
+          "nome": "três tags",
+          "codigo": "_verificar(juntar_tags(['rag', 'llm', 'python']), 'rag, llm, python')"
+        },
+        {
+          "nome": "uma tag só",
+          "codigo": "_verificar(juntar_tags(['ia']), 'ia')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "duas tags",
+          "codigo": "_verificar(juntar_tags(['dados', 'api']), 'dados, api')"
+        },
+        {
+          "nome": "lista vazia",
+          "codigo": "_verificar(juntar_tags([]), '')"
+        }
+      ],
+      "dicas": [
+        "O `.join` é um método do SEPARADOR, não da lista — a string `\", \"` é quem junta.",
+        "A forma é `separador.join(lista)` — quem chama o `.join` é a STRING separadora (a com vírgula e espaço), passando a lista como argumento.",
+        "`return \", \".join(tags)`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t1-05",
+      "nivel": "texto",
+      "tier": 1,
+      "conceitos": [
+        "metodos-string"
+      ],
+      "titulo": "Dado sensível no log",
+      "explicacao_md": null,
+      "enunciado_md": "Logs que vão para um modelo de IA não podem vazar segredos.\n\n`texto.replace(velho, novo)` devolve uma cópia com **todas** as ocorrências trocadas — de uma vez só.\n\nEscreva `mascarar(texto)` que troca toda ocorrência de `\"dojo123\"` por `\"***\"`.\n\nExemplo: `mascarar(\"chave dojo123 e backup dojo123\")` → `\"chave *** e backup ***\"`",
+      "starter_code": "def mascarar(texto):\n    # Existe um método de string que troca um pedaço por outro e já faz TODAS\n    # as ocorrências de uma vez — sem você repetir nada. Procure por ele.\n    ...\n",
+      "solucao_referencia": "def mascarar(texto):\n    return texto.replace(\"dojo123\", \"***\")\n",
+      "testes_visiveis": [
+        {
+          "nome": "senha no meio",
+          "codigo": "_verificar(mascarar('senha=dojo123'), 'senha=***')"
+        },
+        {
+          "nome": "sem segredo, sem mudança",
+          "codigo": "_verificar(mascarar('tudo limpo'), 'tudo limpo')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "duas ocorrências",
+          "codigo": "_verificar(mascarar('dojo123 e dojo123'), '*** e ***')"
+        },
+        {
+          "nome": "no fim da frase",
+          "codigo": "_verificar(mascarar('a chave é dojo123'), 'a chave é ***')"
+        }
+      ],
+      "dicas": [
+        "`replace` troca TODAS as ocorrências de uma vez — você não precisa de repetição.",
+        "A ordem dos argumentos é `replace(o_que_sai, o_que_entra)`.",
+        "`return texto.replace(\"dojo123\", \"***\")`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t1-06",
+      "nivel": "texto",
+      "tier": 1,
+      "conceitos": [
+        "metodos-string",
+        "strings"
+      ],
+      "titulo": "Detector de comandos",
+      "explicacao_md": null,
+      "enunciado_md": "Num chat, mensagens que começam com `/` são comandos (`/ajuda`, `/limpar`), e mensagens com ` ``` ` contêm código.\n\nDois jeitos de perguntar sobre o conteúdo:\n\n- `texto.startswith(\"/\")` → o texto **começa** com `/`?\n- `\"abc\" in texto` → `\"abc\"` aparece em algum lugar?\n\nEscreva duas funções: `eh_comando(texto)` (começa com `/`?) e `tem_codigo(texto)` (contém três crases?). As duas retornam `True` ou `False`.",
+      "starter_code": "def eh_comando(texto):\n    # \"Começa com\" tem um método próprio; \"aparece em algum lugar\" tem o in.\n    # As duas respostas já são True/False — dá para devolver direto.\n    ...\n\ndef tem_codigo(texto):\n    ...\n",
+      "solucao_referencia": "def eh_comando(texto):\n    return texto.startswith(\"/\")\n\ndef tem_codigo(texto):\n    return \"```\" in texto\n",
+      "testes_visiveis": [
+        {
+          "nome": "/ajuda é comando",
+          "codigo": "_verificar(eh_comando('/ajuda'), True)"
+        },
+        {
+          "nome": "oi não é comando",
+          "codigo": "_verificar(eh_comando('oi'), False)"
+        },
+        {
+          "nome": "bloco de código detectado",
+          "codigo": "_verificar(tem_codigo('veja: ```print(1)```'), True)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "barra no meio não conta",
+          "codigo": "_verificar(eh_comando('a/b'), False)"
+        },
+        {
+          "nome": "sem crases",
+          "codigo": "_verificar(tem_codigo('só texto'), False)"
+        },
+        {
+          "nome": "retorna booleano de verdade",
+          "codigo": "assert eh_comando('/x') is True and eh_comando('x') is False, 'Retorne True/False, não outra coisa'"
+        }
+      ],
+      "dicas": [
+        "As duas expressões já devolvem True/False prontos — dá para retornar direto, sem if.",
+        "Para a segunda: o operador é `in`, na forma `\"```\" in texto`.",
+        "`return texto.startswith(\"/\")` e `return \"```\" in texto`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t2-01",
+      "nivel": "texto",
+      "tier": 2,
+      "conceitos": [
+        "f-strings",
+        "strings"
+      ],
+      "titulo": "Template de prompt",
+      "explicacao_md": "No tier 2 o contexto é real: você monta os textos que vão para um LLM.\n\nDuas ferramentas novas de f-string:\n\n```python\nvalor = 0.7\nf\"{valor:.2f}\"      # \"0.70\"  (duas casas decimais)\nf\"linha1\\nlinha2\"  # \\n quebra a linha\n```\n\nPrompt de produção é template: um caractere fora do lugar muda o comportamento do modelo. Conte cada quebra de linha.",
+      "enunciado_md": "Escreva `montar_prompt(contexto, pergunta, temperatura)` que retorna **exatamente** este template (com quebras de linha reais):\n\n```\nContexto:\n<contexto>\n\nPergunta: <pergunta>\n(temperature=<valor com 2 casas>)\n```\n\nExemplo: `montar_prompt(\"RAG é busca + geração.\", \"O que é RAG?\", 0.7)` →\n\n```\nContexto:\nRAG é busca + geração.\n\nPergunta: O que é RAG?\n(temperature=0.70)\n```",
+      "starter_code": "def montar_prompt(contexto, pergunta, temperatura):\n    # É uma f-string só, com quebras \\n dentro. Conte-as pelo modelo do enunciado:\n    # uma depois de \"Contexto:\", uma linha em branco antes de \"Pergunta:\", uma\n    # antes do parêntese. A temperatura sai com duas casas.\n    ...\n",
+      "solucao_referencia": "def montar_prompt(contexto, pergunta, temperatura):\n    return f\"Contexto:\\n{contexto}\\n\\nPergunta: {pergunta}\\n(temperature={temperatura:.2f})\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "template completo",
+          "codigo": "_verificar(montar_prompt('RAG é busca + geração.', 'O que é RAG?', 0.7), 'Contexto:\\nRAG é busca + geração.\\n\\nPergunta: O que é RAG?\\n(temperature=0.70)')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "temperatura inteira vira 2 casas",
+          "codigo": "_verificar(montar_prompt('a', 'b?', 1), 'Contexto:\\na\\n\\nPergunta: b?\\n(temperature=1.00)')"
+        },
+        {
+          "nome": "zero é 0.00",
+          "codigo": "_verificar(montar_prompt('ctx', 'q', 0), 'Contexto:\\nctx\\n\\nPergunta: q\\n(temperature=0.00)')"
+        },
+        {
+          "nome": "contexto com várias linhas",
+          "codigo": "_verificar(montar_prompt('l1\\nl2', 'p?', 0.25), 'Contexto:\\nl1\\nl2\\n\\nPergunta: p?\\n(temperature=0.25)')"
+        }
+      ],
+      "dicas": [
+        "Conte as quebras de linha do template: uma depois de `Contexto:`, DUAS antes de `Pergunta:` (linha em branco) e uma antes do parêntese.",
+        "Formato com 2 casas dentro da f-string: `{temperatura:.2f}`.",
+        "`return f\"Contexto:\\n{contexto}\\n\\nPergunta: {pergunta}\\n(temperature={temperatura:.2f})\"`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t2-02",
+      "nivel": "texto",
+      "tier": 2,
+      "conceitos": [
+        "metodos-string",
+        "normalizacao-texto"
+      ],
+      "titulo": "Faxina no lote de logs",
+      "explicacao_md": "Você vai usar aqui um padrão que te acompanha o curso inteiro: **percorrer uma lista com `for` e montar uma lista nova**, item a item. Guarde bem — ele volta sempre.\n\n```python\nlimpas = []\nfor linha in linhas:\n    limpa = linha.strip()   # tira os espaços das pontas\n    if limpa:               # string vazia conta como \"falsa\" num if\n        limpas.append(limpa)\n```\n\nO `for` visita cada item; `append` engata o item tratado no fim da lista nova; `if limpa:` descarta o que sobrou vazio.",
+      "enunciado_md": "Você recebeu linhas de log de um gateway de IA para analisar — algumas vêm com espaços sobrando, outras vêm vazias.\n\nEscreva `limpar_logs(linhas)` que recebe uma **lista** de strings e devolve uma nova lista onde:\n\n- cada linha teve os espaços das pontas removidos\n- linhas em branco (só espaços, tabs ou quebras de linha) foram descartadas\n- a ordem das demais é preservada\n\nExemplo: `limpar_logs([\" ok \", \"\", \"  \", \"erro 500\"])` → `[\"ok\", \"erro 500\"]`",
+      "starter_code": "def limpar_logs(linhas):\n    # A aula acima já mostrou o molde: lista nova, for, strip e um if que decide\n    # se a linha fica. Faça o strip ANTES do teste — aí \"só espaços\" vira \"\" e cai.\n    ...\n",
+      "solucao_referencia": "def limpar_logs(linhas):\n    limpas = []\n    for linha in linhas:\n        linha = linha.strip()\n        if linha:\n            limpas.append(linha)\n    return limpas\n",
+      "testes_visiveis": [
+        {
+          "nome": "limpa e descarta vazias",
+          "codigo": "_verificar(limpar_logs([' ok ', '', '  ', 'erro 500']), ['ok', 'erro 500'])"
+        },
+        {
+          "nome": "lista já limpa",
+          "codigo": "_verificar(limpar_logs(['a', 'b']), ['a', 'b'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "tabs e quebras contam como vazio",
+          "codigo": "_verificar(limpar_logs(['\\t\\n', ' x ']), ['x'])"
+        },
+        {
+          "nome": "tudo vazio vira lista vazia",
+          "codigo": "_verificar(limpar_logs(['', '   ']), [])"
+        },
+        {
+          "nome": "ordem preservada",
+          "codigo": "_verificar(limpar_logs([' c ', ' a ', ' b ']), ['c', 'a', 'b'])"
+        }
+      ],
+      "dicas": [
+        "São duas operações por linha: limpar as pontas e decidir se ela fica. Uma string vazia é 'falsa' num if.",
+        "Faça o strip ANTES do teste: uma linha só de espaços vira '' depois do strip — e aí o `if linha:` descarta.",
+        "Percorra com for, faça `linha = linha.strip()`, e só dê append se `linha` for verdadeira."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t2-03",
+      "nivel": "texto",
+      "tier": 2,
+      "conceitos": [
+        "metodos-string",
+        "slicing"
+      ],
+      "titulo": "Campo no log bruto",
+      "explicacao_md": null,
+      "enunciado_md": "Cada linha de log do gateway tem campos `chave=valor` separados por espaço:\n\n```\nts=1735689600 modelo=mock-4 latencia=0.42\n```\n\nEscreva `extrair_modelo(linha)` que devolve só o **valor** do campo `modelo` (no exemplo, `\"mock-4\"`).\n\nO campo `modelo=` sempre existe, mas a posição dele varia. Cuidado: `modelo` é a chave inteira — não confunda com campos parecidos como `submodelo=`.\n\n`linha.split()` quebra a linha numa lista de campos, que você percorre com `for`.",
+      "starter_code": "def extrair_modelo(linha):\n    # Quebre a linha em campos com .split() e procure o certo — a posição varia,\n    # então não dá para fatiar às cegas. \"Começa com modelo=\" mira o campo;\n    # depois é cortar o prefixo. E cuidado com submodelo=: não começa com modelo=.\n    ...\n",
+      "solucao_referencia": "def extrair_modelo(linha):\n    for campo in linha.split():\n        if campo.startswith(\"modelo=\"):\n            return campo[len(\"modelo=\"):]\n    return \"\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "campo no meio",
+          "codigo": "_verificar(extrair_modelo('ts=1735689600 modelo=mock-4 latencia=0.42'), 'mock-4')"
+        },
+        {
+          "nome": "campo no início",
+          "codigo": "_verificar(extrair_modelo('modelo=mock-claude ts=99'), 'mock-claude')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "campo no fim",
+          "codigo": "_verificar(extrair_modelo('ts=1 latencia=2.0 modelo=mini'), 'mini')"
+        },
+        {
+          "nome": "valor com hífens e números",
+          "codigo": "_verificar(extrair_modelo('modelo=mock-4-mini-2 ts=5'), 'mock-4-mini-2')"
+        },
+        {
+          "nome": "não confunde com outro campo parecido",
+          "codigo": "_verificar(extrair_modelo('submodelo=x modelo=y'), 'y')"
+        }
+      ],
+      "dicas": [
+        "Divida a linha em campos com `.split()` e procure o campo certo — a posição varia, então não dá para fatiar às cegas.",
+        "`campo.startswith(\"modelo=\")` acha o campo; depois é só cortar o prefixo com uma fatia.",
+        "O prefixo `\"modelo=\"` tem 7 caracteres: `campo[7:]` (ou `campo[len(\"modelo=\"):]`) devolve só o valor."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t2-04",
+      "nivel": "texto",
+      "tier": 2,
+      "conceitos": [
+        "slicing",
+        "strings"
+      ],
+      "titulo": "Reticências honestas",
+      "explicacao_md": null,
+      "enunciado_md": "Truncar texto para caber num limite é rotina — mas cortar no meio sem avisar engana o leitor.\n\nEscreva `resumo(texto, limite)`, para um `limite` de pelo menos 1:\n\n- se `texto` cabe em `limite` caracteres, devolve ele inteiro, sem mudanças\n- senão, devolve os primeiros `limite - 1` caracteres seguidos de `\"…\"` (um único caractere de reticências)\n\nAssim o resultado nunca fica mais longo que `limite`. Exemplo: `resumo(\"python para ia\", 9)` → `\"python p…\"`",
+      "starter_code": "def resumo(texto, limite):\n    # Dois casos: cabe (devolve igual) ou não cabe (corta). len(texto) dá o tamanho.\n    # No corte, a fatia é limite - 1 para sobrar espaço ao …, que conta como UM.\n    ...\n",
+      "solucao_referencia": "def resumo(texto, limite):\n    if len(texto) <= limite:\n        return texto\n    return texto[:limite - 1] + \"…\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "corta com reticências",
+          "codigo": "_verificar(resumo('python para ia', 9), 'python p…')"
+        },
+        {
+          "nome": "cabe inteiro, não mexe",
+          "codigo": "_verificar(resumo('curto', 10), 'curto')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "tamanho exato não corta",
+          "codigo": "_verificar(resumo('abcde', 5), 'abcde')"
+        },
+        {
+          "nome": "resultado nunca passa do limite",
+          "codigo": "assert len(resumo('a' * 50, 8)) == 8, 'O texto cortado deve ter exatamente `limite` caracteres'"
+        },
+        {
+          "nome": "um caractere a mais já corta",
+          "codigo": "_verificar(resumo('abcdef', 5), 'abcd…')"
+        }
+      ],
+      "dicas": [
+        "São dois casos: cabe (retorna igual) ou não cabe (corta). `len(texto)` dá o tamanho.",
+        "No caso do corte, a fatia é `limite - 1` para sobrar espaço para o `…` — que conta como UM caractere.",
+        "`if len(texto) <= limite: return texto` e senão `return texto[:limite - 1] + \"…\"`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t2-05",
+      "nivel": "texto",
+      "tier": 2,
+      "conceitos": [
+        "metodos-string",
+        "normalizacao-texto"
+      ],
+      "titulo": "Nome de arquivo seguro",
+      "explicacao_md": null,
+      "enunciado_md": "Você vai salvar cada conversa num arquivo cujo nome vem do título dela.\n\nEscreva `slug(titulo)` que:\n\n- remove espaços das pontas\n- converte para minúsculas\n- troca os espaços **entre palavras** por `-` (vários espaços seguidos viram UM hífen só)\n\nAcentos ficam como estão. Exemplo: `slug(\"  Relatório  Final \")` → `\"relatório-final\"`",
+      "starter_code": "def slug(titulo):\n    # .split() sem argumento já ignora as pontas E os espaços repetidos.\n    # Depois de separar as palavras, junte de volta — mas com outro separador.\n    ...\n",
+      "solucao_referencia": "def slug(titulo):\n    return \"-\".join(titulo.lower().split())\n",
+      "testes_visiveis": [
+        {
+          "nome": "espaços viram hífen",
+          "codigo": "_verificar(slug('  Relatório  Final '), 'relatório-final')"
+        },
+        {
+          "nome": "uma palavra só",
+          "codigo": "_verificar(slug('Dojo'), 'dojo')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "três palavras",
+          "codigo": "_verificar(slug('Guia de RAG'), 'guia-de-rag')"
+        },
+        {
+          "nome": "muitos espaços internos",
+          "codigo": "_verificar(slug('a    b     c'), 'a-b-c')"
+        },
+        {
+          "nome": "string vazia",
+          "codigo": "_verificar(slug(''), '')"
+        }
+      ],
+      "dicas": [
+        "`.split()` sem argumentos já resolve dois problemas de uma vez: ignora espaços repetidos E as pontas.",
+        "Depois de separar as palavras, junte com `\"-\".join(...)` — é o caminho inverso do split.",
+        "`return \"-\".join(titulo.lower().split())` — o strip nem é necessário, o split sem argumento já ignora as pontas."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t3-01",
+      "nivel": "texto",
+      "tier": 3,
+      "conceitos": [
+        "normalizacao-texto",
+        "metodos-string"
+      ],
+      "titulo": "Normalização de consulta",
+      "explicacao_md": "No tier 3 o mundo é sujo: entrada vazia, unicode, espaços duplicados. Sem drama — as ferramentas você já tem.\n\nUma peça nova: `casefold()` é o `lower()` reforçado para comparar texto — `\"STRASSE\".casefold()` vira `\"strasse\"` (o `lower()` não faria). Para busca e comparação, prefira `casefold()`.\n\nE o truque que você já viu: `texto.split()` devolve uma **lista** de palavras (que você sabe fatiar), e `\" \".join(...)` remonta. Juntos, `\" \".join(texto.split())` colapsam qualquer sequência de espaços/tabs/quebras num espaço só.",
+      "enunciado_md": "Antes de buscar num índice, a consulta do usuário precisa estar canônica.\n\nEscreva `normalizar_consulta(texto)`:\n\n- remove espaços/tabs/quebras das pontas\n- converte com `casefold()`\n- colapsa espaços internos repetidos num espaço só\n- string vazia (ou só espaços) → retorna `\"\"` sem erro\n\nExemplo: `normalizar_consulta(\"  O Que  É\\tRAG? \")` → `\"o que é rag?\"`",
+      "starter_code": "def normalizar_consulta(texto):\n    # Três transformações — mas o split() sem argumento já entrega duas de graça\n    # (pontas + espaços repetidos). Falta a caixa: casefold antes de tudo.\n    ...\n",
+      "solucao_referencia": "def normalizar_consulta(texto):\n    return \" \".join(texto.casefold().split())\n",
+      "testes_visiveis": [
+        {
+          "nome": "consulta bagunçada",
+          "codigo": "_verificar(normalizar_consulta('  O Que  É\\tRAG? '), 'o que é rag?')"
+        },
+        {
+          "nome": "acentos preservados, caixa não",
+          "codigo": "_verificar(normalizar_consulta('ÁGUA férVida'), 'água férvida')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "string vazia não quebra",
+          "codigo": "_verificar(normalizar_consulta(''), '')"
+        },
+        {
+          "nome": "só espaços e tabs",
+          "codigo": "_verificar(normalizar_consulta(' \\t\\n '), '')"
+        },
+        {
+          "nome": "casefold de verdade (ß)",
+          "codigo": "_verificar(normalizar_consulta('STRASSE ß'), 'strasse ss')"
+        },
+        {
+          "nome": "quebras de linha internas viram espaço",
+          "codigo": "_verificar(normalizar_consulta('linha um\\nlinha dois'), 'linha um linha dois')"
+        }
+      ],
+      "dicas": [
+        "São três transformações, mas duas delas o `split()` sem argumento resolve sozinho (pontas + espaços repetidos).",
+        "A sequência é: casefold na string inteira, split para fatiar em palavras, join com um espaço para remontar.",
+        "`return \" \".join(texto.casefold().split())` — com entrada vazia, o split devolve `[]` e o join devolve `\"\"`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t3-02",
+      "nivel": "texto",
+      "tier": 3,
+      "conceitos": [
+        "slicing",
+        "metodos-string"
+      ],
+      "titulo": "Cauda do contexto",
+      "explicacao_md": null,
+      "enunciado_md": "Quando o histórico do chat estoura a janela do modelo, mantemos só o **fim** da conversa.\n\nEscreva `ultimas_palavras(texto, n)` que retorna as `n` últimas palavras de `texto`, unidas por um espaço:\n\n- `n <= 0` → retorna `\"\"` (cuidado: fatia com `-0` NÃO faz o que parece)\n- `n` maior ou igual ao total de palavras → retorna todas\n- espaços repetidos na entrada não geram palavras vazias\n\nExemplo: `ultimas_palavras(\"o dojo é o caminho\", 2)` → `\"o caminho\"`",
+      "starter_code": "def ultimas_palavras(texto, n):\n    # lista[-n:] pega os n últimos — MAS -0 é igual a 0, e lista[0:] é a lista\n    # inteira. Esse caso (n <= 0) precisa de um if próprio antes de fatiar.\n    ...\n",
+      "solucao_referencia": "def ultimas_palavras(texto, n):\n    if n <= 0:\n        return \"\"\n    return \" \".join(texto.split()[-n:])\n",
+      "testes_visiveis": [
+        {
+          "nome": "duas últimas",
+          "codigo": "_verificar(ultimas_palavras('o dojo é o caminho', 2), 'o caminho')"
+        },
+        {
+          "nome": "n maior que o texto",
+          "codigo": "_verificar(ultimas_palavras('só três palavras', 10), 'só três palavras')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "n = 0 devolve vazio (a pegadinha do -0)",
+          "codigo": "_verificar(ultimas_palavras('a b c', 0), '')"
+        },
+        {
+          "nome": "n negativo devolve vazio",
+          "codigo": "_verificar(ultimas_palavras('a b c', -2), '')"
+        },
+        {
+          "nome": "espaços repetidos",
+          "codigo": "_verificar(ultimas_palavras('a   b    c d', 3), 'b c d')"
+        },
+        {
+          "nome": "texto vazio",
+          "codigo": "_verificar(ultimas_palavras('', 3), '')"
+        }
+      ],
+      "dicas": [
+        "`lista[-n:]` pega os n últimos itens — mas `-0` é igual a `0`, e `lista[0:]` é a lista INTEIRA. Esse caso precisa de tratamento à parte.",
+        "Trate `n <= 0` com um if antes de fatiar; o resto é split, fatia negativa e join.",
+        "`if n <= 0: return \"\"` e depois `return \" \".join(texto.split()[-n:])`"
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-texto-t3-03",
+      "nivel": "texto",
+      "tier": 3,
+      "conceitos": [
+        "slicing",
+        "metodos-string",
+        "strings"
+      ],
+      "titulo": "Primeira frase limpa",
+      "explicacao_md": null,
+      "enunciado_md": "Para gerar um título automático, pegamos a primeira frase da resposta do modelo.\n\nEscreva `primeira_frase(texto)`:\n\n- retorna o trecho **antes do primeiro ponto final** (`.`), sem o ponto\n- se não houver ponto, retorna o texto inteiro\n- em qualquer caso, remove espaços das pontas do resultado\n- entrada vazia → `\"\"`\n\nDica de ferramenta: `texto.find(\".\")` devolve o índice do primeiro `.`, ou `-1` se não existir.\n\nExemplo: `primeira_frase(\"Olá. Tudo bem?\")` → `\"Olá\"`",
+      "starter_code": "def primeira_frase(texto):\n    # find(\".\") dá o índice do ponto, ou -1 se não houver. Cuidado: usar esse -1\n    # direto numa fatia (texto[:idx]) corta o ÚLTIMO caractere — bug silencioso.\n    # Trate o \"não tem ponto\" à parte, e dê .strip() no resultado dos dois jeitos.\n    ...\n",
+      "solucao_referencia": "def primeira_frase(texto):\n    idx = texto.find(\".\")\n    if idx == -1:\n        return texto.strip()\n    return texto[:idx].strip()\n",
+      "testes_visiveis": [
+        {
+          "nome": "frase com ponto",
+          "codigo": "_verificar(primeira_frase('Olá. Tudo bem?'), 'Olá')"
+        },
+        {
+          "nome": "sem ponto, texto inteiro",
+          "codigo": "_verificar(primeira_frase(' Sem ponto final '), 'Sem ponto final')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "ponto logo no início",
+          "codigo": "_verificar(primeira_frase('.abc'), '')"
+        },
+        {
+          "nome": "vários pontos, só o primeiro importa",
+          "codigo": "_verificar(primeira_frase('Um. Dois. Três.'), 'Um')"
+        },
+        {
+          "nome": "entrada vazia",
+          "codigo": "_verificar(primeira_frase(''), '')"
+        },
+        {
+          "nome": "espaços antes do ponto",
+          "codigo": "_verificar(primeira_frase('  Oi mundo . resto'), 'Oi mundo')"
+        },
+        {
+          "nome": "sem ponto, último caractere conta",
+          "codigo": "_verificar(primeira_frase('Sem ponto'), 'Sem ponto')"
+        }
+      ],
+      "dicas": [
+        "Cuidado com o retorno `-1` do find: usado direto numa fatia, `texto[:-1]` corta o ÚLTIMO caractere — um bug clássico e silencioso.",
+        "Trate o caso `idx == -1` num if separado; nos dois caminhos, aplique `.strip()` no resultado final.",
+        "`idx = texto.find(\".\")`, depois `return texto.strip() if idx == -1 else texto[:idx].strip()`"
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t1-01",
+      "nivel": "colecoes",
+      "tier": 1,
+      "conceitos": [
+        "listas"
+      ],
+      "titulo": "Fila de prompts",
+      "explicacao_md": "Coleções são o dia a dia de quem trabalha com IA: o `messages` de uma chamada de chat é uma **lista**, um batch de prompts é uma lista, os documentos que o RAG recupera chegam numa lista. Você não escapa delas.\n\n```python\nfila = [\"resumir\", \"traduzir\", \"classificar\"]\nfila[0]     # \"resumir\" — índice começa em 0\nfila[-1]    # \"classificar\" — negativo conta do fim\nlen(fila)   # 3\nfila.append(\"revisar\")  # adiciona no fim\n```\n\n`fila[-1]` é o atalho idiomático para o último — funciona em qualquer tamanho, sem calcular `len(fila) - 1`. Use.\n\nAs linhas de log que você limpou uma a uma no nível passado? Aqui elas andam em bando — e é assim que chegam de verdade.",
+      "enunciado_md": "Um worker de IA processa uma fila de prompts na ordem de chegada.\n\nEscreva duas funções:\n\n- `proximo(fila)` — retorna o **primeiro** item da lista (o próximo a processar)\n- `mais_recente(fila)` — retorna o **último** item (o que acabou de chegar)\n\nA fila sempre tem pelo menos um item.\n\nExemplo: `proximo([\"resumir\", \"traduzir\"])` → `\"resumir\"`; `mais_recente([\"resumir\", \"traduzir\"])` → `\"traduzir\"`",
+      "starter_code": "def proximo(fila):\n    # O próximo a processar é o primeiro que chegou.\n    ...\n\ndef mais_recente(fila):\n    # O mais recente é o do fim — e tem um índice atalho pra isso.\n    ...\n",
+      "solucao_referencia": "def proximo(fila):\n    return fila[0]\n\ndef mais_recente(fila):\n    return fila[-1]\n",
+      "testes_visiveis": [
+        {
+          "nome": "primeiro da fila",
+          "codigo": "_verificar(proximo(['resumir', 'traduzir', 'classificar']), 'resumir')"
+        },
+        {
+          "nome": "último da fila",
+          "codigo": "_verificar(mais_recente(['resumir', 'traduzir', 'classificar']), 'classificar')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "fila de um item só",
+          "codigo": "_verificar(proximo(['único']), 'único')\n_verificar(mais_recente(['único']), 'único')"
+        },
+        {
+          "nome": "fila longa",
+          "codigo": "_verificar(proximo(['a', 'b', 'c', 'd', 'e']), 'a')\n_verificar(mais_recente(['a', 'b', 'c', 'd', 'e']), 'e')"
+        },
+        {
+          "nome": "não modifica a fila",
+          "codigo": "fila = ['x', 'y']\nproximo(fila)\nmais_recente(fila)\n_verificar(fila, ['x', 'y'])"
+        }
+      ],
+      "dicas": [
+        "Índices de lista começam em 0; índices negativos contam do fim — `-1` é o último, qualquer que seja o tamanho.",
+        "São dois retornos diretos: um usa `fila[0]`, o outro `fila[-1]` — sem loop, sem len.",
+        "`return fila[0]` na primeira função e `return fila[-1]` na segunda."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t1-02",
+      "nivel": "colecoes",
+      "tier": 1,
+      "conceitos": [
+        "listas",
+        "loops"
+      ],
+      "titulo": "A conta do dia",
+      "explicacao_md": null,
+      "enunciado_md": "Cada chamada ao modelo custa alguns centavos — e o total do dia é a soma de todas.\n\nEscreva `custo_total(custos)` que recebe uma lista de números e retorna a soma, acumulando com um loop `for` (é o padrão que você vai repetir a vida inteira em coleções). Lista vazia → `0`.\n\nExemplo: `custo_total([0.02, 0.05, 0.01])` → `0.08`",
+      "starter_code": "def custo_total(custos):\n    # O padrão acumulador, que volta a vida toda: um total que começa zerado\n    # e cresce a cada item do for. O return fica FORA do loop.\n    ...\n",
+      "solucao_referencia": "def custo_total(custos):\n    total = 0\n    for custo in custos:\n        total += custo\n    return total\n",
+      "testes_visiveis": [
+        {
+          "nome": "soma os custos do dia",
+          "codigo": "_verificar(custo_total([0.02, 0.05, 0.01]), 0.08)"
+        },
+        {
+          "nome": "números inteiros",
+          "codigo": "_verificar(custo_total([1, 2, 3]), 6)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "dia sem chamadas",
+          "codigo": "_verificar(custo_total([]), 0)"
+        },
+        {
+          "nome": "uma chamada só",
+          "codigo": "_verificar(custo_total([0.25]), 0.25)"
+        },
+        {
+          "nome": "valores maiores",
+          "codigo": "_verificar(custo_total([1.5, 2.5, 0.5, 0.5]), 5.0)"
+        }
+      ],
+      "dicas": [
+        "O padrão acumulador: comece com um total zerado e vá somando item a item dentro do for.",
+        "`total += custo` é o mesmo que `total = total + custo` — e precisa acontecer DENTRO do loop.",
+        "`total = 0`, depois `for custo in custos: total += custo`, e `return total` fora do loop."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t1-03",
+      "nivel": "colecoes",
+      "tier": 1,
+      "conceitos": [
+        "dicts"
+      ],
+      "titulo": "Recibo de tokens",
+      "explicacao_md": null,
+      "enunciado_md": "A resposta de uma API de LLM traz um dict de uso, no mesmo formato das APIs reais:\n\n```python\nuso = {\"prompt_tokens\": 120, \"completion_tokens\": 80}\n```\n\nEscreva `total_tokens(uso)` que retorna a soma dos campos `\"prompt_tokens\"` e `\"completion_tokens\"`.\n\nExemplo: com o dict acima → `200`",
+      "starter_code": "def total_tokens(uso):\n    # Um dict é lido pela chave, entre colchetes. São duas leituras e uma soma.\n    # As chaves têm de bater EXATAMENTE com as do enunciado.\n    ...\n",
+      "solucao_referencia": "def total_tokens(uso):\n    return uso[\"prompt_tokens\"] + uso[\"completion_tokens\"]\n",
+      "testes_visiveis": [
+        {
+          "nome": "recibo simples",
+          "codigo": "_verificar(total_tokens({'prompt_tokens': 120, 'completion_tokens': 80}), 200)"
+        },
+        {
+          "nome": "outra chamada",
+          "codigo": "_verificar(total_tokens({'prompt_tokens': 7, 'completion_tokens': 3}), 10)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "prompt zerado",
+          "codigo": "_verificar(total_tokens({'prompt_tokens': 0, 'completion_tokens': 5}), 5)"
+        },
+        {
+          "nome": "campo extra não engana",
+          "codigo": "_verificar(total_tokens({'prompt_tokens': 10, 'completion_tokens': 2, 'total_tokens': 999}), 12)"
+        },
+        {
+          "nome": "números grandes",
+          "codigo": "_verificar(total_tokens({'prompt_tokens': 999, 'completion_tokens': 1}), 1000)"
+        }
+      ],
+      "dicas": [
+        "Valores de um dict são lidos pela chave, entre colchetes: `d[\"chave\"]`.",
+        "São duas leituras e uma soma — os nomes das chaves precisam ser EXATAMENTE os do enunciado.",
+        "`return uso[\"prompt_tokens\"] + uso[\"completion_tokens\"]`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t1-04",
+      "nivel": "colecoes",
+      "tier": 1,
+      "conceitos": [
+        "sets"
+      ],
+      "titulo": "Vocabulário único",
+      "explicacao_md": null,
+      "enunciado_md": "Quantas palavras **diferentes** um prompt usa? Essa medida simples ajuda a comparar prompts curtos e repetitivos com prompts ricos.\n\nEscreva `palavras_unicas(palavras)` que recebe uma lista de palavras e retorna **quantas** são distintas (um número inteiro).\n\nExemplo: `palavras_unicas([\"o\", \"dojo\", \"o\"])` → `2`",
+      "starter_code": "def palavras_unicas(palavras):\n    # Existe uma coleção que joga fora as duplicatas sozinha. Depois é só contar\n    # quantos elementos sobraram.\n    ...\n",
+      "solucao_referencia": "def palavras_unicas(palavras):\n    return len(set(palavras))\n",
+      "testes_visiveis": [
+        {
+          "nome": "palavras repetidas",
+          "codigo": "_verificar(palavras_unicas(['o', 'dojo', 'o']), 2)"
+        },
+        {
+          "nome": "todas diferentes",
+          "codigo": "_verificar(palavras_unicas(['rag', 'llm', 'python']), 3)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "lista vazia",
+          "codigo": "_verificar(palavras_unicas([]), 0)"
+        },
+        {
+          "nome": "tudo repetido",
+          "codigo": "_verificar(palavras_unicas(['ia', 'ia', 'ia', 'ia']), 1)"
+        },
+        {
+          "nome": "caixa diferente conta como outra palavra",
+          "codigo": "_verificar(palavras_unicas(['Oi', 'oi']), 2)"
+        }
+      ],
+      "dicas": [
+        "Um set guarda cada valor uma única vez — jogar uma lista num set elimina as duplicatas automaticamente.",
+        "`set(palavras)` cria o conjunto; `len(...)` conta os elementos dele.",
+        "`return len(set(palavras))`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t1-05",
+      "nivel": "colecoes",
+      "tier": 1,
+      "conceitos": [
+        "enumerate-zip",
+        "loops",
+        "f-strings"
+      ],
+      "titulo": "Fontes numeradas",
+      "explicacao_md": null,
+      "enunciado_md": "Num RAG, os documentos recuperados entram no prompt numerados — assim o modelo consegue citar as fontes (\"segundo [2]...\").\n\nEscreva `numerar_fontes(titulos)` que recebe uma lista de títulos e retorna uma **nova** lista com cada título prefixado pelo seu número, começando em 1, no formato `\"1. título\"`.\n\nExemplo: `numerar_fontes([\"Guia RAG\", \"FAQ\"])` → `[\"1. Guia RAG\", \"2. FAQ\"]`",
+      "starter_code": "def numerar_fontes(titulos):\n    # Você precisa do número da POSIÇÃO (1, 2, 3...) junto de cada título —\n    # tem uma ferramenta que entrega os dois de uma vez, e aceita começar em 1.\n    # Monte cada linha numa lista nova.\n    ...\n",
+      "solucao_referencia": "def numerar_fontes(titulos):\n    resultado = []\n    for i, titulo in enumerate(titulos, start=1):\n        resultado.append(f\"{i}. {titulo}\")\n    return resultado\n",
+      "testes_visiveis": [
+        {
+          "nome": "duas fontes",
+          "codigo": "_verificar(numerar_fontes(['Guia RAG', 'FAQ']), ['1. Guia RAG', '2. FAQ'])"
+        },
+        {
+          "nome": "uma fonte",
+          "codigo": "_verificar(numerar_fontes(['Manual']), ['1. Manual'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "lista vazia",
+          "codigo": "_verificar(numerar_fontes([]), [])"
+        },
+        {
+          "nome": "quatro fontes",
+          "codigo": "_verificar(numerar_fontes(['a', 'b', 'c', 'd']), ['1. a', '2. b', '3. c', '4. d'])"
+        },
+        {
+          "nome": "não modifica a lista original",
+          "codigo": "titulos = ['Doc']\nnumerar_fontes(titulos)\n_verificar(titulos, ['Doc'])"
+        },
+        {
+          "nome": "títulos repetidos numeram por posição",
+          "codigo": "_verificar(numerar_fontes(['Doc', 'Doc']), ['1. Doc', '2. Doc'])"
+        }
+      ],
+      "dicas": [
+        "`enumerate` entrega, a cada volta do for, um par (número, item) — e aceita um `start` para escolher em que número começar.",
+        "`for i, titulo in enumerate(titulos, start=1):` já dá 1, 2, 3...; monte cada linha com `f\"{i}. {titulo}\"` e acumule numa lista nova.",
+        "`resultado = []`, depois `for i, t in enumerate(titulos, start=1): resultado.append(f\"{i}. {t}\")` e `return resultado`."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t1-06",
+      "nivel": "colecoes",
+      "tier": 1,
+      "conceitos": [
+        "tuplas",
+        "f-strings"
+      ],
+      "titulo": "Par imutável",
+      "explicacao_md": null,
+      "enunciado_md": "Antes de virar o dict que a API espera, uma mensagem de chat pode viver como um **par imutável** `(role, content)` — ninguém altera por engano.\n\nEscreva duas funções:\n\n- `criar_par(role, content)` — retorna a **tupla** `(role, content)`\n- `formatar_par(par)` — recebe uma dessas tuplas e retorna a string `\"role: content\"`\n\nExemplo: `criar_par(\"user\", \"Oi\")` → `(\"user\", \"Oi\")`; `formatar_par((\"user\", \"Oi\"))` → `\"user: Oi\"`",
+      "starter_code": "def criar_par(role, content):\n    # Uma tupla é o par que não muda: parênteses e vírgula.\n    ...\n\ndef formatar_par(par):\n    # Dá para separar a tupla em duas variáveis de uma vez (desempacotar) e\n    # então montar a string.\n    ...\n",
+      "solucao_referencia": "def criar_par(role, content):\n    return (role, content)\n\ndef formatar_par(par):\n    role, content = par\n    return f\"{role}: {content}\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "cria o par",
+          "codigo": "_verificar(criar_par('user', 'Oi'), ('user', 'Oi'))"
+        },
+        {
+          "nome": "formata o par",
+          "codigo": "_verificar(formatar_par(('user', 'Oi')), 'user: Oi')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "tupla de verdade, não lista",
+          "codigo": "assert isinstance(criar_par('system', 'regras'), tuple), 'criar_par deve retornar uma tupla, não ' + type(criar_par('system', 'regras')).__name__"
+        },
+        {
+          "nome": "role diferente",
+          "codigo": "_verificar(formatar_par(('assistant', 'claro!')), 'assistant: claro!')"
+        },
+        {
+          "nome": "ida e volta",
+          "codigo": "_verificar(formatar_par(criar_par('system', 'seja breve')), 'system: seja breve')"
+        }
+      ],
+      "dicas": [
+        "Uma tupla é como uma lista que não muda: criada com parênteses, lida por índice ou por desempacotamento.",
+        "Na segunda função, `role, content = par` separa a tupla em duas variáveis de uma vez.",
+        "`return (role, content)` na primeira; `role, content = par` e `return f\"{role}: {content}\"` na segunda."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t2-01",
+      "nivel": "colecoes",
+      "tier": 2,
+      "conceitos": [
+        "dicts-aninhados",
+        "dicts",
+        "loops"
+      ],
+      "titulo": "Placar da conversa",
+      "explicacao_md": "Nas APIs de chat (OpenAI e Anthropic) o histórico é uma **lista de dicts** — cada mensagem tem `role` e `content`:\n\n```python\nmessages = [\n    {\"role\": \"system\", \"content\": \"Seja breve.\"},\n    {\"role\": \"user\", \"content\": \"Oi!\"},\n]\nmessages[1][\"content\"]   # \"Oi!\" — indexa a lista, depois lê a chave\n\n# dict-contador: crie a chave com 0 na primeira vez, depois some\ncontagem = {}\nfor cor in [\"azul\", \"verde\", \"azul\"]:\n    if cor not in contagem:\n        contagem[cor] = 0\n    contagem[cor] += 1\n# {\"azul\": 2, \"verde\": 1}\n```\n\nEsses dois padrões — navegar dict aninhado e contar com dict — resolvem metade da análise de logs e histórico de chat. Guarde-os.",
+      "enunciado_md": "Antes de reenviar uma conversa ao modelo, vale auditar quantas mensagens cada `role` tem — histórico desequilibrado costuma indicar bug no app.\n\nEscreva `contar_roles(messages)` que recebe uma lista de mensagens no formato das APIs de chat e retorna um dict `role → quantidade`, contendo **apenas** os roles que aparecem. Lista vazia → `{}`.\n\n```python\nmsgs = [\n    {\"role\": \"user\", \"content\": \"Oi\"},\n    {\"role\": \"assistant\", \"content\": \"Olá!\"},\n    {\"role\": \"user\", \"content\": \"Me ajuda?\"},\n]\ncontar_roles(msgs)  # {\"user\": 2, \"assistant\": 1}\n```",
+      "starter_code": "def contar_roles(messages):\n    # É o dict-contador da aula: a chave é o role de cada mensagem.\n    # Antes de somar, garanta que a chave existe (senão, KeyError).\n    ...\n",
+      "solucao_referencia": "def contar_roles(messages):\n    contagem = {}\n    for msg in messages:\n        role = msg[\"role\"]\n        if role not in contagem:\n            contagem[role] = 0\n        contagem[role] += 1\n    return contagem\n",
+      "testes_visiveis": [
+        {
+          "nome": "conversa curta",
+          "codigo": "msgs = [{'role': 'user', 'content': 'Oi'}, {'role': 'assistant', 'content': 'Olá!'}, {'role': 'user', 'content': 'Me ajuda?'}]\n_verificar(contar_roles(msgs), {'user': 2, 'assistant': 1})"
+        },
+        {
+          "nome": "com system",
+          "codigo": "msgs = [{'role': 'system', 'content': 'Seja breve.'}, {'role': 'user', 'content': 'Oi'}]\n_verificar(contar_roles(msgs), {'system': 1, 'user': 1})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "conversa vazia",
+          "codigo": "_verificar(contar_roles([]), {})"
+        },
+        {
+          "nome": "um role só, várias mensagens",
+          "codigo": "msgs = [{'role': 'user', 'content': 'a'}, {'role': 'user', 'content': 'b'}, {'role': 'user', 'content': 'c'}]\n_verificar(contar_roles(msgs), {'user': 3})"
+        },
+        {
+          "nome": "três roles diferentes",
+          "codigo": "msgs = [{'role': 'system', 'content': 's'}, {'role': 'user', 'content': 'u'}, {'role': 'assistant', 'content': 'a'}, {'role': 'assistant', 'content': 'b'}]\n_verificar(contar_roles(msgs), {'system': 1, 'user': 1, 'assistant': 2})"
+        }
+      ],
+      "dicas": [
+        "É o dict-contador da explicação — a chave aqui é o role de cada mensagem, lido com `msg[\"role\"]`.",
+        "Antes de somar, garanta que a chave existe: `if role not in contagem: contagem[role] = 0`.",
+        "Dict vazio; para cada msg: `role = msg[\"role\"]`, zere a chave se for nova e faça `contagem[role] += 1`; retorne o dict no fim."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t2-02",
+      "nivel": "colecoes",
+      "tier": 2,
+      "conceitos": [
+        "dicts-aninhados",
+        "loops",
+        "condicionais"
+      ],
+      "titulo": "A última pergunta",
+      "explicacao_md": null,
+      "enunciado_md": "Para refazer a busca RAG de uma conversa, você precisa da pergunta mais recente do usuário — não da última mensagem, que pode ser do assistente.\n\nEscreva `ultima_pergunta(messages)` que retorna o `content` da **última** mensagem com `role == \"user\"`. Se a conversa não tiver nenhuma, retorne `\"\"`.\n\nExemplo: numa conversa `user: \"Oi\"` → `assistant: \"Olá!\"` → `user: \"E agora?\"`, o retorno é `\"E agora?\"`.",
+      "starter_code": "def ultima_pergunta(messages):\n    # Percorra na ordem e guarde o content toda vez que achar um user —\n    # ao fim do loop, sobra o último. Comece com \"\" para o caso de não haver nenhum.\n    ...\n",
+      "solucao_referencia": "def ultima_pergunta(messages):\n    resultado = \"\"\n    for msg in messages:\n        if msg[\"role\"] == \"user\":\n            resultado = msg[\"content\"]\n    return resultado\n",
+      "testes_visiveis": [
+        {
+          "nome": "pega a mais recente",
+          "codigo": "msgs = [{'role': 'user', 'content': 'Oi'}, {'role': 'assistant', 'content': 'Olá!'}, {'role': 'user', 'content': 'E agora?'}]\n_verificar(ultima_pergunta(msgs), 'E agora?')"
+        },
+        {
+          "nome": "uma pergunta só",
+          "codigo": "_verificar(ultima_pergunta([{'role': 'user', 'content': 'Único'}]), 'Único')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "sem nenhum user",
+          "codigo": "msgs = [{'role': 'system', 'content': 'regras'}, {'role': 'assistant', 'content': 'oi'}]\n_verificar(ultima_pergunta(msgs), '')"
+        },
+        {
+          "nome": "conversa vazia",
+          "codigo": "_verificar(ultima_pergunta([]), '')"
+        },
+        {
+          "nome": "a última mensagem não é do user",
+          "codigo": "msgs = [{'role': 'user', 'content': 'primeira'}, {'role': 'assistant', 'content': 'resp 1'}, {'role': 'assistant', 'content': 'resp 2'}]\n_verificar(ultima_pergunta(msgs), 'primeira')"
+        }
+      ],
+      "dicas": [
+        "Percorra na ordem e guarde o content toda vez que encontrar um user — ao fim do loop, a variável terá o último.",
+        "Comece com `resultado = \"\"`; assim, se nenhum user aparecer, o retorno já está certo sem if extra.",
+        "`for msg in messages:` e, dentro, `if msg[\"role\"] == \"user\": resultado = msg[\"content\"]` — retorne `resultado` depois do loop."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t2-03",
+      "nivel": "colecoes",
+      "tier": 2,
+      "conceitos": [
+        "dicts",
+        "loops",
+        "normalizacao-texto"
+      ],
+      "titulo": "Termos mais falados",
+      "explicacao_md": null,
+      "enunciado_md": "Quais termos mais aparecem nos prompts que chegam ao seu gateway? Essa contagem alimenta dashboards e decisões de cache.\n\nEscreva `frequencia(texto)` que:\n\n- separa o texto em palavras com `.split()` (espaços repetidos e pontas já ficam resolvidos)\n- converte cada palavra para minúsculas\n- retorna um dict `palavra → quantidade`\n\nTexto vazio (ou só espaços) → `{}`.\n\nExemplo: `frequencia(\"RAG é busca e RAG é geração\")` → `{\"rag\": 2, \"é\": 2, \"busca\": 1, \"e\": 1, \"geração\": 1}`",
+      "starter_code": "def frequencia(texto):\n    # O mesmo dict-contador — mas as chaves vêm de texto.split(), e cada palavra\n    # passa por .lower() ANTES de virar chave (senão \"Python\" e \"python\" contam separado).\n    ...\n",
+      "solucao_referencia": "def frequencia(texto):\n    contagem = {}\n    for palavra in texto.split():\n        palavra = palavra.lower()\n        if palavra not in contagem:\n            contagem[palavra] = 0\n        contagem[palavra] += 1\n    return contagem\n",
+      "testes_visiveis": [
+        {
+          "nome": "termos repetidos",
+          "codigo": "_verificar(frequencia('RAG é busca e RAG é geração'), {'rag': 2, 'é': 2, 'busca': 1, 'e': 1, 'geração': 1})"
+        },
+        {
+          "nome": "sem repetição",
+          "codigo": "_verificar(frequencia('python para ia'), {'python': 1, 'para': 1, 'ia': 1})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "texto vazio",
+          "codigo": "_verificar(frequencia(''), {})"
+        },
+        {
+          "nome": "só espaços",
+          "codigo": "_verificar(frequencia('   '), {})"
+        },
+        {
+          "nome": "caixa mista vira uma chave só",
+          "codigo": "_verificar(frequencia('Python PYTHON python'), {'python': 3})"
+        },
+        {
+          "nome": "espaços repetidos não criam palavra",
+          "codigo": "_verificar(frequencia('a  a   b'), {'a': 2, 'b': 1})"
+        }
+      ],
+      "dicas": [
+        "É o mesmo dict-contador — mas as chaves vêm de `texto.split()`, e cada palavra passa por `.lower()` antes de contar.",
+        "`for palavra in texto.split():` já ignora espaços repetidos e pontas; normalize com `palavra.lower()` ANTES de usar como chave.",
+        "Contador vazio; para cada palavra de `texto.split()`: `p = palavra.lower()`, zere a chave se for nova, some 1; retorne o dict."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t2-04",
+      "nivel": "colecoes",
+      "tier": 2,
+      "conceitos": [
+        "sets",
+        "listas",
+        "loops"
+      ],
+      "titulo": "Sem documento repetido",
+      "explicacao_md": null,
+      "enunciado_md": "Duas buscas no índice vetorial podem devolver o mesmo documento. Antes de montar o contexto, remova os repetidos **sem bagunçar a ordem** — ela reflete a relevância.\n\nEscreva `dedupe(ids)` que retorna uma **nova** lista com a primeira ocorrência de cada id, na ordem original. (`set(ids)` sozinho não resolve: sets não guardam ordem.)\n\nExemplo: `dedupe([\"doc3\", \"doc1\", \"doc3\", \"doc2\", \"doc1\"])` → `[\"doc3\", \"doc1\", \"doc2\"]`",
+      "starter_code": "def dedupe(ids):\n    # Duas estruturas juntas: uma lista para o resultado (guarda a ordem) e um\n    # set para lembrar o que já passou. Só entra na lista quem ainda não foi visto.\n    ...\n",
+      "solucao_referencia": "def dedupe(ids):\n    vistos = set()\n    resultado = []\n    for item in ids:\n        if item not in vistos:\n            vistos.add(item)\n            resultado.append(item)\n    return resultado\n",
+      "testes_visiveis": [
+        {
+          "nome": "remove repetidos na ordem",
+          "codigo": "_verificar(dedupe(['doc3', 'doc1', 'doc3', 'doc2', 'doc1']), ['doc3', 'doc1', 'doc2'])"
+        },
+        {
+          "nome": "sem repetidos, sem mudança",
+          "codigo": "_verificar(dedupe(['a', 'b', 'c']), ['a', 'b', 'c'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "lista vazia",
+          "codigo": "_verificar(dedupe([]), [])"
+        },
+        {
+          "nome": "tudo igual",
+          "codigo": "_verificar(dedupe(['x', 'x', 'x']), ['x'])"
+        },
+        {
+          "nome": "ordem de chegada mantida",
+          "codigo": "_verificar(dedupe(['z', 'a', 'z', 'm', 'a', 'z']), ['z', 'a', 'm'])"
+        },
+        {
+          "nome": "não modifica a lista original",
+          "codigo": "ids = ['d1', 'd1', 'd2']\ndedupe(ids)\n_verificar(ids, ['d1', 'd1', 'd2'])"
+        }
+      ],
+      "dicas": [
+        "Duas estruturas trabalhando juntas: uma lista para o resultado (guarda a ordem) e um set para lembrar o que já apareceu (busca rápida).",
+        "Para cada item: se ainda não está no set `vistos`, adicione nos DOIS — `vistos.add(item)` e `resultado.append(item)`.",
+        "`vistos = set()`, `resultado = []`; no loop, `if item not in vistos:` → add no set + append na lista; retorne `resultado`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t2-05",
+      "nivel": "colecoes",
+      "tier": 2,
+      "conceitos": [
+        "enumerate-zip",
+        "dicts-aninhados",
+        "listas"
+      ],
+      "titulo": "Remontando o histórico",
+      "explicacao_md": null,
+      "enunciado_md": "Um export antigo separou a conversa em duas listas paralelas: perguntas do usuário e respostas do assistente. Para reenviar à API, é preciso remontar o formato `messages`.\n\nEscreva `remontar(perguntas, respostas)` que retorna uma lista intercalada: para cada par, um dict `{\"role\": \"user\", \"content\": pergunta}` seguido de `{\"role\": \"assistant\", \"content\": resposta}`. As listas têm sempre o mesmo tamanho.\n\nExemplo: `remontar([\"Oi\"], [\"Olá!\"])` → `[{\"role\": \"user\", \"content\": \"Oi\"}, {\"role\": \"assistant\", \"content\": \"Olá!\"}]`",
+      "starter_code": "def remontar(perguntas, respostas):\n    # Tem uma ferramenta que anda pelas duas listas ao mesmo tempo, entregando\n    # um par por volta. Para cada par, DOIS appends: o dict do user, depois o do assistant.\n    ...\n",
+      "solucao_referencia": "def remontar(perguntas, respostas):\n    messages = []\n    for pergunta, resposta in zip(perguntas, respostas):\n        messages.append({\"role\": \"user\", \"content\": pergunta})\n        messages.append({\"role\": \"assistant\", \"content\": resposta})\n    return messages\n",
+      "testes_visiveis": [
+        {
+          "nome": "um par",
+          "codigo": "_verificar(remontar(['Oi'], ['Olá!']), [{'role': 'user', 'content': 'Oi'}, {'role': 'assistant', 'content': 'Olá!'}])"
+        },
+        {
+          "nome": "dois pares",
+          "codigo": "_verificar(remontar(['a?', 'b?'], ['A.', 'B.']), [{'role': 'user', 'content': 'a?'}, {'role': 'assistant', 'content': 'A.'}, {'role': 'user', 'content': 'b?'}, {'role': 'assistant', 'content': 'B.'}])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "listas vazias",
+          "codigo": "_verificar(remontar([], []), [])"
+        },
+        {
+          "nome": "três pares intercalados",
+          "codigo": "_verificar(remontar(['1', '2', '3'], ['um', 'dois', 'três']), [{'role': 'user', 'content': '1'}, {'role': 'assistant', 'content': 'um'}, {'role': 'user', 'content': '2'}, {'role': 'assistant', 'content': 'dois'}, {'role': 'user', 'content': '3'}, {'role': 'assistant', 'content': 'três'}])"
+        },
+        {
+          "nome": "cada par gera duas mensagens",
+          "codigo": "assert len(remontar(['q1', 'q2'], ['r1', 'r2'])) == 4, 'Cada par (pergunta, resposta) deve gerar DUAS mensagens na lista final'"
+        }
+      ],
+      "dicas": [
+        "`zip` anda pelas duas listas ao mesmo tempo, entregando um par (pergunta, resposta) a cada volta do loop.",
+        "`for pergunta, resposta in zip(perguntas, respostas):` — dentro do loop, dê DOIS appends, um para cada dict.",
+        "Monte cada dict literal: `{\"role\": \"user\", \"content\": pergunta}` e depois o do assistant; appends sempre na ordem user → assistant."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t3-01",
+      "nivel": "colecoes",
+      "tier": 3,
+      "conceitos": [
+        "listas",
+        "loops",
+        "dicts-aninhados"
+      ],
+      "titulo": "Expurgo no histórico",
+      "explicacao_md": "Um bug clássico: **remover itens de uma lista enquanto itera sobre ela**. Quando um item sai, os seguintes andam uma posição — e o iterador, que avança por índice interno, pula o vizinho do removido.\n\n```python\nnumeros = [1, 1, 2]\nfor n in numeros:\n    if n == 1:\n        numeros.remove(n)\nprint(numeros)  # [1, 2] — um dos 1s escapou!\n```\n\nA correção canônica: itere sobre uma **cópia** (`lista[:]` ou `list(lista)`) e remova da original — a cópia mantém a sequência estável enquanto a original encolhe.\n\nNo tier 3, o contrato importa tanto quanto o código: leia o docstring do starter — ele diz o que a função promete (mutação in-place, bordas, casos sujos).",
+      "enunciado_md": "Mensagens com `content` vazio (ou só espaços) derrubam chamadas de API — a requisição inteira volta com erro 400.\n\nO starter traz uma função com o bug clássico: ela remove itens **enquanto itera** e deixa escapar mensagens vazias consecutivas. Conserte `expurgar_vazias(historico)` cumprindo o contrato do docstring: modificar a lista recebida **no lugar** e retornar a MESMA lista.\n\nExemplo: um histórico cujos contents são `[\"Oi\", \"\", \"  \", \"Tudo bem?\"]` termina com `[\"Oi\", \"Tudo bem?\"]`.",
+      "starter_code": "def expurgar_vazias(historico):\n    \"\"\"Remove do PRÓPRIO `historico` as mensagens com content vazio ou só espaços.\n\n    Contrato:\n    - modifica a lista recebida no lugar (in-place)\n    - retorna a MESMA lista (o mesmo objeto)\n    - mensagens vazias consecutivas também saem\n    - lista vazia não quebra\n    \"\"\"\n    # BUG: remover enquanto itera pula elementos — conserte.\n    for msg in historico:\n        if not msg[\"content\"].strip():\n            historico.remove(msg)\n    return historico\n",
+      "solucao_referencia": "def expurgar_vazias(historico):\n    for msg in historico[:]:\n        if not msg[\"content\"].strip():\n            historico.remove(msg)\n    return historico\n",
+      "testes_visiveis": [
+        {
+          "nome": "vazias e só-espaços saem",
+          "codigo": "h = [{'role': 'user', 'content': 'Oi'}, {'role': 'assistant', 'content': ''}, {'role': 'user', 'content': '  '}, {'role': 'assistant', 'content': 'Tudo bem?'}]\nexpurgar_vazias(h)\n_verificar(h, [{'role': 'user', 'content': 'Oi'}, {'role': 'assistant', 'content': 'Tudo bem?'}])"
+        },
+        {
+          "nome": "retorna a MESMA lista",
+          "codigo": "h = [{'role': 'user', 'content': 'x'}]\nassert expurgar_vazias(h) is h, 'Retorne a MESMA lista recebida (in-place), não uma cópia'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "três vazias seguidas (o coração do bug)",
+          "codigo": "h = [{'role': 'user', 'content': ''}, {'role': 'user', 'content': ' '}, {'role': 'user', 'content': '\\t'}, {'role': 'user', 'content': 'fim'}]\nexpurgar_vazias(h)\n_verificar(h, [{'role': 'user', 'content': 'fim'}])"
+        },
+        {
+          "nome": "tudo vazio",
+          "codigo": "h = [{'role': 'user', 'content': ''}, {'role': 'assistant', 'content': '   '}]\nexpurgar_vazias(h)\n_verificar(h, [])"
+        },
+        {
+          "nome": "nada para expurgar, ordem intacta",
+          "codigo": "h = [{'role': 'user', 'content': 'a'}, {'role': 'assistant', 'content': 'b'}]\nexpurgar_vazias(h)\n_verificar(h, [{'role': 'user', 'content': 'a'}, {'role': 'assistant', 'content': 'b'}])"
+        },
+        {
+          "nome": "histórico vazio não quebra",
+          "codigo": "h = []\n_verificar(expurgar_vazias(h), [])"
+        }
+      ],
+      "dicas": [
+        "Quando um item sai da lista, os seguintes andam uma casa — e o iterador, que segue por índice interno, pula o vizinho. Duas vazias seguidas: a segunda escapa.",
+        "Itere sobre uma cópia (`historico[:]`) e chame `historico.remove(msg)` na original — a cópia não encolhe, então nada é pulado.",
+        "Troque só a linha do for: `for msg in historico[:]:` — o resto do corpo (o if, o remove e o return) já está certo."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t3-02",
+      "nivel": "colecoes",
+      "tier": 3,
+      "conceitos": [
+        "dicts",
+        "dicts-aninhados",
+        "loops"
+      ],
+      "titulo": "Fatura com buracos",
+      "explicacao_md": null,
+      "enunciado_md": "O log de billing chegou sujo: alguns registros não têm o campo `\"modelo\"`, outros não têm `\"tokens\"`.\n\nEscreva `tokens_por_modelo(registros)` que recebe uma lista de dicts e retorna um dict `modelo → soma de tokens`, com o contrato:\n\n- registro sem `\"modelo\"` conta no grupo `\"desconhecido\"`\n- registro sem `\"tokens\"` soma `0` (mas o modelo ainda aparece no resultado)\n- lista vazia → `{}`\n\nFerramenta: `d.get(chave, padrao)` devolve o padrão quando a chave não existe, sem levantar `KeyError`.\n\nExemplo: `tokens_por_modelo([{\"modelo\": \"mock-4\", \"tokens\": 100}, {\"tokens\": 30}])` → `{\"mock-4\": 100, \"desconhecido\": 30}`",
+      "starter_code": "def tokens_por_modelo(registros):\n    \"\"\"Soma tokens por modelo a partir de registros de billing SUJOS.\n\n    Contrato:\n    - registro sem \"modelo\" entra no grupo \"desconhecido\"\n    - registro sem \"tokens\" soma 0 (mas o modelo aparece no resultado)\n    - lista vazia -> {}\n    \"\"\"\n    # Três lugares podem dar KeyError: os dois campos do registro e a chave nova\n    # no dict de totais. Tem um método de dict com valor-padrão que blinda os três.\n    ...\n",
+      "solucao_referencia": "def tokens_por_modelo(registros):\n    totais = {}\n    for reg in registros:\n        modelo = reg.get(\"modelo\", \"desconhecido\")\n        tokens = reg.get(\"tokens\", 0)\n        totais[modelo] = totais.get(modelo, 0) + tokens\n    return totais\n",
+      "testes_visiveis": [
+        {
+          "nome": "registro sem modelo vira desconhecido",
+          "codigo": "_verificar(tokens_por_modelo([{'modelo': 'mock-4', 'tokens': 100}, {'tokens': 30}]), {'mock-4': 100, 'desconhecido': 30})"
+        },
+        {
+          "nome": "registros limpos somam por modelo",
+          "codigo": "_verificar(tokens_por_modelo([{'modelo': 'mini', 'tokens': 10}, {'modelo': 'mini', 'tokens': 5}, {'modelo': 'mock-4', 'tokens': 7}]), {'mini': 15, 'mock-4': 7})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "log vazio",
+          "codigo": "_verificar(tokens_por_modelo([]), {})"
+        },
+        {
+          "nome": "sem tokens, modelo ainda aparece",
+          "codigo": "_verificar(tokens_por_modelo([{'modelo': 'mini'}]), {'mini': 0})"
+        },
+        {
+          "nome": "registro totalmente vazio",
+          "codigo": "_verificar(tokens_por_modelo([{}]), {'desconhecido': 0})"
+        },
+        {
+          "nome": "mistura de buracos",
+          "codigo": "_verificar(tokens_por_modelo([{'modelo': 'x', 'tokens': 1}, {}, {'tokens': 2}, {'modelo': 'x'}]), {'x': 1, 'desconhecido': 2})"
+        }
+      ],
+      "dicas": [
+        "Três lugares podem explodir com KeyError — os dois campos do registro e a chave nova no dict de totais. `.get` com padrão resolve os três.",
+        "`reg.get(\"modelo\", \"desconhecido\")` e `reg.get(\"tokens\", 0)` limpam o registro; para acumular, `totais.get(modelo, 0) + tokens` (ou `totais.setdefault(modelo, 0)` antes de somar).",
+        "No loop: `modelo = reg.get(\"modelo\", \"desconhecido\")`, `tokens = reg.get(\"tokens\", 0)`, `totais[modelo] = totais.get(modelo, 0) + tokens`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-colecoes-t3-03",
+      "nivel": "colecoes",
+      "tier": 3,
+      "conceitos": [
+        "enumerate-zip",
+        "tuplas",
+        "listas"
+      ],
+      "titulo": "Pódio dos documentos",
+      "explicacao_md": null,
+      "enunciado_md": "A busca vetorial devolveu duas listas paralelas: nomes de documentos e pontuações de similaridade — e nem sempre com o mesmo tamanho.\n\nEscreva `ranquear(nomes, pontuacoes)`:\n\n- pareie com `zip`; tamanhos diferentes → **o menor manda**, sobras são ignoradas (comportamento padrão do zip)\n- ordene por pontuação **decrescente**\n- empates preservam a ordem original de chegada (o `sorted` do Python é estável)\n- devolva apenas os nomes, na ordem do ranking\n\nFerramenta: `sorted(pares, key=escolher, reverse=True)` ordena usando o valor que a função `escolher` devolver para cada item. Aqui os itens são pares `(nome, pontuacao)`, e o valor de comparação é a pontuação — o segundo elemento do par. Você escreve essa pequena função ao lado:\n\n```python\ndef escolher(par):\n    return par[1]   # a pontuação do par (nome, pontuacao)\n```\n\nExemplo: `ranquear([\"a\", \"b\", \"c\"], [0.2, 0.9, 0.5])` → `[\"b\", \"c\", \"a\"]`",
+      "starter_code": "def ranquear(nomes, pontuacoes):\n    \"\"\"Ranqueia documentos por pontuação, do maior para o menor.\n\n    Contrato:\n    - tamanhos diferentes: pareia só até a menor lista (padrão do zip)\n    - empate de pontuação: preserva a ordem original (sorted é estável)\n    - retorna SÓ os nomes, na ordem do ranking\n    \"\"\"\n    # Pareie os dois com zip, ordene os pares pela pontuação (a funçãozinha do\n    # enunciado é o key), e no fim colha só os nomes na nova ordem.\n    ...\n",
+      "solucao_referencia": "def pegar_pontuacao(par):\n    return par[1]\n\ndef ranquear(nomes, pontuacoes):\n    pares = list(zip(nomes, pontuacoes))\n    ordenados = sorted(pares, key=pegar_pontuacao, reverse=True)\n    ranking = []\n    for nome, pontuacao in ordenados:\n        ranking.append(nome)\n    return ranking\n",
+      "testes_visiveis": [
+        {
+          "nome": "ordena por pontuação",
+          "codigo": "_verificar(ranquear(['a', 'b', 'c'], [0.2, 0.9, 0.5]), ['b', 'c', 'a'])"
+        },
+        {
+          "nome": "já em ordem",
+          "codigo": "_verificar(ranquear(['top', 'meio'], [0.9, 0.1]), ['top', 'meio'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "empate preserva a ordem de chegada",
+          "codigo": "_verificar(ranquear(['x', 'y', 'z'], [0.5, 0.9, 0.5]), ['y', 'x', 'z'])"
+        },
+        {
+          "nome": "mais nomes que pontuações (o menor manda)",
+          "codigo": "_verificar(ranquear(['d1', 'd2', 'd3', 'd4'], [0.1, 0.8]), ['d2', 'd1'])"
+        },
+        {
+          "nome": "mais pontuações que nomes",
+          "codigo": "_verificar(ranquear(['solo'], [0.3, 0.9, 0.5]), ['solo'])"
+        },
+        {
+          "nome": "listas vazias",
+          "codigo": "_verificar(ranquear([], []), [])"
+        },
+        {
+          "nome": "tudo empatado",
+          "codigo": "_verificar(ranquear(['p', 'q', 'r'], [1.0, 1.0, 1.0]), ['p', 'q', 'r'])"
+        }
+      ],
+      "dicas": [
+        "Três etapas: parear com `zip`, ordenar com `sorted` (`reverse=True`) e extrair os nomes. A estabilidade do `sorted` cuida dos empates sozinha.",
+        "O `key` é uma pequena função que recebe cada par e devolve a pontuação. Defina-a ao lado: `def escolher(par): return par[1]`, e passe `key=escolher`.",
+        "`pares = list(zip(nomes, pontuacoes))`, depois `sorted(pares, key=escolher, reverse=True)`, e um for que dá append só no nome de cada par."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t1-01",
+      "nivel": "funcoes",
+      "tier": 1,
+      "conceitos": [
+        "funcoes"
+      ],
+      "titulo": "Calculadora de tokens",
+      "explicacao_md": "Funções são o coração de qualquer SDK de IA: `client.chat.completions.create(...)` é, no fundo, uma função com muitos parâmetros. No Ato 4 você vai chamar exatamente esse `create` — hoje aprende o que existe por trás dele.\n\nAnatomia completa:\n\n```python\ndef estimar(texto, fator=4):    # define; fator tem valor PADRÃO\n    return len(texto) // fator  # devolve o resultado\n\nestimar(\"dojo\")            # chamada posicional -> 1\nestimar(\"dojo\", fator=2)   # argumento NOMEADO  -> 2\n```\n\n- `def` define; `return` devolve (sem return, a função devolve `None`).\n- Parâmetro com `=` na assinatura tem valor padrão — quem chama pode omitir.\n- Na chamada, `nome=valor` libera a ordem e documenta a intenção.\n- Para devolver dois valores de uma vez: `return a, b` (vira uma tupla).",
+      "enunciado_md": "Antes de mandar um prompt para a API, todo time estima o custo — e a regra prática do mercado é **1 token ≈ 4 caracteres**.\n\nEscreva a função `estimar_tokens(texto)` que retorna a estimativa de tokens: o tamanho do texto dividido por 4, com **divisão inteira** (`//`).\n\nExemplo: `estimar_tokens(\"python para ia\")` → `3` (14 caracteres // 4).",
+      "starter_code": "def estimar_tokens(texto):\n    # A regra: 1 token ~ 4 caracteres. len() dá o tamanho; falta dividir por 4\n    # de um jeito que devolva inteiro (a divisão que descarta o resto).\n    ...\n",
+      "solucao_referencia": "def estimar_tokens(texto):\n    return len(texto) // 4\n",
+      "testes_visiveis": [
+        {
+          "nome": "prompt de 14 caracteres",
+          "codigo": "_verificar(estimar_tokens('python para ia'), 3)"
+        },
+        {
+          "nome": "texto curto arredonda para baixo",
+          "codigo": "_verificar(estimar_tokens('rag'), 0)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "texto longo",
+          "codigo": "_verificar(estimar_tokens('x' * 100), 25)"
+        },
+        {
+          "nome": "outra palavra",
+          "codigo": "_verificar(estimar_tokens('embedding'), 2)"
+        },
+        {
+          "nome": "resultado é int",
+          "codigo": "assert isinstance(estimar_tokens('abcd'), int), 'A estimativa deve ser um int — use a divisão inteira //'"
+        },
+        {
+          "nome": "texto vazio",
+          "codigo": "_verificar(estimar_tokens(''), 0)"
+        }
+      ],
+      "dicas": [
+        "Uma função nasce com `def nome(parametros):`, corpo indentado e `return` para devolver o valor — sem return, quem chamou recebe None.",
+        "`len(texto)` dá o tamanho; a divisão que descarta o resto é `//`. Junte os dois num único return.",
+        "`return len(texto) // 4`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t1-02",
+      "nivel": "funcoes",
+      "tier": 1,
+      "conceitos": [
+        "parametros-default",
+        "funcoes"
+      ],
+      "titulo": "Temperatura de fábrica",
+      "explicacao_md": null,
+      "enunciado_md": "SDKs de IA têm valores de fábrica: se você não informa `temperature`, a API assume um padrão. Em Python, isso é um **parâmetro default**.\n\nEscreva `config_geracao(modelo, temperatura=0.7)` — o default `0.7` vai na assinatura — retornando **exatamente** o formato:\n\n```\nmock-4 (temperature=0.7)\n```\n\nExemplos:\n\n- `config_geracao(\"mock-4\")` → `\"mock-4 (temperature=0.7)\"`\n- `config_geracao(\"mock-4\", 0.0)` → `\"mock-4 (temperature=0.0)\"`",
+      "starter_code": "def config_geracao(modelo, temperatura):\n    # O default 0.7 mora na ASSINATURA acima (dá um = ao parâmetro), não no corpo.\n    # O resto é uma f-string no formato exato do enunciado.\n    ...\n",
+      "solucao_referencia": "def config_geracao(modelo, temperatura=0.7):\n    return f\"{modelo} (temperature={temperatura})\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "sem informar a temperatura",
+          "codigo": "_verificar(config_geracao('mock-4'), 'mock-4 (temperature=0.7)')"
+        },
+        {
+          "nome": "sobrescrevendo o padrão",
+          "codigo": "_verificar(config_geracao('mock-4', 0.0), 'mock-4 (temperature=0.0)')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro modelo, mesmo padrão",
+          "codigo": "_verificar(config_geracao('mini'), 'mini (temperature=0.7)')"
+        },
+        {
+          "nome": "temperatura alta",
+          "codigo": "_verificar(config_geracao('m', 1.5), 'm (temperature=1.5)')"
+        },
+        {
+          "nome": "temperatura passada por nome",
+          "codigo": "_verificar(config_geracao('x', temperatura=0.2), 'x (temperature=0.2)')"
+        }
+      ],
+      "dicas": [
+        "O valor padrão mora na PRÓPRIA assinatura da função: quem chamar sem o segundo argumento recebe o padrão automaticamente.",
+        "Assinatura: `def config_geracao(modelo, temperatura=0.7):` — o corpo é uma f-string com os dois valores e os parênteses do formato.",
+        "`def config_geracao(modelo, temperatura=0.7):` e `return f\"{modelo} (temperature={temperatura})\"`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t1-03",
+      "nivel": "funcoes",
+      "tier": 1,
+      "conceitos": [
+        "funcoes",
+        "f-strings"
+      ],
+      "titulo": "A ordem não importa",
+      "explicacao_md": null,
+      "enunciado_md": "Chamadas de SDK de IA quase sempre usam argumentos **nomeados** — `chat(model=\"x\", max_tokens=100)` — porque o nome casa com o parâmetro e a ordem deixa de importar.\n\nEscreva `resumo_uso(modelo, entrada, saida)` que retorna o formato exato:\n\n```\nmock-4: 120+80=200 tokens\n```\n\n(200 é a soma). Os testes chamam sua função com os argumentos em VÁRIAS ordens — boa parte por nome — então, se os nomes dos parâmetros estiverem certos, tudo funciona.\n\nExemplo: `resumo_uso(saida=80, modelo=\"mock-4\", entrada=120)` → `\"mock-4: 120+80=200 tokens\"`",
+      "starter_code": "def resumo_uso(modelo, entrada, saida):\n    # Os NOMES dos parâmetros são o contrato: os testes chamam por nome, em várias\n    # ordens. Dentro de uma f-string cabe uma expressão — dá para somar ali mesmo.\n    ...\n",
+      "solucao_referencia": "def resumo_uso(modelo, entrada, saida):\n    return f\"{modelo}: {entrada}+{saida}={entrada + saida} tokens\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "chamada posicional",
+          "codigo": "_verificar(resumo_uso('mock-4', 120, 80), 'mock-4: 120+80=200 tokens')"
+        },
+        {
+          "nome": "nomeados fora de ordem",
+          "codigo": "_verificar(resumo_uso(saida=5, entrada=10, modelo='mini'), 'mini: 10+5=15 tokens')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outra ordem de nomes",
+          "codigo": "_verificar(resumo_uso(modelo='m', saida=1, entrada=2), 'm: 2+1=3 tokens')"
+        },
+        {
+          "nome": "tudo zero",
+          "codigo": "_verificar(resumo_uso('t', 0, 0), 't: 0+0=0 tokens')"
+        },
+        {
+          "nome": "mistura posicional e nomeado",
+          "codigo": "_verificar(resumo_uso('mock-4', saida=30, entrada=70), 'mock-4: 70+30=100 tokens')"
+        }
+      ],
+      "dicas": [
+        "Argumentos nomeados casam pelo NOME do parâmetro, não pela posição — sua única obrigação é declarar os três nomes exatos do enunciado.",
+        "Dentro das chaves de uma f-string cabe uma expressão inteira: `{entrada + saida}` calcula a soma na hora.",
+        "`return f\"{modelo}: {entrada}+{saida}={entrada + saida} tokens\"`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t1-04",
+      "nivel": "funcoes",
+      "tier": 1,
+      "conceitos": [
+        "funcoes",
+        "tuplas"
+      ],
+      "titulo": "Melhor e pior caso",
+      "explicacao_md": null,
+      "enunciado_md": "Um dashboard de latência mostra sempre o melhor e o pior caso das chamadas ao LLM.\n\nEscreva `extremos(latencias)` que recebe uma lista **não-vazia** de números e retorna DOIS valores: o menor e o maior, nessa ordem — separados por vírgula no `return`, o que os empacota numa tupla.\n\nQuem chama pode desempacotar direto: `menor, maior = extremos([0.4, 1.2, 0.8])`.\n\nExemplo: `extremos([0.4, 1.2, 0.8])` → `(0.4, 1.2)`",
+      "starter_code": "def extremos(latencias):\n    # Python já traz duas funções embutidas para o menor e o maior de uma lista.\n    # Para devolver os dois de uma vez, separe-os por vírgula no return.\n    ...\n",
+      "solucao_referencia": "def extremos(latencias):\n    return min(latencias), max(latencias)\n",
+      "testes_visiveis": [
+        {
+          "nome": "três latências",
+          "codigo": "_verificar(extremos([0.4, 1.2, 0.8]), (0.4, 1.2))"
+        },
+        {
+          "nome": "desempacotando o resultado",
+          "codigo": "menor, maior = extremos([3, 1, 2])\n_verificar(menor, 1)\n_verificar(maior, 3)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "um elemento só",
+          "codigo": "_verificar(extremos([5]), (5, 5))"
+        },
+        {
+          "nome": "retorna tupla de verdade",
+          "codigo": "assert isinstance(extremos([1.0, 2.0]), tuple), 'Retorne uma tupla — dois valores separados por vírgula no return'"
+        },
+        {
+          "nome": "valores repetidos",
+          "codigo": "_verificar(extremos([2, 2, 2]), (2, 2))"
+        }
+      ],
+      "dicas": [
+        "Para devolver dois valores, separe-os por vírgula no return — Python empacota numa tupla, e quem chama desempacota com `a, b = ...`.",
+        "As funções embutidas `min(lista)` e `max(lista)` fazem o trabalho pesado; você só ordena quem vem primeiro.",
+        "`return min(latencias), max(latencias)`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t1-05",
+      "nivel": "funcoes",
+      "tier": 1,
+      "conceitos": [
+        "parametros-default",
+        "funcoes"
+      ],
+      "titulo": "Preset de geração",
+      "explicacao_md": null,
+      "enunciado_md": "Um preset de geração tem vários botões, cada um com valor de fábrica. Com argumentos nomeados dá para trocar SÓ um deles, pulando os do meio.\n\nEscreva `perfil(modelo, temperatura=0.7, max_tokens=256)` que retorna o formato exato:\n\n```\nmock-4 t=0.7 max=256\n```\n\nExemplos:\n\n- `perfil(\"mock-4\")` → `\"mock-4 t=0.7 max=256\"`\n- `perfil(\"mock-4\", max_tokens=1024)` → `\"mock-4 t=0.7 max=1024\"` (temperatura intacta)",
+      "starter_code": "def perfil(modelo, temperatura=0.7, max_tokens=256):\n    # Os dois defaults já estão na assinatura. O corpo é uma f-string só, com os\n    # três valores na ordem do formato.\n    ...\n",
+      "solucao_referencia": "def perfil(modelo, temperatura=0.7, max_tokens=256):\n    return f\"{modelo} t={temperatura} max={max_tokens}\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "só o modelo",
+          "codigo": "_verificar(perfil('mock-4'), 'mock-4 t=0.7 max=256')"
+        },
+        {
+          "nome": "pulando a temperatura",
+          "codigo": "_verificar(perfil('mock-4', max_tokens=1024), 'mock-4 t=0.7 max=1024')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "só a temperatura",
+          "codigo": "_verificar(perfil('mini', temperatura=0.2), 'mini t=0.2 max=256')"
+        },
+        {
+          "nome": "os dois por nome, invertidos",
+          "codigo": "_verificar(perfil('m', max_tokens=8, temperatura=1.0), 'm t=1.0 max=8')"
+        },
+        {
+          "nome": "segunda posição é a temperatura",
+          "codigo": "_verificar(perfil('z', 0.5), 'z t=0.5 max=256')"
+        }
+      ],
+      "dicas": [
+        "Com vários defaults, o argumento nomeado deixa você pular os do meio: dá para trocar só `max_tokens` sem tocar em `temperatura`.",
+        "O corpo é uma f-string só, com os três parâmetros na ordem do formato: modelo, temperatura, max_tokens.",
+        "`return f\"{modelo} t={temperatura} max={max_tokens}\"`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t2-01",
+      "nivel": "funcoes",
+      "tier": 2,
+      "conceitos": [
+        "args-kwargs",
+        "parametros-default",
+        "dicts"
+      ],
+      "titulo": "O payload do SDK",
+      "explicacao_md": "Abra qualquer SDK de IA e verá assinaturas assim: `create(model=..., temperature=..., **kwargs)`. Duas ideias destravam essa leitura:\n\n**1. `**kwargs` coleta argumentos nomeados extras num dict** — e, na direção oposta, `func(**meu_dict)` espalha um dict em argumentos nomeados:\n\n```python\ndef chamar(prompt, **extras):\n    return extras            # dict com o que sobrou\n\nchamar(\"oi\", top_p=0.9)      # {'top_p': 0.9}\n```\n\n**2. Funções são valores.** Dá para guardar numa variável, passar como argumento — `sorted(modelos, key=minha_func)` — e criar uma anônima de uma expressão só: `lambda m: m[\"custo\"]`.\n\nQuem domina essas duas ideias lê a documentação de qualquer SDK sem susto.",
+      "enunciado_md": "Todo SDK de IA aceita parâmetros além dos básicos — e os repassa via `**kwargs`. Hora de fazer o mesmo.\n\nEscreva `montar_requisicao(prompt, modelo=\"mock-4\", temperatura=0.7, **extras)` que retorna um dict com:\n\n- `\"model\"`: o modelo\n- `\"temperature\"`: a temperatura\n- `\"messages\"`: lista com UM dict `{\"role\": \"user\", \"content\": prompt}`\n- cada argumento extra vira uma chave a mais, com o mesmo nome e valor\n\nExemplo: `montar_requisicao(\"Oi\", max_tokens=100)` →\n\n```python\n{\"model\": \"mock-4\", \"temperature\": 0.7,\n \"messages\": [{\"role\": \"user\", \"content\": \"Oi\"}],\n \"max_tokens\": 100}\n```\n\nSem extras, o dict tem só as três chaves base.",
+      "starter_code": "def montar_requisicao(prompt, modelo=\"mock-4\", temperatura=0.7, **extras):\n    ...\n",
+      "solucao_referencia": "def montar_requisicao(prompt, modelo=\"mock-4\", temperatura=0.7, **extras):\n    req = {\n        \"model\": modelo,\n        \"temperature\": temperatura,\n        \"messages\": [{\"role\": \"user\", \"content\": prompt}],\n    }\n    req.update(extras)\n    return req\n",
+      "testes_visiveis": [
+        {
+          "nome": "só o prompt",
+          "codigo": "_verificar(montar_requisicao('Oi'), {'model': 'mock-4', 'temperature': 0.7, 'messages': [{'role': 'user', 'content': 'Oi'}]})"
+        },
+        {
+          "nome": "extra vira chave",
+          "codigo": "_verificar(montar_requisicao('Oi', max_tokens=100)['max_tokens'], 100)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "tudo junto",
+          "codigo": "_verificar(montar_requisicao('Qual o custo?', modelo='mini', temperatura=0.2, top_p=0.9), {'model': 'mini', 'temperature': 0.2, 'messages': [{'role': 'user', 'content': 'Qual o custo?'}], 'top_p': 0.9})"
+        },
+        {
+          "nome": "sem extras, só as 3 chaves base",
+          "codigo": "_verificar(sorted(montar_requisicao('a').keys()), ['messages', 'model', 'temperature'])"
+        },
+        {
+          "nome": "dois extras de uma vez",
+          "codigo": "req = montar_requisicao('b', seed=42, stop='fim')\n_verificar(req['seed'], 42)\n_verificar(req['stop'], 'fim')"
+        },
+        {
+          "nome": "a mensagem carrega o prompt",
+          "codigo": "_verificar(montar_requisicao('novo prompt')['messages'], [{'role': 'user', 'content': 'novo prompt'}])"
+        }
+      ],
+      "dicas": [
+        "`**extras` na assinatura coleta num dict todo argumento nomeado que você NÃO declarou — monte o dicionário base e depois despeje os extras nele.",
+        "Monte o dict com `model`, `temperature` e `messages` (lista com um dict role/content) e chame `req.update(extras)` antes do return.",
+        "`req = {\"model\": modelo, \"temperature\": temperatura, \"messages\": [{\"role\": \"user\", \"content\": prompt}]}`, depois `req.update(extras)` e `return req`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t2-02",
+      "nivel": "funcoes",
+      "tier": 2,
+      "conceitos": [
+        "lambda",
+        "dicts",
+        "listas"
+      ],
+      "titulo": "Ranking de custo",
+      "explicacao_md": null,
+      "enunciado_md": "Seu gateway roteia cada requisição para o modelo mais barato que dá conta da tarefa. Primeiro passo: ranquear por custo.\n\nEscreva `ordenar_por_custo(modelos)`: recebe uma lista de dicts com as chaves `\"nome\"` e `\"custo_por_1k\"` e retorna **só os nomes**, do mais barato ao mais caro. Modelos com custo igual mantêm a ordem original. Lista vazia → lista vazia.\n\nExemplo:\n\n```python\nordenar_por_custo([\n  {\"nome\": \"mock-4\", \"custo_por_1k\": 30.0},\n  {\"nome\": \"mini\", \"custo_por_1k\": 0.15},\n])\n# [\"mini\", \"mock-4\"]\n```\n\nUse `sorted` com `key=lambda ...`.",
+      "starter_code": "def ordenar_por_custo(modelos):\n    ...\n",
+      "solucao_referencia": "def ordenar_por_custo(modelos):\n    ordenados = sorted(modelos, key=lambda m: m[\"custo_por_1k\"])\n    nomes = []\n    for m in ordenados:\n        nomes.append(m[\"nome\"])\n    return nomes\n",
+      "testes_visiveis": [
+        {
+          "nome": "três modelos",
+          "codigo": "modelos = [{'nome': 'mock-4', 'custo_por_1k': 30.0}, {'nome': 'mini', 'custo_por_1k': 0.15}, {'nome': 'mock-claude', 'custo_por_1k': 15.0}]\n_verificar(ordenar_por_custo(modelos), ['mini', 'mock-claude', 'mock-4'])"
+        },
+        {
+          "nome": "já em ordem",
+          "codigo": "_verificar(ordenar_por_custo([{'nome': 'a', 'custo_por_1k': 1.0}, {'nome': 'b', 'custo_por_1k': 2.0}]), ['a', 'b'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "ordem invertida",
+          "codigo": "dados = [{'nome': 'caro', 'custo_por_1k': 99.0}, {'nome': 'medio', 'custo_por_1k': 5.0}, {'nome': 'barato', 'custo_por_1k': 0.5}]\n_verificar(ordenar_por_custo(dados), ['barato', 'medio', 'caro'])"
+        },
+        {
+          "nome": "lista vazia",
+          "codigo": "_verificar(ordenar_por_custo([]), [])"
+        },
+        {
+          "nome": "empate mantém a ordem original",
+          "codigo": "dados = [{'nome': 'a', 'custo_por_1k': 2.0}, {'nome': 'b', 'custo_por_1k': 2.0}, {'nome': 'c', 'custo_por_1k': 1.0}]\n_verificar(ordenar_por_custo(dados), ['c', 'a', 'b'])"
+        },
+        {
+          "nome": "um modelo só",
+          "codigo": "_verificar(ordenar_por_custo([{'nome': 'solo', 'custo_por_1k': 3.0}]), ['solo'])"
+        },
+        {
+          "nome": "ordem numérica, não alfabética",
+          "codigo": "_verificar(ordenar_por_custo([{'nome': 'dez', 'custo_por_1k': 10.0}, {'nome': 'nove', 'custo_por_1k': 9.0}]), ['nove', 'dez'])"
+        }
+      ],
+      "dicas": [
+        "O `sorted` aceita um parâmetro `key`: uma função que recebe UM item e devolve o valor usado na comparação — é aí que o lambda entra. O sort de Python é estável: empates preservam a ordem.",
+        "`sorted(modelos, key=lambda m: m[\"custo_por_1k\"])` ordena os dicts; depois percorra o resultado extraindo só o campo `nome`.",
+        "`ordenados = sorted(modelos, key=lambda m: m[\"custo_por_1k\"])`, depois um for que faz `nomes.append(m[\"nome\"])` e `return nomes`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t2-03",
+      "nivel": "funcoes",
+      "tier": 2,
+      "conceitos": [
+        "funcoes",
+        "lambda",
+        "loops"
+      ],
+      "titulo": "Transformação em lote",
+      "explicacao_md": null,
+      "enunciado_md": "Pipelines de pré-processamento aplicam a MESMA transformação em milhares de textos antes de gerar embeddings — e a transformação muda conforme o projeto. A solução: recebê-la como argumento.\n\nEscreva `aplicar_em_lote(func, textos)` que aplica a função `func` a cada item de `textos` e retorna a lista dos resultados, na mesma ordem. Lista vazia → lista vazia.\n\nExemplo: `aplicar_em_lote(len, [\"rag\", \"prompt\"])` → `[3, 6]`\n\nOs testes passam funções prontas, lambdas e até métodos como `str.strip` — para o seu código, tanto faz: é tudo chamável.",
+      "starter_code": "def aplicar_em_lote(func, textos):\n    ...\n",
+      "solucao_referencia": "def aplicar_em_lote(func, textos):\n    resultados = []\n    for texto in textos:\n        resultados.append(func(texto))\n    return resultados\n",
+      "testes_visiveis": [
+        {
+          "nome": "com len",
+          "codigo": "_verificar(aplicar_em_lote(len, ['rag', 'prompt']), [3, 6])"
+        },
+        {
+          "nome": "com lambda",
+          "codigo": "_verificar(aplicar_em_lote(lambda t: t.upper(), ['rag', 'llm']), ['RAG', 'LLM'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "com função definida",
+          "codigo": "def marcar(t):\n    return '<' + t + '>'\n_verificar(aplicar_em_lote(marcar, ['a', 'b']), ['<a>', '<b>'])"
+        },
+        {
+          "nome": "lista vazia",
+          "codigo": "_verificar(aplicar_em_lote(len, []), [])"
+        },
+        {
+          "nome": "com str.strip",
+          "codigo": "_verificar(aplicar_em_lote(str.strip, ['  a ', 'b ']), ['a', 'b'])"
+        },
+        {
+          "nome": "ordem preservada",
+          "codigo": "_verificar(aplicar_em_lote(lambda x: x * 2, [3, 1, 2]), [6, 2, 4])"
+        }
+      ],
+      "dicas": [
+        "Uma função é um valor como outro qualquer: `func` chega como argumento e você a executa com `func(item)` — parênteses só na hora de usar.",
+        "Percorra `textos` com um for, aplique `func(texto)` em cada item e acumule os resultados numa lista nova.",
+        "`resultados = []`, depois `for texto in textos: resultados.append(func(texto))` e `return resultados`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t2-04",
+      "nivel": "funcoes",
+      "tier": 2,
+      "conceitos": [
+        "args-kwargs",
+        "f-strings"
+      ],
+      "titulo": "Auditoria de parâmetros",
+      "explicacao_md": null,
+      "enunciado_md": "Para auditar custos, o gateway registra EXATAMENTE com quais parâmetros cada chamada de LLM foi feita — venham eles quais vierem.\n\nEscreva `log_parametros(**params)` que aceita **qualquer** conjunto de argumentos nomeados e retorna uma string com os pares `chave=valor` separados por espaço, em **ordem alfabética de chave**. Sem argumentos → string vazia.\n\nExemplo: `log_parametros(temperature=0.7, model=\"mock-4\")` → `\"model=mock-4 temperature=0.7\"`",
+      "starter_code": "def log_parametros(**params):\n    ...\n",
+      "solucao_referencia": "def log_parametros(**params):\n    partes = []\n    for chave in sorted(params):\n        partes.append(f\"{chave}={params[chave]}\")\n    return \" \".join(partes)\n",
+      "testes_visiveis": [
+        {
+          "nome": "dois parâmetros",
+          "codigo": "_verificar(log_parametros(temperature=0.7, model='mock-4'), 'model=mock-4 temperature=0.7')"
+        },
+        {
+          "nome": "um parâmetro",
+          "codigo": "_verificar(log_parametros(seed=42), 'seed=42')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "sem parâmetros",
+          "codigo": "_verificar(log_parametros(), '')"
+        },
+        {
+          "nome": "três chaves em ordem alfabética",
+          "codigo": "_verificar(log_parametros(top_p=0.9, max_tokens=100, model='m'), 'max_tokens=100 model=m top_p=0.9')"
+        },
+        {
+          "nome": "ordem da chamada não manda",
+          "codigo": "_verificar(log_parametros(stream=True, model='x'), 'model=x stream=True')"
+        },
+        {
+          "nome": "ordena pela CHAVE, não pelo par inteiro",
+          "codigo": "_verificar(log_parametros(a='x', a1='y'), 'a=x a1=y')"
+        }
+      ],
+      "dicas": [
+        "`**params` coleta todos os argumentos nomeados num dict — as chaves são os nomes usados na chamada. E `sorted(dict)` devolve as chaves em ordem alfabética.",
+        "Percorra `sorted(params)`, monte cada pedaço com `f\"{chave}={params[chave]}\"` e junte tudo com `\" \".join(...)`.",
+        "`partes.append(f\"{chave}={params[chave]}\")` dentro do for sobre `sorted(params)`; no fim, `return \" \".join(partes)` — com dict vazio, o join já devolve `\"\"` sozinho."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t3-01",
+      "nivel": "funcoes",
+      "tier": 3,
+      "conceitos": [
+        "parametros-default",
+        "escopo",
+        "listas"
+      ],
+      "titulo": "O histórico fantasma",
+      "explicacao_md": "A pegadinha mais famosa de Python: o **default mutável**.\n\n```python\ndef add(x, itens=[]):       # [] é criado UMA vez, quando o def roda\n    itens.append(x)\n    return itens\n\nadd(1)                      # [1]\nadd(2)                      # [1, 2]  <- a MESMA lista!\n\ndef add_ok(x, itens=None):  # conserto: sentinela None\n    if itens is None:\n        itens = []          # lista nova A CADA chamada\n    itens.append(x)\n    return itens\n```\n\nO default é avaliado uma única vez, na definição — todas as chamadas sem o argumento compartilham o mesmo objeto. Num chatbot, isso vira um usuário lendo o histórico do outro.\n\nOutra regra de escopo deste tier: a função interna enxerga variáveis da externa (closure), mas para REATRIBUÍ-las precisa declarar `nonlocal`.",
+      "enunciado_md": "O código do starter registra eventos de um chatbot — e carrega o bug mais clássico de Python: em produção, um usuário novo via o histórico do anterior.\n\nConserte a função para a assinatura `registrar(evento, historico=None)`:\n\n- `historico` omitido (ou `None`) → crie uma lista **nova**, adicione o evento e retorne-a\n- lista passada explicitamente → adicione o evento **nessa mesma lista** (sem copiar) e retorne-a\n\nExemplo do bug: hoje, `registrar(\"a\")` seguido de `registrar(\"b\")` devolve `[\"a\", \"b\"]` — o correto é cada chamada sem histórico devolver só o próprio evento: `[\"b\"]`.",
+      "starter_code": "def registrar(evento, historico=[]):\n    \"\"\"Registra um evento e retorna o histórico.\n\n    BUG CLÁSSICO: o default mutável [] é criado UMA vez só, no def —\n    todas as chamadas sem `historico` compartilham a MESMA lista.\n\n    Contrato do conserto:\n    - default vira None (sentinela)\n    - historico None -> crie uma lista NOVA a cada chamada\n    - lista passada explicitamente -> adicione nela mesma (sem copiar)\n    \"\"\"\n    historico.append(evento)\n    return historico\n",
+      "solucao_referencia": "def registrar(evento, historico=None):\n    if historico is None:\n        historico = []\n    historico.append(evento)\n    return historico\n",
+      "testes_visiveis": [
+        {
+          "nome": "primeira chamada",
+          "codigo": "_verificar(registrar('login'), ['login'])"
+        },
+        {
+          "nome": "chamadas sem histórico são independentes",
+          "codigo": "registrar('primeiro')\n_verificar(registrar('segundo'), ['segundo'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "três chamadas seguidas",
+          "codigo": "registrar('a')\nregistrar('b')\n_verificar(registrar('c'), ['c'])"
+        },
+        {
+          "nome": "lista explícita é reaproveitada",
+          "codigo": "h = ['inicio']\nr = registrar('fim', h)\n_verificar(r, ['inicio', 'fim'])\nassert r is h, 'Quando uma lista é passada, adicione NELA mesma (sem copiar)'"
+        },
+        {
+          "nome": "outro evento",
+          "codigo": "_verificar(registrar('timeout-742'), ['timeout-742'])"
+        },
+        {
+          "nome": "lista vazia explícita é preenchida no lugar",
+          "codigo": "vazia = []\nr = registrar('ev', vazia)\n_verificar(r, ['ev'])\nassert r is vazia, 'Uma lista vazia passada explicitamente deve ser preenchida NELA mesma (use is None, não truthiness)'"
+        }
+      ],
+      "dicas": [
+        "O `[]` da assinatura é criado UMA única vez, quando o def roda — não a cada chamada. Todas as chamadas sem `historico` enxergam (e sujam) a mesma lista.",
+        "Troque o default por `None` e crie a lista DENTRO da função: `if historico is None:` — comparação com None usa `is`.",
+        "`def registrar(evento, historico=None):` → `if historico is None: historico = []` → `historico.append(evento)` → `return historico`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t3-02",
+      "nivel": "funcoes",
+      "tier": 3,
+      "conceitos": [
+        "args-kwargs",
+        "funcoes"
+      ],
+      "titulo": "Medidor de consumo",
+      "explicacao_md": null,
+      "enunciado_md": "Cada modelo do gateway acumula consumo de tokens vindo de várias chamadas — e dado sujo NÃO pode passar batido.\n\nEscreva `registrar_uso(modelo, *tokens)` com a assinatura EXATA (um posicional + `*tokens`):\n\n- nenhum token informado → `ValueError`\n- qualquer token que não seja `int` → `TypeError`\n- caso válido → retorna `{\"modelo\": modelo, \"chamadas\": N, \"total\": soma}`\n\nPara **interromper** a função com um erro, use `raise` seguido do tipo e uma mensagem — você verá isso a fundo mais adiante, aqui basta a mecânica:\n\n```python\nraise ValueError(\"nenhum token informado\")\nraise TypeError(f\"token inválido: {t!r}\")\n```\n\nE `isinstance(x, int)` diz se um valor é inteiro.\n\nExemplo: `registrar_uso(\"mock-4\", 100, 50)` → `{\"modelo\": \"mock-4\", \"chamadas\": 2, \"total\": 150}`\n\nPegadinha coberta pelos testes: `registrar_uso(\"a\", 10, modelo=\"b\")` tem que dar `TypeError` — `modelo` recebido duas vezes. Com a assinatura certa, o próprio Python cuida disso.",
+      "starter_code": "def registrar_uso(modelo, *tokens):\n    \"\"\"Consolida o consumo de tokens de um modelo.\n\n    Contrato:\n    - assinatura EXATA: modelo (posicional) + *tokens\n    - nenhum token -> ValueError\n    - token que não seja int -> TypeError\n    - válido -> {\"modelo\": modelo, \"chamadas\": N, \"total\": soma}\n    \"\"\"\n    # Valide ANTES de somar: primeiro o caso \"nenhum token\", depois cada token.\n    # Só confie no que você mesmo checou — não no erro que o sum daria por acaso.\n    ...\n",
+      "solucao_referencia": "def registrar_uso(modelo, *tokens):\n    if not tokens:\n        raise ValueError(\"nenhum token informado\")\n    for t in tokens:\n        if not isinstance(t, int):\n            raise TypeError(f\"token inválido: {t!r}\")\n    return {\"modelo\": modelo, \"chamadas\": len(tokens), \"total\": sum(tokens)}\n",
+      "testes_visiveis": [
+        {
+          "nome": "duas chamadas somadas",
+          "codigo": "_verificar(registrar_uso('mock-4', 100, 50), {'modelo': 'mock-4', 'chamadas': 2, 'total': 150})"
+        },
+        {
+          "nome": "sem tokens dá ValueError",
+          "codigo": "try:\n    registrar_uso('mock-4')\n    assert False, 'Sem nenhum token, a função deveria levantar ValueError'\nexcept ValueError:\n    pass"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "um token só",
+          "codigo": "_verificar(registrar_uso('mini', 7), {'modelo': 'mini', 'chamadas': 1, 'total': 7})"
+        },
+        {
+          "nome": "token texto dá TypeError",
+          "codigo": "try:\n    registrar_uso('m', 10, 'vinte')\n    assert False, 'Token que não é int deveria levantar TypeError'\nexcept TypeError:\n    pass"
+        },
+        {
+          "nome": "modelo posicional E nomeado dá TypeError",
+          "codigo": "try:\n    registrar_uso('mock-4', 10, modelo='mini')\n    assert False, 'Passar modelo duas vezes (posicional e nomeado) deveria dar TypeError'\nexcept TypeError:\n    pass"
+        },
+        {
+          "nome": "quatro tokens",
+          "codigo": "_verificar(registrar_uso('turbo', 1, 2, 3, 4), {'modelo': 'turbo', 'chamadas': 4, 'total': 10})"
+        },
+        {
+          "nome": "token float dá TypeError",
+          "codigo": "try:\n    registrar_uso('m', 10, 1.5)\n    assert False, 'Token float (não int) deveria levantar TypeError, mesmo que o sum funcionasse'\nexcept TypeError:\n    pass"
+        }
+      ],
+      "dicas": [
+        "`*tokens` coleta os argumentos posicionais extras numa TUPLA — tupla vazia é 'falsa' num if, e `isinstance(x, int)` diz se um valor é inteiro.",
+        "Ordem das validações: primeiro `if not tokens: raise ValueError(...)`; depois um for que levanta `TypeError` para qualquer item que falhe em `isinstance(t, int)`.",
+        "Após as validações: `return {\"modelo\": modelo, \"chamadas\": len(tokens), \"total\": sum(tokens)}` — o TypeError do argumento duplicado o próprio Python levanta, se a assinatura estiver exata."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato1-funcoes-t3-03",
+      "nivel": "funcoes",
+      "tier": 3,
+      "conceitos": [
+        "escopo",
+        "funcoes"
+      ],
+      "titulo": "O contador particular",
+      "explicacao_md": null,
+      "enunciado_md": "Para não estourar o orçamento, cada agente da sua aplicação tem um limite de chamadas de API — e cada um precisa do PRÓPRIO contador, sem variável global.\n\nEscreva `criar_contador()` que retorna uma **função**:\n\n- a função retornada não recebe argumentos\n- cada chamada soma 1 e retorna o total acumulado: `1, 2, 3, ...`\n- contadores criados separadamente são independentes\n\nExemplo:\n\n```python\nc = criar_contador()\nc()          # 1\nc()          # 2\noutro = criar_contador()\noutro()      # 1\n```",
+      "starter_code": "def criar_contador():\n    \"\"\"Retorna uma função-contador.\n\n    Contrato:\n    - a função retornada não recebe argumentos\n    - cada chamada soma 1 e retorna o total acumulado (1, 2, 3, ...)\n    - contadores criados separadamente são independentes\n    \"\"\"\n    ...\n",
+      "solucao_referencia": "def criar_contador():\n    total = 0\n\n    def contar():\n        nonlocal total\n        total += 1\n        return total\n\n    return contar\n",
+      "testes_visiveis": [
+        {
+          "nome": "conta 1, 2",
+          "codigo": "c = criar_contador()\n_verificar(c(), 1)\n_verificar(c(), 2)"
+        },
+        {
+          "nome": "retorna uma função",
+          "codigo": "assert callable(criar_contador()), 'criar_contador deve RETORNAR uma função (sem chamá-la)'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "contadores independentes",
+          "codigo": "a = criar_contador()\nb = criar_contador()\na()\na()\na()\n_verificar(b(), 1)\n_verificar(a(), 4)"
+        },
+        {
+          "nome": "conta até 5",
+          "codigo": "c = criar_contador()\nfor _ in range(4):\n    c()\n_verificar(c(), 5)"
+        },
+        {
+          "nome": "o contador devolve um inteiro",
+          "codigo": "c = criar_contador()\nassert isinstance(c(), int), 'O contador deve retornar um número inteiro'"
+        }
+      ],
+      "dicas": [
+        "A função interna 'lembra' das variáveis da externa mesmo depois que a externa retornou — isso é uma closure. Mas para REATRIBUIR (`total += 1`) uma variável da externa, declare-a `nonlocal`.",
+        "Estrutura: `total = 0` na externa; `def contar():` interna com `nonlocal total`; e retorne `contar` SEM parênteses — você devolve a função, não o resultado dela.",
+        "`total = 0` → dentro de `def contar():` faça `nonlocal total`, `total += 1`, `return total` → e a externa termina com `return contar`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    }
+  ]
+}

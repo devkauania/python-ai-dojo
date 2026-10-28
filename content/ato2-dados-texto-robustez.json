@@ -1,0 +1,3086 @@
+{
+  "ato": "ato2",
+  "titulo": "Dados, Texto e Robustez",
+  "exercicios": [
+    {
+      "id": "ato2-comprehensions-t1-01",
+      "nivel": "comprehensions",
+      "tier": 1,
+      "conceitos": [
+        "comprehensions",
+        "listas"
+      ],
+      "titulo": "Do loop à comprehension",
+      "explicacao_md": "Você escreveu o loop-que-monta-lista uma dúzia de vezes no Ato 1. Chega.\n\nUma **list comprehension** comprime esse loop numa única expressão:\n\n```python\ntamanhos = []\nfor p in prompts:\n    tamanhos.append(len(p))\n\n# vira uma linha:\ntamanhos = [len(p) for p in prompts]\n\n# com filtro (só entra quem passa no if):\nnao_vazios = [p for p in prompts if p]\n\n# dict comprehension (par chave: valor):\nmapa = {p: len(p) for p in prompts}\n\n# generator expression: sem colchetes — produz\n# um item por vez e alimenta sum/any/all:\ntotal = sum(len(p) for p in prompts)\n```\n\nEm pipelines de IA isso é o dia a dia: transformar, filtrar e agregar lotes de prompts, logs e documentos em expressões curtas e legíveis.",
+      "enunciado_md": "Seu pipeline recebe uma lista de prompts e precisa do tamanho de cada um (para estimar o custo antes de chamar o modelo).\n\nO starter mostra a versão com loop. Reescreva `tamanhos(prompts)` como uma **list comprehension de uma linha** que retorna a lista com o `len` de cada prompt, na mesma ordem.\n\nExemplo: `tamanhos([\"oi\", \"resuma\"])` → `[2, 6]`",
+      "starter_code": "def tamanhos(prompts):\n    # O loop abaixo funciona; a ideia é comprimi-lo numa comprehension de uma linha.\n    #   resultado = []\n    #   for p in prompts:\n    #       resultado.append(len(p))\n    #   return resultado\n    # A expressão da esquerda é o que ia dentro do append; o for continua igual.\n    ...\n",
+      "solucao_referencia": "def tamanhos(prompts):\n    return [len(p) for p in prompts]\n",
+      "testes_visiveis": [
+        {
+          "nome": "dois prompts",
+          "codigo": "_verificar(tamanhos(['oi', 'resuma']), [2, 6])"
+        },
+        {
+          "nome": "um prompt",
+          "codigo": "_verificar(tamanhos(['python']), [6])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "lista vazia",
+          "codigo": "_verificar(tamanhos([]), [])"
+        },
+        {
+          "nome": "três prompts",
+          "codigo": "_verificar(tamanhos(['rag', 'ia', 'contexto longo']), [3, 2, 14])"
+        },
+        {
+          "nome": "retorna lista de verdade",
+          "codigo": "assert isinstance(tamanhos(['x']), list), 'A função deve retornar uma lista, não ' + type(tamanhos(['x'])).__name__"
+        }
+      ],
+      "dicas": [
+        "Uma comprehension tem duas partes dentro dos colchetes: primeiro a expressão que gera cada item, depois o for que percorre a fonte.",
+        "A expressão da esquerda é exatamente o que o loop colocava dentro do append; a fonte do for continua sendo prompts.",
+        "`return [len(p) for p in prompts]`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-comprehensions-t1-02",
+      "nivel": "comprehensions",
+      "tier": 1,
+      "conceitos": [
+        "comprehensions",
+        "condicionais"
+      ],
+      "titulo": "Filtro no lote",
+      "explicacao_md": null,
+      "enunciado_md": "Prompts curtos demais (tipo `\"ok\"`) não valem uma chamada de API.\n\nO starter mostra o loop com `if`. Reescreva `filtrar_curtos(prompts, minimo)` como uma comprehension com **filtro**: retorna só os prompts com **pelo menos** `minimo` caracteres, na ordem original.\n\nExemplo: `filtrar_curtos([\"oi\", \"resuma o texto\", \"ok\"], 3)` → `[\"resuma o texto\"]`",
+      "starter_code": "def filtrar_curtos(prompts, minimo):\n    # Mesma ideia, agora com filtro: na comprehension o if vem DEPOIS do for.\n    #   aprovados = []\n    #   for p in prompts:\n    #       if len(p) >= minimo:\n    #           aprovados.append(p)\n    #   return aprovados\n    # \"Pelo menos\" inclui o valor exato — pense se é >= ou >.\n    ...\n",
+      "solucao_referencia": "def filtrar_curtos(prompts, minimo):\n    return [p for p in prompts if len(p) >= minimo]\n",
+      "testes_visiveis": [
+        {
+          "nome": "descarta os curtos",
+          "codigo": "_verificar(filtrar_curtos(['oi', 'resuma o texto', 'ok'], 3), ['resuma o texto'])"
+        },
+        {
+          "nome": "todos passam",
+          "codigo": "_verificar(filtrar_curtos(['abcd', 'efgh'], 2), ['abcd', 'efgh'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "tamanho exato conta",
+          "codigo": "_verificar(filtrar_curtos(['abc', 'ab'], 3), ['abc'])"
+        },
+        {
+          "nome": "lista vazia",
+          "codigo": "_verificar(filtrar_curtos([], 5), [])"
+        },
+        {
+          "nome": "nenhum passa",
+          "codigo": "_verificar(filtrar_curtos(['a', 'bb'], 10), [])"
+        },
+        {
+          "nome": "o mínimo é respeitado, não cravado",
+          "codigo": "_verificar(filtrar_curtos(['ab', 'xyz'], 2), ['ab', 'xyz'])"
+        }
+      ],
+      "dicas": [
+        "Na comprehension, o filtro é um if no FINAL, sem else: só entra na lista quem satisfaz a condição.",
+        "A condição é a mesma do loop: comparar len(p) com minimo. 'Pelo menos' inclui o valor exato — é >=, não >.",
+        "`return [p for p in prompts if len(p) >= minimo]`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-comprehensions-t1-03",
+      "nivel": "comprehensions",
+      "tier": 1,
+      "conceitos": [
+        "comprehensions",
+        "dicts"
+      ],
+      "titulo": "Mapa de tamanhos",
+      "explicacao_md": null,
+      "enunciado_md": "Para um relatório de custo, você quer um dicionário que liga cada prompt ao tamanho dele.\n\nO starter mostra o loop que preenche um dict. Reescreva `mapa_tamanhos(prompts)` como uma **dict comprehension** que retorna `{prompt: tamanho}` para cada prompt da lista.\n\nExemplo: `mapa_tamanhos([\"oi\", \"resuma\"])` → `{\"oi\": 2, \"resuma\": 6}`",
+      "starter_code": "def mapa_tamanhos(prompts):\n    # De list para DICT comprehension: chaves { } em volta e um par chave: valor.\n    #   resultado = {}\n    #   for p in prompts:\n    #       resultado[p] = len(p)\n    #   return resultado\n    # A chave é o próprio p; o valor é o que o loop atribuía.\n    ...\n",
+      "solucao_referencia": "def mapa_tamanhos(prompts):\n    return {p: len(p) for p in prompts}\n",
+      "testes_visiveis": [
+        {
+          "nome": "dois prompts",
+          "codigo": "_verificar(mapa_tamanhos(['oi', 'resuma']), {'oi': 2, 'resuma': 6})"
+        },
+        {
+          "nome": "um prompt",
+          "codigo": "_verificar(mapa_tamanhos(['rag']), {'rag': 3})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "lista vazia vira dict vazio",
+          "codigo": "_verificar(mapa_tamanhos([]), {})"
+        },
+        {
+          "nome": "outros prompts",
+          "codigo": "_verificar(mapa_tamanhos(['ia', 'python', 'x']), {'ia': 2, 'python': 6, 'x': 1})"
+        },
+        {
+          "nome": "retorna dict de verdade",
+          "codigo": "assert isinstance(mapa_tamanhos(['a']), dict), 'A função deve retornar um dicionário, não ' + type(mapa_tamanhos(['a'])).__name__"
+        }
+      ],
+      "dicas": [
+        "A diferença para a list comprehension são as chaves { } em volta e o par chave: valor antes do for.",
+        "A chave é o próprio p; o valor é o que o loop atribuía: len(p).",
+        "`return {p: len(p) for p in prompts}`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-comprehensions-t1-04",
+      "nivel": "comprehensions",
+      "tier": 1,
+      "conceitos": [
+        "agregadores",
+        "generators"
+      ],
+      "titulo": "Custo do lote",
+      "explicacao_md": null,
+      "enunciado_md": "Antes de enviar um lote ao modelo, você estima o custo somando o tamanho de todos os prompts.\n\nO starter mostra o loop acumulador. Reescreva `total_caracteres(prompts)` usando `sum` com uma **generator expression** — sem criar lista intermediária (sem colchetes!).\n\nExemplo: `total_caracteres([\"oi\", \"sim\"])` → `5`",
+      "starter_code": "def total_caracteres(prompts):\n    # Um loop que só acumula uma soma é um sum() disfarçado.\n    #   total = 0\n    #   for p in prompts:\n    #       total += len(p)\n    #   return total\n    # Passe uma generator expression para o sum — SEM colchetes, sem montar lista.\n    ...\n",
+      "solucao_referencia": "def total_caracteres(prompts):\n    return sum(len(p) for p in prompts)\n",
+      "testes_visiveis": [
+        {
+          "nome": "dois prompts",
+          "codigo": "_verificar(total_caracteres(['oi', 'sim']), 5)"
+        },
+        {
+          "nome": "um prompt",
+          "codigo": "_verificar(total_caracteres(['python']), 6)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "lista vazia soma zero",
+          "codigo": "_verificar(total_caracteres([]), 0)"
+        },
+        {
+          "nome": "quatro prompts",
+          "codigo": "_verificar(total_caracteres(['a', 'bb', 'ccc', 'dddd']), 10)"
+        },
+        {
+          "nome": "strings vazias não somam",
+          "codigo": "_verificar(total_caracteres(['', 'abc', '']), 3)"
+        }
+      ],
+      "dicas": [
+        "Um loop que só acumula uma soma é o sum disfarçado — o que era somado a cada volta vira a expressão dentro do sum.",
+        "Generator expression é a comprehension sem colchetes: ela produz um item por vez e o sum consome na hora, sem montar lista na memória.",
+        "`return sum(len(p) for p in prompts)`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-comprehensions-t1-05",
+      "nivel": "comprehensions",
+      "tier": 1,
+      "conceitos": [
+        "agregadores",
+        "generators"
+      ],
+      "titulo": "Sentinela de erros",
+      "explicacao_md": null,
+      "enunciado_md": "Depois de rodar um lote no gateway, você varre as linhas de log procurando falhas.\n\nComplete `tem_erro(linhas)`: retorna `True` se **alguma** linha contém o trecho `\"erro\"` (em qualquer posição e caixa: `ERRO`, `Erro`, `deu erro aqui`...), senão `False`. Use `any` com uma generator expression — o starter mostra a versão com loop e retorno antecipado.\n\nLista vazia → `False` (o `any` já resolve isso sozinho).\n\nExemplo: `tem_erro([\"ok\", \"ERRO 500\"])` → `True`",
+      "starter_code": "def tem_erro(linhas):\n    # \"Alguma linha satisfaz?\" tem uma função própria que já para no primeiro True.\n    #   for linha in linhas:\n    #       if \"erro\" in linha.lower():\n    #           return True\n    #   return False\n    # Passe a mesma condição como generator expression para essa função.\n    ...\n",
+      "solucao_referencia": "def tem_erro(linhas):\n    return any(\"erro\" in linha.lower() for linha in linhas)\n",
+      "testes_visiveis": [
+        {
+          "nome": "lote com erro",
+          "codigo": "_verificar(tem_erro(['ok', 'ERRO 500']), True)"
+        },
+        {
+          "nome": "lote limpo",
+          "codigo": "_verificar(tem_erro(['ok', 'ok']), False)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "caixa mista",
+          "codigo": "_verificar(tem_erro(['tudo certo', 'Erro de timeout']), True)"
+        },
+        {
+          "nome": "lista vazia",
+          "codigo": "_verificar(tem_erro([]), False)"
+        },
+        {
+          "nome": "retorna booleano de verdade",
+          "codigo": "assert tem_erro(['erro']) is True and tem_erro(['ok']) is False, 'Retorne True/False, não outra coisa'"
+        }
+      ],
+      "dicas": [
+        "any responde 'algum item satisfaz?' e já para no primeiro que satisfaz — igual ao return True antecipado do loop.",
+        "A condição de cada linha é a mesma do loop: \"erro\" dentro de linha.lower(); coloque-a antes do for, dentro do any.",
+        "`return any(\"erro\" in linha.lower() for linha in linhas)`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-comprehensions-t2-01",
+      "nivel": "comprehensions",
+      "tier": 2,
+      "conceitos": [
+        "comprehensions",
+        "normalizacao-texto"
+      ],
+      "titulo": "Faxina numa expressão",
+      "explicacao_md": "Transformação E filtro cabem na MESMA comprehension — e quando o lote não cabe na memória, entra o `yield`:\n\n```python\n# o if filtra o item BRUTO; a expressão da esquerda\n# só roda para quem passou no filtro:\nlimpos = [p.strip().lower() for p in brutos if p.strip()]\n\n# generator: produz um item e PAUSA no yield,\n# até alguém pedir o próximo\ndef pares(numeros):\n    for n in numeros:\n        if n % 2 == 0:\n            yield n\n\ng = pares([1, 2, 3, 4])\nnext(g)   # 2  — computou só até aqui\nlist(g)   # [4] — consome o resto\n```\n\nÉ assim que se processa um corpus de milhões de documentos sem estourar a RAM: um item atravessa o pipeline de cada vez.",
+      "enunciado_md": "Prompts colhidos de um formulário chegam com espaços sobrando, caixa aleatória e linhas em branco.\n\nEscreva `limpar_prompts(brutos)` que retorna, **numa única comprehension**, a lista onde:\n\n- cada prompt vem com `.strip()` aplicado e em minúsculas\n- prompts vazios ou só de espaços em branco (espaços, tabs ou quebras de linha) são descartados\n- a ordem dos que sobram é preservada\n\nExemplo: `limpar_prompts([\"  Oi \", \"\", \"RESUMA\"])` → `[\"oi\", \"resuma\"]`",
+      "starter_code": "def limpar_prompts(brutos):\n    # Transformação E filtro cabem na mesma comprehension.\n    # Cuidado com a ORDEM: o if filtra o item BRUTO (antes de transformar) —\n    # uma linha só de espaços precisa cair fora. O strip aparece nos dois lugares.\n    ...\n",
+      "solucao_referencia": "def limpar_prompts(brutos):\n    return [p.strip().lower() for p in brutos if p.strip()]\n",
+      "testes_visiveis": [
+        {
+          "nome": "limpa e descarta vazios",
+          "codigo": "_verificar(limpar_prompts(['  Oi ', '', 'RESUMA']), ['oi', 'resuma'])"
+        },
+        {
+          "nome": "já limpos passam direto",
+          "codigo": "_verificar(limpar_prompts(['a', 'b']), ['a', 'b'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "tabs e quebras são vazio",
+          "codigo": "_verificar(limpar_prompts(['\\t\\n', ' Explique RAG ']), ['explique rag'])"
+        },
+        {
+          "nome": "tudo vazio",
+          "codigo": "_verificar(limpar_prompts(['', '   ', '\\t']), [])"
+        },
+        {
+          "nome": "ordem preservada",
+          "codigo": "_verificar(limpar_prompts([' C ', ' A ', ' B ']), ['c', 'a', 'b'])"
+        },
+        {
+          "nome": "caixa mista com acento",
+          "codigo": "_verificar(limpar_prompts(['GeRe UM tíTULO']), ['gere um título'])"
+        }
+      ],
+      "dicas": [
+        "O if filtra o item BRUTO, antes da transformação — uma linha só de espaços precisa ser reprovada, e '   '.strip() vira '' , que é falso num if.",
+        "São dois usos do strip: um no filtro (if p.strip()) e outro na transformação — o item que entra na lista final é p.strip().lower().",
+        "`return [p.strip().lower() for p in brutos if p.strip()]`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-comprehensions-t2-02",
+      "nivel": "comprehensions",
+      "tier": 2,
+      "conceitos": [
+        "generators",
+        "listas"
+      ],
+      "titulo": "Lotes para a API de embeddings",
+      "explicacao_md": null,
+      "enunciado_md": "A API de embeddings aceita no máximo `tamanho` textos por chamada — então o corpus vai em lotes.\n\nEscreva o **generator** `em_chunks(itens, tamanho)` (use `yield`) que produz listas com até `tamanho` itens consecutivos; o último lote pode vir menor. `tamanho >= 1` é garantido.\n\nA fonte pode ser gigante: produza cada lote **sob demanda**, sem materializar tudo de uma vez.\n\nExemplo: `list(em_chunks([1, 2, 3, 4, 5], 2))` → `[[1, 2], [3, 4], [5]]`",
+      "starter_code": "def em_chunks(itens, tamanho):\n    # Generator (yield): mantenha uma lista-lote como estado. Acumule itens; quando\n    # ela encher (== tamanho), entregue com yield e recomece vazia. No fim, se\n    # sobrou um lote incompleto, entregue ele também.\n    ...\n",
+      "solucao_referencia": "def em_chunks(itens, tamanho):\n    lote = []\n    for item in itens:\n        lote.append(item)\n        if len(lote) == tamanho:\n            yield lote\n            lote = []\n    if lote:\n        yield lote\n",
+      "testes_visiveis": [
+        {
+          "nome": "lotes de 2 com resto",
+          "codigo": "_verificar(list(em_chunks([1, 2, 3, 4, 5], 2)), [[1, 2], [3, 4], [5]])"
+        },
+        {
+          "nome": "divisão exata",
+          "codigo": "_verificar(list(em_chunks(['a', 'b', 'c', 'd'], 2)), [['a', 'b'], ['c', 'd']])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "fonte vazia",
+          "codigo": "_verificar(list(em_chunks([], 3)), [])"
+        },
+        {
+          "nome": "tamanho maior que a fonte",
+          "codigo": "_verificar(list(em_chunks([7, 8], 5)), [[7, 8]])"
+        },
+        {
+          "nome": "lotes de 1",
+          "codigo": "_verificar(list(em_chunks(['x', 'y'], 1)), [['x'], ['y']])"
+        },
+        {
+          "nome": "é um generator de verdade",
+          "codigo": "g = em_chunks([1, 2, 3], 2)\nassert hasattr(g, '__next__') and iter(g) is g, 'em_chunks deve ser um generator (use yield), não retornar uma lista'"
+        },
+        {
+          "nome": "produz sob demanda",
+          "codigo": "consumidos = []\ndef fonte():\n    for i in range(100):\n        consumidos.append(i)\n        yield i\ng = em_chunks(fonte(), 3)\n_verificar(next(g), [0, 1, 2])\nassert len(consumidos) <= 4, 'O primeiro lote não pode consumir a fonte inteira — produza sob demanda com yield'"
+        }
+      ],
+      "dicas": [
+        "Mantenha uma lista-lote como estado: acumule itens nela e, quando encher, entregue com yield e comece uma lista nova.",
+        "Depois do for, pode ter sobrado um lote incompleto — se ele não estiver vazio, faça yield dele também.",
+        "Acumule com lote.append(item); `if len(lote) == tamanho: yield lote` e reinicie com `lote = []`; após o for, `if lote: yield lote`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-comprehensions-t2-03",
+      "nivel": "comprehensions",
+      "tier": 2,
+      "conceitos": [
+        "comprehensions",
+        "dicts",
+        "tuplas"
+      ],
+      "titulo": "Tabela de preços dos modelos",
+      "explicacao_md": null,
+      "enunciado_md": "O gateway exporta a lista de preços como pares `(modelo, custo_por_1k_tokens)` — mas registros com custo zero ou negativo são inválidos e não podem entrar na tabela.\n\nEscreva `tabela_precos(pares)` que retorna, com uma **dict comprehension**, o dicionário `{modelo: custo}` só com os pares de custo positivo. Se um modelo aparecer duas vezes, vale a última ocorrência válida (comportamento natural do dict).\n\nExemplo: `tabela_precos([(\"mock-4\", 0.03), (\"quebrado\", 0.0)])` → `{\"mock-4\": 0.03}`",
+      "starter_code": "def tabela_precos(pares):\n    # Dict comprehension com filtro. Dá para desempacotar a tupla no próprio for:\n    # for modelo, custo in pares — e o if no final decide quem entra.\n    ...\n",
+      "solucao_referencia": "def tabela_precos(pares):\n    return {modelo: custo for modelo, custo in pares if custo > 0}\n",
+      "testes_visiveis": [
+        {
+          "nome": "descarta custo zero",
+          "codigo": "_verificar(tabela_precos([('mock-4', 0.03), ('quebrado', 0.0)]), {'mock-4': 0.03})"
+        },
+        {
+          "nome": "dois modelos válidos",
+          "codigo": "_verificar(tabela_precos([('mini', 0.001), ('turbo', 0.01)]), {'mini': 0.001, 'turbo': 0.01})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "custo negativo fica fora",
+          "codigo": "_verificar(tabela_precos([('lento', -0.5), ('rapido', 0.25)]), {'rapido': 0.25})"
+        },
+        {
+          "nome": "lista vazia",
+          "codigo": "_verificar(tabela_precos([]), {})"
+        },
+        {
+          "nome": "modelo repetido: vale o último",
+          "codigo": "_verificar(tabela_precos([('m', 0.1), ('m', 0.2)]), {'m': 0.2})"
+        },
+        {
+          "nome": "todos inválidos",
+          "codigo": "_verificar(tabela_precos([('x', 0), ('y', -1)]), {})"
+        }
+      ],
+      "dicas": [
+        "Desempacote a tupla direto no for da comprehension: for modelo, custo in pares — cada par vira duas variáveis.",
+        "É uma dict comprehension com filtro no final: {chave: valor for ... in ... if condicao}; a condição é o custo ser positivo.",
+        "`return {modelo: custo for modelo, custo in pares if custo > 0}`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-comprehensions-t2-04",
+      "nivel": "comprehensions",
+      "tier": 2,
+      "conceitos": [
+        "agregadores",
+        "generators",
+        "dicts"
+      ],
+      "titulo": "Validação do lote de mensagens",
+      "explicacao_md": null,
+      "enunciado_md": "Antes de enviar um histórico de chat para a API, o lote inteiro precisa estar válido.\n\nCada mensagem é um dict com as chaves `\"role\"` e `\"content\"` (sempre presentes). Escreva `lote_valido(mensagens)` que retorna `True` somente se **todas** as mensagens têm:\n\n- `role` igual a `\"system\"`, `\"user\"` ou `\"assistant\"`\n- `content` não-vazio depois de `.strip()`\n\nUse `all` com uma generator expression. Lote vazio → `True` (é o comportamento do `all`: nada a reprovar).\n\nExemplo: `lote_valido([{\"role\": \"user\", \"content\": \"oi\"}])` → `True`",
+      "starter_code": "def lote_valido(mensagens):\n    # \"Todas satisfazem?\" tem uma função própria que para no primeiro que reprova\n    # (e devolve True para o lote vazio). Cada mensagem passa por DUAS condições\n    # ligadas por and: role permitido e content com conteúdo real depois do strip.\n    ...\n",
+      "solucao_referencia": "def lote_valido(mensagens):\n    return all(\n        m[\"role\"] in (\"system\", \"user\", \"assistant\") and m[\"content\"].strip() != \"\"\n        for m in mensagens\n    )\n",
+      "testes_visiveis": [
+        {
+          "nome": "lote válido",
+          "codigo": "_verificar(lote_valido([{'role': 'system', 'content': 'seja útil'}, {'role': 'user', 'content': 'oi'}]), True)"
+        },
+        {
+          "nome": "role inventado reprova",
+          "codigo": "_verificar(lote_valido([{'role': 'robot', 'content': 'oi'}]), False)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "content só de espaços reprova",
+          "codigo": "_verificar(lote_valido([{'role': 'user', 'content': '   '}]), False)"
+        },
+        {
+          "nome": "lote vazio é válido",
+          "codigo": "_verificar(lote_valido([]), True)"
+        },
+        {
+          "nome": "uma mensagem ruim estraga o lote",
+          "codigo": "_verificar(lote_valido([{'role': 'user', 'content': 'a'}, {'role': 'assistant', 'content': ''}]), False)"
+        },
+        {
+          "nome": "retorna booleano de verdade",
+          "codigo": "assert lote_valido([]) is True, 'Retorne True/False de verdade (o all já devolve isso)'"
+        }
+      ],
+      "dicas": [
+        "all responde 'todos satisfazem?' e para no primeiro que reprova; com a sequência vazia, devolve True.",
+        "Cada mensagem precisa passar em DUAS condições ligadas por and: role permitido (use in com uma tupla de roles) e content com conteúdo real depois do strip.",
+        "`return all(m[\"role\"] in (\"system\", \"user\", \"assistant\") and m[\"content\"].strip() for m in mensagens)` — o all sempre devolve True/False, mesmo com truthiness no meio."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-comprehensions-t3-01",
+      "nivel": "comprehensions",
+      "tier": 3,
+      "conceitos": [
+        "iteradores",
+        "generators",
+        "agregadores"
+      ],
+      "titulo": "O generator que se esgota",
+      "explicacao_md": "Um generator percorre seus itens **uma única vez** — depois está esgotado, e falha em silêncio:\n\n```python\ng = (n * 2 for n in [1, 2, 3])\nlist(g)   # [2, 4, 6]\nlist(g)   # []  ← esgotado: nenhum erro, só vazio\n```\n\nTrês armadilhas derivadas:\n\n- `if g:` é sempre verdadeiro — até com generator vazio;\n- `len(g)` não existe (TypeError);\n- nada roda antes de alguém consumir (`next`, `for`, `list`, `sum`...) — é o **lazy**.\n\nPrecisa de mais de uma passada (min E max E soma, por exemplo)? O conserto clássico: **materializar uma vez** com `list(...)` e trabalhar sobre a lista.",
+      "enunciado_md": "O monitor do gateway recebe as latências das chamadas e resume: `(menor, maior, media)`.\n\nO starter funciona com lista — mas `latencias` pode chegar como **generator** (vindo de um stream de logs), e aí ele quebra. Rode os testes, entenda o porquê e conserte `estatisticas(latencias)`:\n\n- aceita qualquer iterável (lista, generator, `iter(...)`)\n- retorna a **tupla** `(menor, maior, media)`\n- iterável sem nenhum item → retorna `None`\n\nExemplo: `estatisticas(x for x in [1.0, 3.0])` → `(1.0, 3.0, 2.0)`",
+      "starter_code": "def estatisticas(latencias):\n    # Funciona com lista... mas latencias pode ser um GENERATOR.\n    # Descubra por que este código quebra com generator e conserte.\n    if not latencias:\n        return None\n    menor = min(latencias)\n    maior = max(latencias)\n    media = sum(latencias) / len(latencias)\n    return (menor, maior, media)\n",
+      "solucao_referencia": "def estatisticas(latencias):\n    valores = list(latencias)\n    if not valores:\n        return None\n    return (min(valores), max(valores), sum(valores) / len(valores))\n",
+      "testes_visiveis": [
+        {
+          "nome": "lista simples",
+          "codigo": "_verificar(estatisticas([0.5, 0.25, 0.75]), (0.25, 0.75, 0.5))"
+        },
+        {
+          "nome": "generator também funciona",
+          "codigo": "_verificar(estatisticas(x for x in [1.0, 3.0]), (1.0, 3.0, 2.0))"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "iterador de iter()",
+          "codigo": "_verificar(estatisticas(iter([4.0, 2.0, 6.0])), (2.0, 6.0, 4.0))"
+        },
+        {
+          "nome": "generator vazio",
+          "codigo": "_verificar(estatisticas(x for x in []), None)"
+        },
+        {
+          "nome": "lista vazia",
+          "codigo": "_verificar(estatisticas([]), None)"
+        },
+        {
+          "nome": "um único valor",
+          "codigo": "_verificar(estatisticas([2.5]), (2.5, 2.5, 2.5))"
+        },
+        {
+          "nome": "média é a real, não o meio entre extremos",
+          "codigo": "_verificar(estatisticas([1.0, 2.0, 6.0]), (1.0, 6.0, 3.0))"
+        }
+      ],
+      "dicas": [
+        "Rode o teste do generator e olhe a falha: min() consome o generator INTEIRO; quando max() chega, não sobrou nada. E o `if not latencias` mente — generator é sempre verdadeiro, até vazio.",
+        "Materialize UMA vez logo no começo da função (list nas latências) e faça todas as contas sobre essa lista — inclusive o teste de vazio.",
+        "`valores = list(latencias)`; `if not valores: return None`; `return (min(valores), max(valores), sum(valores) / len(valores))`"
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-comprehensions-t3-02",
+      "nivel": "comprehensions",
+      "tier": 3,
+      "conceitos": [
+        "lazy-eager",
+        "generators",
+        "iteradores"
+      ],
+      "titulo": "Pipeline preguiçoso",
+      "explicacao_md": null,
+      "enunciado_md": "Um dump de documentos com vários gigabytes vai virar embeddings — impossível carregar tudo de uma vez. A solução: um pipeline de generators **encadeados**, onde cada documento atravessa todos os estágios um por vez.\n\nEscreva três funções:\n\n- `normalizados(textos)` — generator: produz cada texto com `.strip().lower()` (produz TODOS, mesmo os que ficarem vazios)\n- `sem_vazios(textos)` — generator: produz apenas os itens não-vazios, na ordem\n- `pipeline(textos)` — encadeia os dois: normaliza e depois descarta vazios\n\nRegra de ouro: **nada** é consumido da fonte antes do primeiro `next()` — tudo lazy.\n\nExemplo: `list(pipeline([\"  Oi \", \"\", \" RAG \"]))` → `[\"oi\", \"rag\"]`",
+      "starter_code": "def normalizados(textos):\n    # Generator: cada item vira item.strip().lower(); produza todos.\n    ...\n\ndef sem_vazios(textos):\n    # Generator: produza só os itens não-vazios (string vazia fica de fora).\n    ...\n\ndef pipeline(textos):\n    # Encadeie: a saída de normalizados é a entrada de sem_vazios.\n    # Nenhum item pode ser consumido antes do primeiro next().\n    ...\n",
+      "solucao_referencia": "def normalizados(textos):\n    for t in textos:\n        yield t.strip().lower()\n\n\ndef sem_vazios(textos):\n    for t in textos:\n        if t:\n            yield t\n\n\ndef pipeline(textos):\n    return sem_vazios(normalizados(textos))\n",
+      "testes_visiveis": [
+        {
+          "nome": "pipeline completo",
+          "codigo": "_verificar(list(pipeline(['  Oi ', '', ' RAG '])), ['oi', 'rag'])"
+        },
+        {
+          "nome": "normalizados produz todos",
+          "codigo": "_verificar(list(normalizados([' A ', ''])), ['a', ''])"
+        },
+        {
+          "nome": "sem_vazios filtra",
+          "codigo": "_verificar(list(sem_vazios(['a', '', 'b'])), ['a', 'b'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "nada roda antes do next",
+          "codigo": "consumidos = []\ndef fonte():\n    for t in ['  A ', '   ', ' B ']:\n        consumidos.append(t)\n        yield t\ng = pipeline(fonte())\nassert consumidos == [], 'Criar o pipeline não pode consumir a fonte — generators são lazy'\n_verificar(next(g), 'a')\n_verificar(consumidos, ['  A '])\n_verificar(next(g), 'b')\n_verificar(consumidos, ['  A ', '   ', ' B '])"
+        },
+        {
+          "nome": "fonte generator",
+          "codigo": "_verificar(list(pipeline(t for t in [' Embeddings ', '\\t', ' JÁ '])), ['embeddings', 'já'])"
+        },
+        {
+          "nome": "estágios são iteradores de verdade",
+          "codigo": "g = normalizados(['x'])\nassert hasattr(g, '__next__'), 'normalizados deve devolver um generator/iterador, não uma lista'\ng2 = sem_vazios(['x'])\nassert hasattr(g2, '__next__'), 'sem_vazios deve devolver um generator/iterador, não uma lista'"
+        },
+        {
+          "nome": "só espaços é descartado",
+          "codigo": "_verificar(list(pipeline(['   ', '  Docs '])), ['docs'])"
+        }
+      ],
+      "dicas": [
+        "Encadear generators é passar um como fonte do outro — cada next no último estágio puxa UM item através da corrente inteira. Se algum estágio materializa com list(), a preguiça morre ali.",
+        "normalizados e sem_vazios são for + yield; pipeline nem precisa de yield — ela só liga a saída de um na entrada do outro e retorna o resultado.",
+        "Em normalizados: `yield t.strip().lower()` para cada t; em sem_vazios: `if t: yield t`; em pipeline: `return sem_vazios(normalizados(textos))`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-comprehensions-t3-03",
+      "nivel": "comprehensions",
+      "tier": 3,
+      "conceitos": [
+        "generators",
+        "iteradores",
+        "listas"
+      ],
+      "titulo": "Janela deslizante de tokens",
+      "explicacao_md": null,
+      "enunciado_md": "Para detectar repetição na saída de um modelo, analisamos os tokens em janelas deslizantes de tamanho `k` — os n-gramas.\n\nEscreva o generator `janelas(tokens, k)`:\n\n- produz **listas** com `k` itens consecutivos: primeiro `[t0..t(k-1)]`, depois `[t1..tk]`, ...\n- aceita qualquer iterável — inclusive generator, então nada de `len()` ou fatia na fonte\n- cada janela produzida é uma lista **independente** (mudar uma não pode afetar as outras)\n- menos de `k` itens na fonte → não produz nada\n- `k <= 0` → não produz nada\n\nExemplo: `list(janelas([1, 2, 3, 4], 2))` → `[[1, 2], [2, 3], [3, 4]]`",
+      "starter_code": "def janelas(tokens, k):\n    # Generator de janelas deslizantes de tamanho k.\n    # Contratos:\n    # - a fonte pode ser um generator (sem len/fatia!)\n    # - cada janela é uma lista nova e independente\n    # - menos de k itens, ou k <= 0 -> nenhuma janela\n    ...\n",
+      "solucao_referencia": "def janelas(tokens, k):\n    if k <= 0:\n        return\n    janela = []\n    for token in tokens:\n        janela.append(token)\n        if len(janela) > k:\n            janela.pop(0)\n        if len(janela) == k:\n            yield list(janela)\n",
+      "testes_visiveis": [
+        {
+          "nome": "janelas de 2",
+          "codigo": "_verificar(list(janelas([1, 2, 3, 4], 2)), [[1, 2], [2, 3], [3, 4]])"
+        },
+        {
+          "nome": "janela do tamanho exato da fonte",
+          "codigo": "_verificar(list(janelas(['a', 'b', 'c'], 3)), [['a', 'b', 'c']])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "fonte generator",
+          "codigo": "_verificar(list(janelas((n for n in [10, 20, 30, 40]), 2)), [[10, 20], [20, 30], [30, 40]])"
+        },
+        {
+          "nome": "fonte menor que k",
+          "codigo": "_verificar(list(janelas([1, 2], 3)), [])"
+        },
+        {
+          "nome": "k zero ou negativo",
+          "codigo": "_verificar(list(janelas([1, 2, 3], 0)), [])\n_verificar(list(janelas([1, 2, 3], -2)), [])"
+        },
+        {
+          "nome": "janelas independentes",
+          "codigo": "r = list(janelas([1, 2, 3], 2))\nr[0].append(99)\n_verificar(r[1], [2, 3])"
+        },
+        {
+          "nome": "fonte vazia",
+          "codigo": "_verificar(list(janelas([], 2)), [])"
+        },
+        {
+          "nome": "k = 1 (unigramas)",
+          "codigo": "_verificar(list(janelas(['a', 'b'], 1)), [['a'], ['b']])"
+        }
+      ],
+      "dicas": [
+        "Mantenha uma lista-janela como estado do generator: cada item novo entra pelo fim; quando ela passa de k, o mais antigo sai do começo. Quando o tamanho bate em k, é hora de produzir.",
+        "A pegadinha: fazer yield da PRÓPRIA janela entrega sempre o mesmo objeto, que você continua mutando — todas as janelas 'viram' a última. Produza uma cópia: list(janela) ou janela[:].",
+        "`if k <= 0: return`; depois, para cada token: append na janela, `if len(janela) > k: janela.pop(0)`, `if len(janela) == k: yield list(janela)`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-excecoes-t1-01",
+      "nivel": "excecoes",
+      "tier": 1,
+      "conceitos": [
+        "try-except",
+        "conversao-tipos"
+      ],
+      "titulo": "Plano B para o número",
+      "explicacao_md": "Código de IA vive de entradas que falham: o LLM devolve `\"quarenta e dois\"` onde você esperava `\"42\"`, a API responde sem o campo que você usa. Sem tratamento, uma linha ruim derruba o pipeline inteiro.\n\n```python\ntry:\n    n = int(texto)\nexcept ValueError:\n    n = 0  # plano B\n```\n\nO `try` tenta o caminho feliz; se o `int()` estourar `ValueError`, o Python pula para o bloco `except` em vez de quebrar o programa.\n\nCapture sempre a exceção **específica** que você espera — `except:` pelado esconde bugs.\n\nE para sinalizar um erro você mesmo: `raise ValueError(\"mensagem\")`.\n\nGuarde este capítulo: no Ato 3 o try/except vira retry; no 4, um parser que não quebra.",
+      "enunciado_md": "Você pediu ao LLM o número de tokens de cada documento — mas o modelo às vezes responde `\"quarenta e dois\"` em vez de `\"42\"`, e `int()` estoura `ValueError`.\n\nComplete `para_inteiro(texto, padrao)`:\n\n- tente converter `texto` com `int()` e retorne o resultado\n- se a conversão levantar `ValueError`, retorne `padrao`\n\nExemplo: `para_inteiro(\"42\", 0)` → `42`; `para_inteiro(\"muitos\", 0)` → `0`",
+      "starter_code": "def para_inteiro(texto, padrao):\n    # Caminho feliz no try; plano B no except. Capture a exceção ESPECÍFICA que o\n    # int() estoura quando o texto não é número (nada de except pelado).\n    ...\n",
+      "solucao_referencia": "def para_inteiro(texto, padrao):\n    try:\n        return int(texto)\n    except ValueError:\n        return padrao\n",
+      "testes_visiveis": [
+        {
+          "nome": "número válido converte",
+          "codigo": "_verificar(para_inteiro('42', 0), 42)"
+        },
+        {
+          "nome": "texto inválido usa o padrão",
+          "codigo": "_verificar(para_inteiro('muitos', 0), 0)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro padrão",
+          "codigo": "_verificar(para_inteiro('abc', -1), -1)"
+        },
+        {
+          "nome": "número negativo converte",
+          "codigo": "_verificar(para_inteiro('-7', 0), -7)"
+        },
+        {
+          "nome": "float em texto não é int",
+          "codigo": "_verificar(para_inteiro('3.14', 99), 99)"
+        }
+      ],
+      "dicas": [
+        "O `try` tenta o caminho feliz; se a conversão estourar, o Python pula direto para o bloco `except` — nada depois da linha que falhou roda.",
+        "São dois retornos: `return int(texto)` dentro do try e `return padrao` dentro do `except ValueError:`.",
+        "`try:` / `    return int(texto)` / `except ValueError:` / `    return padrao`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-excecoes-t1-02",
+      "nivel": "excecoes",
+      "tier": 1,
+      "conceitos": [
+        "try-except",
+        "dicts"
+      ],
+      "titulo": "Campo que sumiu",
+      "explicacao_md": null,
+      "enunciado_md": "A resposta de uma API de IA chega como dicionário — e nem todo campo vem sempre. Acessar uma chave inexistente estoura `KeyError`.\n\nEscreva `campo_resposta(resposta, campo)`:\n\n- retorne `resposta[campo]`\n- se a chave não existir, capture o `KeyError` e retorne `\"<ausente>\"`\n\nExemplo: `campo_resposta({\"texto\": \"olá\"}, \"texto\")` → `\"olá\"`; `campo_resposta({}, \"texto\")` → `\"<ausente>\"`",
+      "starter_code": "def campo_resposta(resposta, campo):\n    # O erro nasce no acesso resposta[campo] — é ele que fica dentro do try.\n    # Capture o tipo certo (o que um dict estoura para chave que não existe) e\n    # devolva o texto padrão.\n    ...\n",
+      "solucao_referencia": "def campo_resposta(resposta, campo):\n    try:\n        return resposta[campo]\n    except KeyError:\n        return \"<ausente>\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "campo existe",
+          "codigo": "_verificar(campo_resposta({'texto': 'olá'}, 'texto'), 'olá')"
+        },
+        {
+          "nome": "campo ausente",
+          "codigo": "_verificar(campo_resposta({}, 'texto'), '<ausente>')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outra chave",
+          "codigo": "_verificar(campo_resposta({'modelo': 'mock-4'}, 'modelo'), 'mock-4')"
+        },
+        {
+          "nome": "valor vazio não é ausente",
+          "codigo": "_verificar(campo_resposta({'texto': ''}, 'texto'), '')"
+        },
+        {
+          "nome": "chave errada em dict cheio",
+          "codigo": "_verificar(campo_resposta({'a': 1, 'b': 2}, 'c'), '<ausente>')"
+        }
+      ],
+      "dicas": [
+        "O `KeyError` acontece na hora do acesso `resposta[campo]` — é esse acesso que precisa estar dentro do try.",
+        "Mesma receita do plano B: `return resposta[campo]` no try, e o texto padrão no `except KeyError:`.",
+        "`try:` / `    return resposta[campo]` / `except KeyError:` / `    return \"<ausente>\"`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-excecoes-t1-03",
+      "nivel": "excecoes",
+      "tier": 1,
+      "conceitos": [
+        "raise",
+        "f-strings"
+      ],
+      "titulo": "Guarda da temperatura",
+      "explicacao_md": null,
+      "enunciado_md": "A `temperature` de um LLM controla a criatividade e só vale entre 0 e 2 — mandar 7 para a API é desperdiçar uma chamada paga para receber erro.\n\nEscreva `validar_temperatura(t)`:\n\n- se `t` estiver fora do intervalo de 0 a 2, levante `ValueError` com a mensagem **exata** `temperatura fora do intervalo: <t>` (monte com f-string)\n- caso contrário, retorne `t`\n\nExemplo: `validar_temperatura(0.7)` → `0.7`; `validar_temperatura(3)` → levanta `ValueError(\"temperatura fora do intervalo: 3\")`",
+      "starter_code": "def validar_temperatura(t):\n    # Fora do intervalo, INTERROMPA com raise ValueError (a mensagem sai de uma\n    # f-string com o valor). raise já corta a função — o return do caso bom fica\n    # fora do if.\n    ...\n",
+      "solucao_referencia": "def validar_temperatura(t):\n    if t < 0 or t > 2:\n        raise ValueError(f\"temperatura fora do intervalo: {t}\")\n    return t\n",
+      "testes_visiveis": [
+        {
+          "nome": "valor válido passa direto",
+          "codigo": "_verificar(validar_temperatura(0.7), 0.7)"
+        },
+        {
+          "nome": "valor alto estoura com a mensagem",
+          "codigo": "try:\n    validar_temperatura(3)\n    assert False, 'validar_temperatura(3) deveria levantar ValueError'\nexcept ValueError as e:\n    _verificar(str(e), 'temperatura fora do intervalo: 3')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "negativo estoura",
+          "codigo": "try:\n    validar_temperatura(-0.5)\n    assert False, 'validar_temperatura(-0.5) deveria levantar ValueError'\nexcept ValueError as e:\n    _verificar(str(e), 'temperatura fora do intervalo: -0.5')"
+        },
+        {
+          "nome": "as bordas 0 e 2 são válidas",
+          "codigo": "_verificar(validar_temperatura(0), 0)\n_verificar(validar_temperatura(2), 2)"
+        },
+        {
+          "nome": "outro valor fora do intervalo",
+          "codigo": "try:\n    validar_temperatura(2.5)\n    assert False, 'validar_temperatura(2.5) deveria levantar ValueError'\nexcept ValueError as e:\n    _verificar(str(e), 'temperatura fora do intervalo: 2.5')"
+        }
+      ],
+      "dicas": [
+        "`raise` interrompe a função na hora — não precisa de else nem de return depois dele.",
+        "A condição é `t < 0 or t > 2`; a mensagem vai dentro do ValueError, montada com f-string para incluir o valor.",
+        "`if t < 0 or t > 2:` / `    raise ValueError(f\"temperatura fora do intervalo: {t}\")` / `return t`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-excecoes-t1-04",
+      "nivel": "excecoes",
+      "tier": 1,
+      "conceitos": [
+        "try-except",
+        "conversao-tipos"
+      ],
+      "titulo": "Captura cirúrgica",
+      "explicacao_md": null,
+      "enunciado_md": "Num relatório de custos, cada valor vem como texto (`\"0.002\"`). Dado ruim (`\"grátis\"`) é esperado; agora, se alguém passar `None` em vez de texto, isso é bug de quem chamou — e bug não se esconde.\n\nEscreva `ler_custo(texto)`:\n\n- retorne `float(texto)`\n- se o texto não representar um número (`ValueError`), retorne `None`\n- capture **somente** `ValueError`: um `TypeError` (ex.: entrada `None`) deve estourar normalmente\n\nExemplo: `ler_custo(\"0.002\")` → `0.002`; `ler_custo(\"grátis\")` → `None`",
+      "starter_code": "def ler_custo(texto):\n    # Dado ruim (ValueError) é esperado: capture SÓ ele e devolva None. Um\n    # TypeError (ex.: None) é bug de quem chamou — deixe estourar, não capture.\n    ...\n",
+      "solucao_referencia": "def ler_custo(texto):\n    try:\n        return float(texto)\n    except ValueError:\n        return None\n",
+      "testes_visiveis": [
+        {
+          "nome": "custo válido",
+          "codigo": "_verificar(ler_custo('0.002'), 0.002)"
+        },
+        {
+          "nome": "texto ruim vira None",
+          "codigo": "_verificar(ler_custo('grátis'), None)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "notação científica",
+          "codigo": "_verificar(ler_custo('1e-3'), 0.001)"
+        },
+        {
+          "nome": "TypeError não é engolido",
+          "codigo": "try:\n    ler_custo(None)\n    assert False, 'Com entrada None o TypeError deve estourar — capture SÓ ValueError'\nexcept TypeError:\n    pass"
+        },
+        {
+          "nome": "inteiro em texto vira float",
+          "codigo": "_verificar(ler_custo('7'), 7.0)"
+        }
+      ],
+      "dicas": [
+        "Cada tipo de exceção conta uma história: ValueError = dado ruim (esperado aqui), TypeError = código errado (bug). Capturar tudo mistura as duas.",
+        "Escreva o tipo no except: `except ValueError:` — assim o TypeError passa reto e aparece para quem precisa consertar.",
+        "`try:` / `    return float(texto)` / `except ValueError:` / `    return None`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-excecoes-t1-05",
+      "nivel": "excecoes",
+      "tier": 1,
+      "conceitos": [
+        "try-except",
+        "operadores"
+      ],
+      "titulo": "Dia sem chamadas",
+      "explicacao_md": null,
+      "enunciado_md": "Painel de custos do gateway: custo médio = total gasto ÷ número de chamadas. Num dia sem tráfego, `chamadas` é `0` — e divisão por zero estoura `ZeroDivisionError`.\n\nEscreva `custo_medio(total, chamadas)`:\n\n- retorne `total / chamadas`\n- se a divisão estourar `ZeroDivisionError`, retorne `0.0`\n\nExemplo: `custo_medio(1.5, 3)` → `0.5`; `custo_medio(9.9, 0)` → `0.0`",
+      "starter_code": "def custo_medio(total, chamadas):\n    # EAFP: tente a divisão e capture o estouro do dia sem tráfego (divisão por\n    # zero) devolvendo 0.0. É mais pythônico que checar chamadas == 0 antes.\n    ...\n",
+      "solucao_referencia": "def custo_medio(total, chamadas):\n    try:\n        return total / chamadas\n    except ZeroDivisionError:\n        return 0.0\n",
+      "testes_visiveis": [
+        {
+          "nome": "média normal",
+          "codigo": "_verificar(custo_medio(1.5, 3), 0.5)"
+        },
+        {
+          "nome": "zero chamadas devolve 0.0",
+          "codigo": "_verificar(custo_medio(9.9, 0), 0.0)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outros valores",
+          "codigo": "_verificar(custo_medio(2.4, 4), 0.6)"
+        },
+        {
+          "nome": "total e chamadas zerados",
+          "codigo": "_verificar(custo_medio(0, 0), 0.0)"
+        },
+        {
+          "nome": "total zero com tráfego",
+          "codigo": "_verificar(custo_medio(0, 5), 0.0)"
+        }
+      ],
+      "dicas": [
+        "Você poderia testar `if chamadas == 0` antes, mas o estilo pythônico é tentar e capturar — EAFP: é mais fácil pedir perdão que permissão.",
+        "A divisão vai no try; o `except ZeroDivisionError:` devolve o 0.0.",
+        "`try:` / `    return total / chamadas` / `except ZeroDivisionError:` / `    return 0.0`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-excecoes-t2-01",
+      "nivel": "excecoes",
+      "tier": 2,
+      "conceitos": [
+        "excecoes-customizadas",
+        "raise",
+        "metodos-string"
+      ],
+      "titulo": "Porteiro do pipeline",
+      "explicacao_md": "Bibliotecas de LLM definem as próprias exceções (`RateLimitError`, `APIError`) — e o seu pipeline também pode:\n\n```python\nclass EntradaInvalida(ValueError):\n    pass\n\nraise EntradaInvalida(\"prompt vazio\")\n```\n\nHerdar de `ValueError` faz sua exceção ser capturada tanto por `except EntradaInvalida` quanto por `except ValueError` — quem chama escolhe o nível de detalhe. A mensagem passada no `raise` vira `str(e)` para quem captura.\n\nE quando algo PRECISA acontecer aconteça o que acontecer (fechar arquivo, registrar o fim da chamada), use `finally`: ele roda com sucesso, com exceção e até com `return` no meio do caminho.",
+      "enunciado_md": "Todo pipeline sério valida o prompt **antes** de gastar tokens — recusar cedo é mais barato que pagar por uma chamada inútil.\n\nCrie a classe `EntradaInvalida` (herda de `ValueError`) e a função `validar_prompt(prompt)`, que trabalha com `limpo = prompt.strip()`:\n\n- `limpo` vazio → levante `EntradaInvalida` com mensagem `prompt vazio`\n- `limpo` com mais de 200 caracteres → levante `EntradaInvalida` com mensagem `prompt muito longo: <N> caracteres`, onde `<N>` é o tamanho de `limpo`\n- caso contrário → retorne `limpo`\n\nExemplo: `validar_prompt(\"  Resuma o texto.  \")` → `\"Resuma o texto.\"`",
+      "starter_code": "# Defina aqui a classe EntradaInvalida.\n# Uma exceção customizada é só uma classe que herda de outra (o corpo pode ser\n# pass). Herdar de ValueError deixa quem chama capturar dos dois jeitos.\n\n\ndef validar_prompt(prompt):\n    # Trabalhe sobre limpo = prompt.strip() e valide na ordem do enunciado:\n    # vazio primeiro, depois comprimento (mensagem com f-string), e só então o return.\n    ...\n",
+      "solucao_referencia": "class EntradaInvalida(ValueError):\n    pass\n\n\ndef validar_prompt(prompt):\n    limpo = prompt.strip()\n    if not limpo:\n        raise EntradaInvalida(\"prompt vazio\")\n    if len(limpo) > 200:\n        raise EntradaInvalida(f\"prompt muito longo: {len(limpo)} caracteres\")\n    return limpo\n",
+      "testes_visiveis": [
+        {
+          "nome": "prompt válido volta limpo",
+          "codigo": "_verificar(validar_prompt('  Resuma o texto.  '), 'Resuma o texto.')"
+        },
+        {
+          "nome": "só espaços é rejeitado",
+          "codigo": "try:\n    validar_prompt('   ')\n    assert False, 'Prompt só de espaços deveria levantar EntradaInvalida'\nexcept EntradaInvalida as e:\n    _verificar(str(e), 'prompt vazio')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "herda de ValueError",
+          "codigo": "assert issubclass(EntradaInvalida, ValueError), 'EntradaInvalida deve herdar de ValueError'"
+        },
+        {
+          "nome": "captura pela classe-mãe funciona",
+          "codigo": "try:\n    validar_prompt('')\n    assert False, 'Prompt vazio deveria levantar EntradaInvalida'\nexcept ValueError as e:\n    _verificar(str(e), 'prompt vazio')"
+        },
+        {
+          "nome": "longo demais informa o tamanho",
+          "codigo": "try:\n    validar_prompt('x' * 201)\n    assert False, 'Prompt com 201 caracteres deveria levantar EntradaInvalida'\nexcept EntradaInvalida as e:\n    _verificar(str(e), 'prompt muito longo: 201 caracteres')"
+        },
+        {
+          "nome": "200 exatos ainda passa",
+          "codigo": "_verificar(validar_prompt('a' * 200), 'a' * 200)"
+        }
+      ],
+      "dicas": [
+        "Uma exceção customizada é só uma classe que herda de outra exceção — o corpo pode ser `pass`. Herdar de ValueError deixa quem chama capturar dos dois jeitos.",
+        "Valide na ordem do enunciado: strip primeiro, teste de vazio, teste de comprimento (mensagem com f-string), e só então o return.",
+        "`class EntradaInvalida(ValueError): pass` — na função: `limpo = prompt.strip()`, depois `if not limpo: raise EntradaInvalida(\"prompt vazio\")`, depois `if len(limpo) > 200: raise EntradaInvalida(f\"prompt muito longo: {len(limpo)} caracteres\")` e por fim `return limpo`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-excecoes-t2-02",
+      "nivel": "excecoes",
+      "tier": 2,
+      "conceitos": [
+        "try-except",
+        "loops",
+        "listas"
+      ],
+      "titulo": "Lote com sobreviventes",
+      "explicacao_md": null,
+      "enunciado_md": "Um LLM extraiu o valor total de 500 notas fiscais — a maioria veio limpa (`\"123.45\"`), algumas vieram sujas (`\"R$ cem\"`). Um item ruim **não pode derrubar o lote**: convertemos o que dá e registramos o que falhou.\n\nEscreva `converter_lote(textos)` que retorna a **tupla** `(numeros, falhas)`:\n\n- `numeros`: lista com cada texto convertido via `float()`, na ordem\n- `falhas`: lista com os textos **originais** que estouraram `ValueError`, na ordem\n\nExemplo: `converter_lote([\"1.5\", \"abc\", \"2\"])` → `([1.5, 2.0], [\"abc\"])`",
+      "starter_code": "def converter_lote(textos):\n    # Duas listas acumuladoras e o try/except DENTRO do loop: assim cada item\n    # decide o próprio destino sem derrubar o lote. No except (só ValueError),\n    # guarde o texto ORIGINAL, não o convertido.\n    ...\n",
+      "solucao_referencia": "def converter_lote(textos):\n    numeros = []\n    falhas = []\n    for t in textos:\n        try:\n            numeros.append(float(t))\n        except ValueError:\n            falhas.append(t)\n    return (numeros, falhas)\n",
+      "testes_visiveis": [
+        {
+          "nome": "lote misto",
+          "codigo": "_verificar(converter_lote(['1.5', 'abc', '2']), ([1.5, 2.0], ['abc']))"
+        },
+        {
+          "nome": "lote 100% limpo",
+          "codigo": "_verificar(converter_lote(['1', '2.5']), ([1.0, 2.5], []))"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "lote 100% sujo",
+          "codigo": "_verificar(converter_lote(['x', 'R$ cem']), ([], ['x', 'R$ cem']))"
+        },
+        {
+          "nome": "lista vazia não quebra",
+          "codigo": "_verificar(converter_lote([]), ([], []))"
+        },
+        {
+          "nome": "ordem preservada nas duas listas",
+          "codigo": "_verificar(converter_lote(['b', '3', 'a', '4']), ([3.0, 4.0], ['b', 'a']))"
+        }
+      ],
+      "dicas": [
+        "O try/except vai DENTRO do loop — assim cada item decide sozinho o próprio destino e o lote continua.",
+        "Duas listas acumuladoras: no try, append do `float(t)` numa; no `except ValueError`, append do texto original na outra.",
+        "`for t in textos:` com `try: numeros.append(float(t))` / `except ValueError: falhas.append(t)` — no fim, `return (numeros, falhas)`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-excecoes-t2-03",
+      "nivel": "excecoes",
+      "tier": 2,
+      "conceitos": [
+        "finally",
+        "try-except"
+      ],
+      "titulo": "O log que sempre fecha",
+      "explicacao_md": null,
+      "enunciado_md": "Auditoria de custo do gateway: toda chamada ao modelo registra início e fim — **mesmo quando a chamada explode**, senão o relatório fica furado.\n\nEscreva `chamar_auditado(log, operacao)`:\n\n- acrescente `\"inicio\"` à lista `log`\n- chame `operacao()` e retorne o resultado\n- garanta que `\"fim\"` entra no `log` em **qualquer** cenário (sucesso ou exceção)\n- se `operacao()` levantar exceção, ela deve **continuar propagando** — não a capture\n\nExemplo: `log = []` e `chamar_auditado(log, lambda: \"ok\")` → retorna `\"ok\"`, e `log` fica `[\"inicio\", \"fim\"]`",
+      "starter_code": "def chamar_auditado(log, operacao):\n    # \"inicio\" antes do try; o resultado de operacao() vem de dentro do try; e o\n    # \"fim\" no finally, que roda SEMPRE. Aqui um except seria errado: você não\n    # quer engolir a exceção, só garantir o registro do fim.\n    ...\n",
+      "solucao_referencia": "def chamar_auditado(log, operacao):\n    log.append(\"inicio\")\n    try:\n        return operacao()\n    finally:\n        log.append(\"fim\")\n",
+      "testes_visiveis": [
+        {
+          "nome": "sucesso registra os dois marcos",
+          "codigo": "log = []\nr = chamar_auditado(log, lambda: 'ok')\n_verificar(r, 'ok')\n_verificar(log, ['inicio', 'fim'])"
+        },
+        {
+          "nome": "falha também registra o fim",
+          "codigo": "log = []\ndef explode():\n    raise ValueError('modelo indisponível')\ntry:\n    chamar_auditado(log, explode)\n    assert False, 'A exceção da operação deve continuar propagando'\nexcept ValueError as e:\n    _verificar(str(e), 'modelo indisponível')\n_verificar(log, ['inicio', 'fim'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro retorno",
+          "codigo": "log = []\n_verificar(chamar_auditado(log, lambda: 42), 42)\n_verificar(log, ['inicio', 'fim'])"
+        },
+        {
+          "nome": "outro tipo de exceção também propaga",
+          "codigo": "log = []\ndef quebra():\n    raise KeyError('campo')\ntry:\n    chamar_auditado(log, quebra)\n    assert False, 'KeyError também deve propagar — não capture a exceção'\nexcept KeyError:\n    pass\n_verificar(log, ['inicio', 'fim'])"
+        },
+        {
+          "nome": "fim entra exatamente uma vez",
+          "codigo": "log = []\nchamar_auditado(log, lambda: 1)\nassert log.count('fim') == 1, 'O log deve receber \"fim\" exatamente uma vez, recebeu ' + str(log.count('fim'))"
+        }
+      ],
+      "dicas": [
+        "`finally` roda SEMPRE: com sucesso, com exceção, com return no meio. E um except aqui seria errado — você não quer engolir a exceção, só registrar o fim.",
+        "Estrutura: append de 'inicio' antes do try; `return operacao()` dentro do try; append de 'fim' no finally. Sem NENHUM except.",
+        "`log.append(\"inicio\")` / `try: return operacao()` / `finally: log.append(\"fim\")` — cuidado para NÃO colocar return dentro do finally."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-excecoes-t2-04",
+      "nivel": "excecoes",
+      "tier": 2,
+      "conceitos": [
+        "try-except",
+        "tuplas"
+      ],
+      "titulo": "Triagem de erros conhecidos",
+      "explicacao_md": null,
+      "enunciado_md": "O gateway chama um extrator e converte erros **conhecidos** em registros de triagem; o que for desconhecido deve estourar — alguém precisa ver.\n\nEscreva `executar_extracao(operacao)`:\n\n- sucesso → retorne `(\"ok\", resultado)`\n- `ValueError` → retorne `(\"dado_ruim\", str(e))`\n- `KeyError` → retorne `(\"campo_faltando\", e.args[0])` — cuidado: `str(e)` num `KeyError` vem com aspas extras; `e.args[0]` traz a chave crua\n- qualquer outra exceção continua propagando\n\nExemplo: `executar_extracao(lambda: 10)` → `(\"ok\", 10)`",
+      "starter_code": "def executar_extracao(operacao):\n    # Um try com VÁRIOS excepts: o Python usa o primeiro cujo tipo casa, e o que\n    # nenhum casa propaga sozinho. Para o KeyError use e.args[0] (a chave crua),\n    # não str(e) (vem com aspas extras).\n    ...\n",
+      "solucao_referencia": "def executar_extracao(operacao):\n    try:\n        return (\"ok\", operacao())\n    except ValueError as e:\n        return (\"dado_ruim\", str(e))\n    except KeyError as e:\n        return (\"campo_faltando\", e.args[0])\n",
+      "testes_visiveis": [
+        {
+          "nome": "sucesso vira ok",
+          "codigo": "_verificar(executar_extracao(lambda: 10), ('ok', 10))"
+        },
+        {
+          "nome": "ValueError vira dado_ruim",
+          "codigo": "def op():\n    raise ValueError('total ilegível')\n_verificar(executar_extracao(op), ('dado_ruim', 'total ilegível'))"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "KeyError sem aspas extras",
+          "codigo": "def op():\n    return {'a': 1}['total']\n_verificar(executar_extracao(op), ('campo_faltando', 'total'))"
+        },
+        {
+          "nome": "erro desconhecido propaga",
+          "codigo": "def op():\n    raise TypeError('bug de código')\ntry:\n    executar_extracao(op)\n    assert False, 'TypeError não é erro conhecido — deve propagar, não virar tupla'\nexcept TypeError:\n    pass"
+        },
+        {
+          "nome": "outro sucesso",
+          "codigo": "_verificar(executar_extracao(lambda: 'nota 42'), ('ok', 'nota 42'))"
+        }
+      ],
+      "dicas": [
+        "Um try pode ter VÁRIOS excepts — o Python testa na ordem e usa o primeiro cujo tipo casa. O que nenhum except casa, propaga sozinho.",
+        "Dois excepts separados (ValueError e KeyError), cada um retornando a sua tupla. Para o KeyError, use `e.args[0]` em vez de `str(e)`.",
+        "`try: return (\"ok\", operacao())` / `except ValueError as e: return (\"dado_ruim\", str(e))` / `except KeyError as e: return (\"campo_faltando\", e.args[0])` — e mais nada: sem except genérico."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-excecoes-t3-01",
+      "nivel": "excecoes",
+      "tier": 3,
+      "conceitos": [
+        "hierarquia-excecoes",
+        "excecoes-customizadas",
+        "raise"
+      ],
+      "titulo": "A família de erros do Dojo",
+      "explicacao_md": "Projetos maduros definem uma **hierarquia** de erros: uma base própria e filhas específicas.\n\n```python\nclass ErroDojo(Exception):\n    pass\n\nclass ErroConfig(ErroDojo):\n    pass\n```\n\n`except ErroDojo` captura a base E todas as filhas de uma vez — sem tocar em `TypeError` e companhia.\n\nTrês armadilhas clássicas deste tier:\n\n1. **Ordem dos excepts**: o Python usa o PRIMEIRO que casa — `except Exception` no topo torna os específicos inalcançáveis.\n2. **`return` dentro de `finally`** engole qualquer exceção em voo e sobrescreve o return do try.\n3. **`except Exception` silencioso** esconde bugs — trate o esperado e re-lance o resto com `raise` (sem argumentos).",
+      "enunciado_md": "Projetos de IA maduros têm a própria família de erros — o chamador captura a base e ignora o resto do mundo.\n\nDefina a hierarquia **exata**: `ErroDojo` (herda de `Exception`), `ErroConfig` e `ErroDados` (herdam de `ErroDojo`).\n\n`iniciar_pipeline(config, documentos)`:\n\n- sem a chave `\"modelo\"` em `config` → `ErroConfig` com mensagem `config sem chave: modelo`\n- `documentos` vazio → `ErroDados` com mensagem `nenhum documento para indexar`\n- sucesso → `f\"{config['modelo']}: {len(documentos)} documento(s)\"`\n\n`executar_pipeline(config, documentos)`: chama a de cima; qualquer erro da **família** vira `f\"abortado: {e}\"`; erros de fora da família propagam.\n\nExemplo: `executar_pipeline({}, [\"d\"])` → `\"abortado: config sem chave: modelo\"`",
+      "starter_code": "# Hierarquia exigida (nomes exatos):\n#   ErroDojo(Exception)\n#   ErroConfig(ErroDojo)\n#   ErroDados(ErroDojo)\n\n\ndef iniciar_pipeline(config, documentos):\n    \"\"\"Levanta ErroConfig(\"config sem chave: modelo\") se \"modelo\" não está em config.\n    Levanta ErroDados(\"nenhum documento para indexar\") se documentos é vazio.\n    Sucesso: retorna f\"{config['modelo']}: {len(documentos)} documento(s)\".\n    \"\"\"\n    # Dois ifs com raise, nas mensagens exatas do contrato.\n    ...\n\n\ndef executar_pipeline(config, documentos):\n    \"\"\"Chama iniciar_pipeline. Captura a FAMÍLIA inteira (um único except\n    pela base) e retorna f\"abortado: {e}\". Erros de fora da família propagam.\n    Sucesso: repassa o retorno.\n    \"\"\"\n    # Capturar pela BASE (ErroDojo) pega as duas filhas de uma vez, sem tocar\n    # em TypeError e companhia.\n    ...\n",
+      "solucao_referencia": "class ErroDojo(Exception):\n    pass\n\n\nclass ErroConfig(ErroDojo):\n    pass\n\n\nclass ErroDados(ErroDojo):\n    pass\n\n\ndef iniciar_pipeline(config, documentos):\n    if \"modelo\" not in config:\n        raise ErroConfig(\"config sem chave: modelo\")\n    if not documentos:\n        raise ErroDados(\"nenhum documento para indexar\")\n    return f\"{config['modelo']}: {len(documentos)} documento(s)\"\n\n\ndef executar_pipeline(config, documentos):\n    try:\n        return iniciar_pipeline(config, documentos)\n    except ErroDojo as e:\n        return f\"abortado: {e}\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "pipeline saudável",
+          "codigo": "_verificar(executar_pipeline({'modelo': 'mock-4'}, ['doc1', 'doc2']), 'mock-4: 2 documento(s)')"
+        },
+        {
+          "nome": "config ruim é abortada pela base",
+          "codigo": "_verificar(executar_pipeline({}, ['doc1']), 'abortado: config sem chave: modelo')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "a hierarquia é a exigida",
+          "codigo": "assert issubclass(ErroConfig, ErroDojo) and issubclass(ErroDados, ErroDojo), 'ErroConfig e ErroDados devem herdar de ErroDojo'\nassert issubclass(ErroDojo, Exception) and not issubclass(ErroDojo, ErroConfig), 'ErroDojo é a BASE da família, não filha'"
+        },
+        {
+          "nome": "dados vazios abortam",
+          "codigo": "_verificar(executar_pipeline({'modelo': 'mini'}, []), 'abortado: nenhum documento para indexar')"
+        },
+        {
+          "nome": "o erro de config é ErroConfig mesmo",
+          "codigo": "try:\n    iniciar_pipeline({}, ['d'])\n    assert False, 'Config sem modelo deveria levantar ErroConfig'\nexcept ErroConfig as e:\n    _verificar(str(e), 'config sem chave: modelo')"
+        },
+        {
+          "nome": "o erro de dados casa com a base",
+          "codigo": "try:\n    iniciar_pipeline({'modelo': 'm'}, [])\n    assert False, 'Documentos vazios deveriam levantar ErroDados'\nexcept ErroDojo as e:\n    assert type(e).__name__ == 'ErroDados', 'O erro de dados deve ser ErroDados, veio ' + type(e).__name__\n    _verificar(str(e), 'nenhum documento para indexar')"
+        },
+        {
+          "nome": "erro de fora da família propaga",
+          "codigo": "try:\n    executar_pipeline(None, ['d'])\n    assert False, 'Erro com config None não é da família ErroDojo — deve propagar'\nexcept (TypeError, AttributeError):\n    pass"
+        }
+      ],
+      "dicas": [
+        "Capturar pela BASE é o superpoder da hierarquia: um único `except ErroDojo` pega ErroConfig, ErroDados e qualquer filha futura — sem engolir TypeError e companhia.",
+        "Três classes de corpo `pass` encadeadas pela herança; em `iniciar_pipeline`, dois ifs com raise (mensagens exatas); em `executar_pipeline`, um try com `except ErroDojo as e`.",
+        "`class ErroDojo(Exception): pass`, `class ErroConfig(ErroDojo): pass`, `class ErroDados(ErroDojo): pass`; no executor: `try: return iniciar_pipeline(config, documentos)` / `except ErroDojo as e: return f\"abortado: {e}\"`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-excecoes-t3-02",
+      "nivel": "excecoes",
+      "tier": 3,
+      "conceitos": [
+        "hierarquia-excecoes",
+        "try-except",
+        "excecoes-customizadas"
+      ],
+      "titulo": "Excepts na ordem errada",
+      "explicacao_md": null,
+      "enunciado_md": "Um colega escreveu a triagem de falhas do extrator — e agora TODA falha acorda o plantão como `\"inesperado\"`, até as banais. O contrato (correto) está no docstring; o bug está na **ordem** dos `except`: o Python usa o primeiro que casa, e `Exception` casa com tudo.\n\nConserte `classificar(operacao)` sem mudar o contrato:\n\n- sucesso → `(\"ok\", resultado)`\n- `EntradaInvalida` → `(\"entrada\", str(e))` — retry barato\n- `ValueError` comum → `(\"valor\", str(e))` — fila de revisão\n- outra `Exception` → `(\"inesperado\", str(e))` — acorda o plantão\n\nExemplo: uma operação que levanta `EntradaInvalida(\"prompt vazio\")` deve virar `(\"entrada\", \"prompt vazio\")`.",
+      "starter_code": "class EntradaInvalida(ValueError):\n    \"\"\"Entrada rejeitada pela validação do pipeline.\"\"\"\n\n\ndef classificar(operacao):\n    \"\"\"Contrato (não mude):\n    - sucesso -> (\"ok\", resultado)\n    - EntradaInvalida -> (\"entrada\", str(e))\n    - ValueError comum -> (\"valor\", str(e))\n    - qualquer outra Exception -> (\"inesperado\", str(e))\n    BUG: hoje tudo cai em \"inesperado\". Conserte a ORDEM dos excepts.\n    \"\"\"\n    try:\n        return (\"ok\", operacao())\n    except Exception as e:\n        return (\"inesperado\", str(e))\n    except ValueError as e:\n        return (\"valor\", str(e))\n    except EntradaInvalida as e:\n        return (\"entrada\", str(e))\n",
+      "solucao_referencia": "class EntradaInvalida(ValueError):\n    \"\"\"Entrada rejeitada pela validação do pipeline.\"\"\"\n\n\ndef classificar(operacao):\n    try:\n        return (\"ok\", operacao())\n    except EntradaInvalida as e:\n        return (\"entrada\", str(e))\n    except ValueError as e:\n        return (\"valor\", str(e))\n    except Exception as e:\n        return (\"inesperado\", str(e))\n",
+      "testes_visiveis": [
+        {
+          "nome": "sucesso continua ok",
+          "codigo": "_verificar(classificar(lambda: 'resumo'), ('ok', 'resumo'))"
+        },
+        {
+          "nome": "EntradaInvalida vai para retry",
+          "codigo": "def op():\n    raise EntradaInvalida('prompt vazio')\n_verificar(classificar(op), ('entrada', 'prompt vazio'))"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "ValueError comum vai para revisão",
+          "codigo": "def op():\n    raise ValueError('total ilegível')\n_verificar(classificar(op), ('valor', 'total ilegível'))"
+        },
+        {
+          "nome": "o inesperado continua funcionando",
+          "codigo": "def op():\n    raise RuntimeError('disco cheio')\n_verificar(classificar(op), ('inesperado', 'disco cheio'))"
+        },
+        {
+          "nome": "a filha não cai no except da mãe",
+          "codigo": "def op():\n    raise EntradaInvalida('anexo corrompido')\nr = classificar(op)\nassert r[0] == 'entrada', 'EntradaInvalida deve casar com o except MAIS específico, caiu em: ' + r[0]\n_verificar(r, ('entrada', 'anexo corrompido'))"
+        },
+        {
+          "nome": "outro sucesso",
+          "codigo": "_verificar(classificar(lambda: 42), ('ok', 42))"
+        }
+      ],
+      "dicas": [
+        "O Python testa os excepts de cima para baixo e para no primeiro cujo tipo casa — e herança conta: `Exception` casa com QUALQUER exceção, então no topo ele transforma os de baixo em código morto.",
+        "Ordene do mais específico para o mais genérico: EntradaInvalida é filha de ValueError, então vem ANTES dele; `Exception` fica por último.",
+        "Ordem final: `except EntradaInvalida as e:` → `except ValueError as e:` → `except Exception as e:` — os corpos de cada um não mudam."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-excecoes-t3-03",
+      "nivel": "excecoes",
+      "tier": 3,
+      "conceitos": [
+        "finally",
+        "try-except",
+        "raise"
+      ],
+      "titulo": "O finally que engolia tudo",
+      "explicacao_md": null,
+      "enunciado_md": "O wrapper de chamadas do gateway tem dois bugs clássicos: um `return` dentro do `finally` — que **sobrescreve** o retorno do `try` e **engole** qualquer exceção em voo — e um `except Exception` que trata bug de código como dado ruim.\n\nConserte `chamar_modelo(operacao, padrao, log)`:\n\n- sucesso → retorna o resultado de `operacao()`\n- `ValueError` (dado ruim esperado) → registra `\"dado_ruim\"` no `log` e retorna `padrao`\n- qualquer outra exceção → **propaga** (re-lance com `raise`, ou capture só o que espera)\n- `\"fim\"` entra no `log` por último, em **todos** os cenários\n\nExemplo: `chamar_modelo(lambda: \"olá\", \"?\", [])` → `\"olá\"` (não `\"?\"`!)",
+      "starter_code": "def chamar_modelo(operacao, padrao, log):\n    \"\"\"Contrato:\n    - sucesso -> retorna operacao()\n    - ValueError -> log recebe \"dado_ruim\", retorna padrao\n    - outras exceções -> PROPAGAM (nada de silenciar bug)\n    - \"fim\" SEMPRE entra no log, por último\n    BUGS atuais: o return no finally engole exceções e sobrescreve o\n    retorno do try; o except Exception esconde erros de código.\n    \"\"\"\n    try:\n        return operacao()\n    except Exception:\n        log.append(\"dado_ruim\")\n        return padrao\n    finally:\n        log.append(\"fim\")\n        return padrao\n",
+      "solucao_referencia": "def chamar_modelo(operacao, padrao, log):\n    try:\n        return operacao()\n    except ValueError:\n        log.append(\"dado_ruim\")\n        return padrao\n    finally:\n        log.append(\"fim\")\n",
+      "testes_visiveis": [
+        {
+          "nome": "sucesso devolve o valor da operação",
+          "codigo": "log = []\nr = chamar_modelo(lambda: 'resposta do modelo', '?', log)\n_verificar(r, 'resposta do modelo')\n_verificar(log, ['fim'])"
+        },
+        {
+          "nome": "dado ruim usa o padrão e registra",
+          "codigo": "log = []\ndef op():\n    raise ValueError('resposta ilegível')\n_verificar(chamar_modelo(op, 'N/D', log), 'N/D')\n_verificar(log, ['dado_ruim', 'fim'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "bug de código propaga com o log fechado",
+          "codigo": "log = []\ndef op():\n    raise TypeError('operacao não é função')\ntry:\n    chamar_modelo(op, 0, log)\n    assert False, 'TypeError é bug de código — deve propagar, não virar padrao'\nexcept TypeError as e:\n    assert 'não é função' in str(e), 'A exceção original deve chegar intacta a quem chamou'\n_verificar(log, ['fim'])"
+        },
+        {
+          "nome": "outro sucesso",
+          "codigo": "log = []\n_verificar(chamar_modelo(lambda: 3.14, 0.0, log), 3.14)\n_verificar(log, ['fim'])"
+        },
+        {
+          "nome": "KeyError também propaga",
+          "codigo": "log = []\ndef op():\n    raise KeyError('modelo')\ntry:\n    chamar_modelo(op, None, log)\n    assert False, 'KeyError deve propagar — o finally não pode engolir a exceção'\nexcept KeyError:\n    pass\n_verificar(log, ['fim'])"
+        }
+      ],
+      "dicas": [
+        "Dois venenos: `return` no `finally` SEMPRE vence — apaga o retorno do try e mata a exceção em voo; e `except Exception` trata bug de código como se fosse dado ruim.",
+        "O finally fica só com o `log.append(\"fim\")`; o except estreita para `except ValueError:` (ou mantém Exception, mas re-lança com `raise` o que não for ValueError).",
+        "`try: return operacao()` / `except ValueError: log.append(\"dado_ruim\")` e `return padrao` / `finally: log.append(\"fim\")` — e NENHUM return dentro do finally."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-arquivos-t1-01",
+      "nivel": "arquivos",
+      "tier": 1,
+      "conceitos": [
+        "arquivos",
+        "utf-8"
+      ],
+      "titulo": "O prompt que mora no disco",
+      "explicacao_md": "Times de IA guardam prompts em arquivos — versionados como código, não colados no meio do programa. O gateway que você vem montando ganha memória de disco: o que era variável agora sobrevive ao desligar.\n\nPara ler um arquivo em Python, use `with open(...)`: o `with` garante que o arquivo é fechado mesmo se algo der errado no meio, e `encoding=\"utf-8\"` garante que acentos não virem lixo (esquecer o encoding no Windows é bug clássico).\n\n```python\nwith open(\"prompt.txt\", encoding=\"utf-8\") as f:\n    conteudo = f.read()\n```\n\n`f.read()` devolve o arquivo inteiro como uma única string.",
+      "enunciado_md": "O prompt do seu assistente fica num arquivo de texto, não no código.\n\nComplete `ler_prompt(caminho)` para abrir o arquivo `caminho` com `with` e `encoding=\"utf-8\"` e retornar o conteúdo completo como string.\n\nO sandbox já tem `prompt.txt` e `sistema.txt` para testar.\n\nExemplo: `ler_prompt(\"prompt.txt\")` → o texto inteiro do arquivo.",
+      "starter_code": "def ler_prompt(caminho):\n    # Abra com with (fecha sozinho, mesmo se der erro) e encoding=\"utf-8\"\n    # (sem ele, acento vira lixo no Windows). Um método lê o arquivo inteiro de\n    # uma vez — devolva o que ele retorna.\n    ...\n",
+      "solucao_referencia": "def ler_prompt(caminho):\n    with open(caminho, encoding=\"utf-8\") as f:\n        return f.read()\n",
+      "testes_visiveis": [
+        {
+          "nome": "lê o prompt inteiro",
+          "codigo": "_verificar(ler_prompt('prompt.txt'), 'Resuma o texto a seguir em três frases.\\nSeja objetivo e cite números.\\n')"
+        },
+        {
+          "nome": "acentos chegam intactos",
+          "codigo": "assert 'três' in ler_prompt('prompt.txt'), 'Os acentos devem sobreviver à leitura — confira o encoding'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro arquivo",
+          "codigo": "_verificar(ler_prompt('sistema.txt'), 'Você é um assistente de análise de vendas. Responda em português.\\n')"
+        },
+        {
+          "nome": "retorna uma string",
+          "codigo": "assert isinstance(ler_prompt('prompt.txt'), str), 'A função deve retornar uma string com o conteúdo do arquivo'"
+        }
+      ],
+      "dicas": [
+        "O `with` abre e fecha o arquivo sozinho; dentro do bloco, o objeto `f` é a sua janela para o conteúdo.",
+        "`f.read()` sem argumentos devolve o arquivo inteiro numa string só — é isso que a função retorna.",
+        "`with open(caminho, encoding=\"utf-8\") as f: return f.read()` — o return pode viver dentro do with."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "arquivos": {
+        "prompt.txt": "Resuma o texto a seguir em três frases.\nSeja objetivo e cite números.\n",
+        "sistema.txt": "Você é um assistente de análise de vendas. Responda em português.\n"
+      },
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-arquivos-t1-02",
+      "nivel": "arquivos",
+      "tier": 1,
+      "conceitos": [
+        "json",
+        "dicts"
+      ],
+      "titulo": "Texto cru vira dicionário",
+      "explicacao_md": null,
+      "enunciado_md": "Toda resposta de API de LLM chega como **texto** em formato JSON. `json.loads(texto)` converte esse texto no objeto Python correspondente (dict, lista, número...). O módulo precisa de `import json` no topo.\n\nComplete `interpretar(texto_json)` que recebe uma string JSON e retorna o objeto Python equivalente.\n\nExemplo: `interpretar('{\"modelo\": \"mock-4\", \"tokens\": 128}')` → `{'modelo': 'mock-4', 'tokens': 128}`",
+      "starter_code": "import json\n\ndef interpretar(texto_json):\n    # O módulo json tem uma função que transforma TEXTO em objeto Python (dict,\n    # lista, número...). É ela que você chama — nada de open aqui, o texto já chega pronto.\n    ...\n",
+      "solucao_referencia": "import json\n\ndef interpretar(texto_json):\n    return json.loads(texto_json)\n",
+      "testes_visiveis": [
+        {
+          "nome": "objeto com dois campos",
+          "codigo": "_verificar(interpretar('{\"modelo\": \"mock-4\", \"tokens\": 128}'), {'modelo': 'mock-4', 'tokens': 128})"
+        },
+        {
+          "nome": "lista JSON vira lista Python",
+          "codigo": "_verificar(interpretar('[\"rag\", \"llm\"]'), ['rag', 'llm'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro payload",
+          "codigo": "_verificar(interpretar('{\"ok\": true, \"custo\": 0.5}'), {'ok': True, 'custo': 0.5})"
+        },
+        {
+          "nome": "retorna dict de verdade",
+          "codigo": "assert isinstance(interpretar('{\"a\": 1}'), dict), 'json.loads de um objeto JSON deve devolver um dict'"
+        },
+        {
+          "nome": "acentos no valor",
+          "codigo": "_verificar(interpretar('{\"msg\": \"não pare\"}'), {'msg': 'não pare'})"
+        }
+      ],
+      "dicas": [
+        "JSON é texto; seu programa quer estruturas. A conversão texto → objeto é um `loads` (load de **s**tring).",
+        "A chamada é `json.loads(texto_json)` — e o módulo `json` precisa estar importado no topo do arquivo.",
+        "`import json` no topo e `return json.loads(texto_json)` no corpo."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-arquivos-t1-03",
+      "nivel": "arquivos",
+      "tier": 1,
+      "conceitos": [
+        "json",
+        "dicts-aninhados"
+      ],
+      "titulo": "Dois andares abaixo",
+      "explicacao_md": null,
+      "enunciado_md": "Respostas de LLM são JSON **aninhado**: o consumo fica num dicionário dentro do dicionário.\n\n```python\nresp = {\"model\": \"mock-4\", \"usage\": {\"prompt_tokens\": 12, \"completion_tokens\": 30, \"total_tokens\": 42}}\n```\n\nComplete `tokens_usados(resp)` que retorna o valor de `total_tokens`, descendo os dois níveis: primeiro `\"usage\"`, depois `\"total_tokens\"`.\n\nExemplo: com o `resp` acima → `42`",
+      "starter_code": "def tokens_usados(resp):\n    # É JSON aninhado: desça dois níveis. Primeiro a chave do dicionário interno,\n    # depois a chave do valor lá dentro — encadeando os colchetes.\n    ...\n",
+      "solucao_referencia": "def tokens_usados(resp):\n    return resp[\"usage\"][\"total_tokens\"]\n",
+      "testes_visiveis": [
+        {
+          "nome": "resposta de exemplo",
+          "codigo": "_verificar(tokens_usados({'model': 'mock-4', 'usage': {'prompt_tokens': 12, 'completion_tokens': 30, 'total_tokens': 42}}), 42)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outros números",
+          "codigo": "_verificar(tokens_usados({'usage': {'prompt_tokens': 500, 'completion_tokens': 499, 'total_tokens': 999}}), 999)"
+        },
+        {
+          "nome": "chaves extras não atrapalham",
+          "codigo": "_verificar(tokens_usados({'model': 'x', 'id': 'r-1', 'usage': {'total_tokens': 7, 'cache': 0}}), 7)"
+        },
+        {
+          "nome": "zero tokens",
+          "codigo": "_verificar(tokens_usados({'usage': {'prompt_tokens': 0, 'completion_tokens': 0, 'total_tokens': 0}}), 0)"
+        }
+      ],
+      "dicas": [
+        "Cada par de colchetes desce UM nível do dicionário — aqui são dois níveis, um atrás do outro.",
+        "`resp[\"usage\"]` devolve outro dicionário; encadeie mais um acesso de colchetes nele.",
+        "`return resp[\"usage\"][\"total_tokens\"]`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-arquivos-t1-04",
+      "nivel": "arquivos",
+      "tier": 1,
+      "conceitos": [
+        "json",
+        "utf-8"
+      ],
+      "titulo": "JSON que fala português",
+      "explicacao_md": null,
+      "enunciado_md": "`json.dumps(dados)` faz o caminho inverso do `loads`: objeto → texto. Mas o padrão escapa tudo que não é ASCII: `\"ação\"` vira `\"a\\u00e7\\u00e3o\"` — ilegível para humanos.\n\nO parâmetro `ensure_ascii=False` mantém os caracteres reais.\n\nComplete `serializar(dados)` que converte `dados` em texto JSON com `ensure_ascii=False`.\n\nExemplo: `serializar({\"msg\": \"atenção\"})` → `'{\"msg\": \"atenção\"}'`",
+      "starter_code": "import json\n\ndef serializar(dados):\n    # É o caminho inverso do loads: objeto -> texto. Tem um parâmetro que impede\n    # o escape dos acentos (senão \"ação\" vira \"a\\u00e7\\u00e3o\"). Passe ele.\n    ...\n",
+      "solucao_referencia": "import json\n\ndef serializar(dados):\n    return json.dumps(dados, ensure_ascii=False)\n",
+      "testes_visiveis": [
+        {
+          "nome": "acento vira acento",
+          "codigo": "_verificar(serializar({'msg': 'atenção'}), '{\"msg\": \"atenção\"}')"
+        },
+        {
+          "nome": "números e booleanos",
+          "codigo": "_verificar(serializar({'ok': True, 'n': 3}), '{\"ok\": true, \"n\": 3}')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "cedilha intacta",
+          "codigo": "resultado = serializar({'acao': 'coração'})\nassert 'coração' in resultado, 'Com ensure_ascii=False, o ç deve aparecer de verdade no texto'"
+        },
+        {
+          "nome": "lista com acentos",
+          "codigo": "_verificar(serializar(['ação', 'revisão']), '[\"ação\", \"revisão\"]')"
+        },
+        {
+          "nome": "ida e volta bate",
+          "codigo": "import json\n_verificar(json.loads(serializar({'a': 'é'})), {'a': 'é'})"
+        }
+      ],
+      "dicas": [
+        "`dumps` = dump para **s**tring. Sem ajustes, ele foge de tudo que não é ASCII — bom para máquinas, ruim para gente.",
+        "O parâmetro é `ensure_ascii=False`, passado direto na chamada de `json.dumps`.",
+        "`return json.dumps(dados, ensure_ascii=False)`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-arquivos-t1-05",
+      "nivel": "arquivos",
+      "tier": 1,
+      "conceitos": [
+        "arquivos",
+        "utf-8"
+      ],
+      "titulo": "Gravando a resposta",
+      "explicacao_md": null,
+      "enunciado_md": "Depois de pagar por uma resposta do LLM, você quer guardá-la em disco.\n\nAbrir com o modo `\"w\"` cria (ou **sobrescreve**) o arquivo para escrita: `open(caminho, \"w\", encoding=\"utf-8\")`.\n\nComplete `salvar_resposta(caminho, texto)` que grava `texto` no arquivo `caminho` (substituindo o que existia), usando `with` e UTF-8.\n\nExemplo: após `salvar_resposta(\"resp.txt\", \"olá\")`, o arquivo `resp.txt` contém `olá`.",
+      "starter_code": "def salvar_resposta(caminho, texto):\n    # Escrever pede o modo \"w\" no open (cria ou sobrescreve) + encoding=\"utf-8\".\n    # Dentro do with, um método grava a string no arquivo.\n    ...\n",
+      "solucao_referencia": "def salvar_resposta(caminho, texto):\n    with open(caminho, \"w\", encoding=\"utf-8\") as f:\n        f.write(texto)\n",
+      "testes_visiveis": [
+        {
+          "nome": "grava e confere",
+          "codigo": "salvar_resposta('resp.txt', 'olá, modelo')\nwith open('resp.txt', encoding='utf-8') as f:\n    _verificar(f.read(), 'olá, modelo')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro arquivo e acentos",
+          "codigo": "salvar_resposta('nota.txt', 'ação concluída às 14h')\nwith open('nota.txt', encoding='utf-8') as f:\n    _verificar(f.read(), 'ação concluída às 14h')"
+        },
+        {
+          "nome": "sobrescreve, não acumula",
+          "codigo": "salvar_resposta('dup.txt', 'primeira')\nsalvar_resposta('dup.txt', 'segunda')\nwith open('dup.txt', encoding='utf-8') as f:\n    _verificar(f.read(), 'segunda')"
+        }
+      ],
+      "dicas": [
+        "O modo de abertura muda tudo: sem ele é leitura; com `\"w\"` o arquivo nasce (ou é zerado) para escrita.",
+        "Dentro do `with`, `f.write(texto)` grava a string — a função não precisa retornar nada.",
+        "`with open(caminho, \"w\", encoding=\"utf-8\") as f: f.write(texto)`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-arquivos-t1-06",
+      "nivel": "arquivos",
+      "tier": 1,
+      "conceitos": [
+        "arquivos",
+        "json"
+      ],
+      "titulo": "Config direto do arquivo",
+      "explicacao_md": null,
+      "enunciado_md": "Junte as duas pontas: a configuração do seu agente mora num arquivo JSON.\n\nPara arquivos existe o atalho `json.load(f)` (sem o **s**), que lê e converte de uma vez.\n\nComplete `ler_config(caminho)` que abre o arquivo com `with` + UTF-8 e retorna o dicionário resultante.\n\nO sandbox tem `config.json`:\n\n```json\n{\"modelo\": \"mock-4\", \"temperatura\": 0.2, \"limites\": {\"tokens\": 512}}\n```\n\nExemplo: `ler_config(\"config.json\")[\"modelo\"]` → `\"mock-4\"`",
+      "starter_code": "import json\n\ndef ler_config(caminho):\n    # Junte as pontas: abra o arquivo com with + UTF-8 e use o atalho que lê E\n    # converte de uma vez, direto do arquivo (o irmão do loads, SEM o \"s\").\n    ...\n",
+      "solucao_referencia": "import json\n\ndef ler_config(caminho):\n    with open(caminho, encoding=\"utf-8\") as f:\n        return json.load(f)\n",
+      "testes_visiveis": [
+        {
+          "nome": "config completa",
+          "codigo": "_verificar(ler_config('config.json'), {'modelo': 'mock-4', 'temperatura': 0.2, 'limites': {'tokens': 512}})"
+        },
+        {
+          "nome": "campo aninhado acessível",
+          "codigo": "_verificar(ler_config('config.json')['limites']['tokens'], 512)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro arquivo",
+          "codigo": "_verificar(ler_config('config_b.json'), {'modelo': 'mock-mini', 'temperatura': 1.0, 'limites': {'tokens': 128}})"
+        },
+        {
+          "nome": "retorna dict",
+          "codigo": "assert isinstance(ler_config('config.json'), dict), 'A função deve retornar o dicionário da config'"
+        }
+      ],
+      "dicas": [
+        "`loads` lê de uma string; `load` (sem s) lê direto de um arquivo aberto.",
+        "Abra com `with open(caminho, encoding=\"utf-8\") as f:` e passe o `f` para `json.load`.",
+        "`with open(caminho, encoding=\"utf-8\") as f: return json.load(f)`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "arquivos": {
+        "config.json": "{\"modelo\": \"mock-4\", \"temperatura\": 0.2, \"limites\": {\"tokens\": 512}}\n",
+        "config_b.json": "{\"modelo\": \"mock-mini\", \"temperatura\": 1.0, \"limites\": {\"tokens\": 128}}\n"
+      },
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-arquivos-t2-01",
+      "nivel": "arquivos",
+      "tier": 2,
+      "conceitos": [
+        "jsonl",
+        "loops",
+        "dicts"
+      ],
+      "titulo": "A conta do fim do mês",
+      "explicacao_md": "JSONL (JSON Lines) é o formato padrão de logs e datasets de IA: **uma linha = um JSON completo e independente**. Dá para processar milhões de registros sem carregar tudo na memória.\n\n```python\nimport json\n\nwith open(\"log.jsonl\", encoding=\"utf-8\") as f:\n    for linha in f:\n        registro = json.loads(linha)\n```\n\nIterar sobre `f` entrega uma linha por vez (com o `\\n` no final — `json.loads` não se importa). Daí em diante é o que você já sabe: dicts e loops para somar, filtrar e agrupar.",
+      "enunciado_md": "Cada chamada ao gateway gera uma linha em `chamadas.jsonl`:\n\n```\n{\"modelo\": \"mock-4\", \"custo\": 0.002}\n{\"modelo\": \"mock-mini\", \"custo\": 0.0004}\n```\n\nEscreva `custo_por_modelo(caminho)` que lê o JSONL e retorna um dict `{modelo: custo_total}`, somando o campo `custo` de cada linha por modelo.\n\nExemplo: com as duas linhas acima → `{\"mock-4\": 0.002, \"mock-mini\": 0.0004}`\n\n(No teste, o arquivo `chamadas.jsonl` tem mais chamadas além dessas duas de exemplo — some **todas** as linhas por modelo.)",
+      "starter_code": "import json\n\ndef custo_por_modelo(caminho):\n    # Um dict acumulador + iterar o arquivo linha a linha (cada linha é um JSON).\n    # Converta cada linha, leia o modelo e some o custo no total daquele modelo.\n    ...\n",
+      "solucao_referencia": "import json\n\ndef custo_por_modelo(caminho):\n    totais = {}\n    with open(caminho, encoding=\"utf-8\") as f:\n        for linha in f:\n            reg = json.loads(linha)\n            modelo = reg[\"modelo\"]\n            totais[modelo] = totais.get(modelo, 0.0) + reg[\"custo\"]\n    return totais\n",
+      "testes_visiveis": [
+        {
+          "nome": "soma por modelo",
+          "codigo": "_verificar(custo_por_modelo('chamadas.jsonl'), {'mock-4': 0.006, 'mock-mini': 0.001})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro log",
+          "codigo": "_verificar(custo_por_modelo('chamadas_b.jsonl'), {'mock-turbo': 0.03})"
+        },
+        {
+          "nome": "uma linha só",
+          "codigo": "_verificar(custo_por_modelo('uma_chamada.jsonl'), {'mock-4': 0.005})"
+        },
+        {
+          "nome": "não inventa modelo",
+          "codigo": "assert set(custo_por_modelo('chamadas.jsonl')) == {'mock-4', 'mock-mini'}, 'O dict deve ter exatamente os modelos presentes no log'"
+        }
+      ],
+      "dicas": [
+        "Percorra o arquivo linha a linha; cada linha é um JSON independente que vira um dict com `json.loads`.",
+        "Acumule num dict: `totais.get(modelo, 0.0) + custo` cobre tanto a primeira aparição do modelo quanto as seguintes.",
+        "`for linha in f:` → `reg = json.loads(linha)` → `totais[reg['modelo']] = totais.get(reg['modelo'], 0.0) + reg['custo']` — e retorne `totais`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "arquivos": {
+        "chamadas.jsonl": "{\"modelo\": \"mock-4\", \"custo\": 0.002}\n{\"modelo\": \"mock-mini\", \"custo\": 0.0004}\n{\"modelo\": \"mock-4\", \"custo\": 0.003}\n{\"modelo\": \"mock-mini\", \"custo\": 0.0006}\n{\"modelo\": \"mock-4\", \"custo\": 0.001}\n",
+        "chamadas_b.jsonl": "{\"modelo\": \"mock-turbo\", \"custo\": 0.01}\n{\"modelo\": \"mock-turbo\", \"custo\": 0.02}\n",
+        "uma_chamada.jsonl": "{\"modelo\": \"mock-4\", \"custo\": 0.005}\n"
+      },
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-arquivos-t2-02",
+      "nivel": "arquivos",
+      "tier": 2,
+      "conceitos": [
+        "json",
+        "dicts-aninhados"
+      ],
+      "titulo": "O caminho até a resposta",
+      "explicacao_md": null,
+      "enunciado_md": "A resposta REAL da API da OpenAI chega como texto JSON com esta forma (resumida):\n\n```json\n{\"id\": \"chatcmpl-1\", \"choices\": [{\"index\": 0, \"message\": {\"role\": \"assistant\", \"content\": \"RAG combina busca e geração.\"}, \"finish_reason\": \"stop\"}], \"usage\": {\"total_tokens\": 42}}\n```\n\nEscreva `extrair_conteudo(texto_json)` que recebe esse texto cru e retorna só o texto da resposta: `choices[0]` → `message` → `content`.\n\nSe houver mais de uma alternativa em `choices`, use sempre a primeira.\n\nExemplo: com o JSON acima → `\"RAG combina busca e geração.\"`",
+      "starter_code": "import json\n\ndef extrair_conteudo(texto_json):\n    # Converta o texto e depois desça o caminho: choices -> a PRIMEIRA alternativa\n    # (índice 0) -> message -> content. É indexação encadeada.\n    ...\n",
+      "solucao_referencia": "import json\n\ndef extrair_conteudo(texto_json):\n    resp = json.loads(texto_json)\n    return resp[\"choices\"][0][\"message\"][\"content\"]\n",
+      "testes_visiveis": [
+        {
+          "nome": "resposta padrão",
+          "codigo": "_verificar(extrair_conteudo('{\"id\": \"chatcmpl-1\", \"choices\": [{\"index\": 0, \"message\": {\"role\": \"assistant\", \"content\": \"RAG combina busca e geração.\"}, \"finish_reason\": \"stop\"}], \"usage\": {\"total_tokens\": 42}}'), 'RAG combina busca e geração.')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outra resposta",
+          "codigo": "_verificar(extrair_conteudo('{\"id\": \"chatcmpl-9\", \"choices\": [{\"index\": 0, \"message\": {\"role\": \"assistant\", \"content\": \"Use chunks de 500 tokens com overlap.\"}, \"finish_reason\": \"stop\"}], \"usage\": {\"total_tokens\": 77}}'), 'Use chunks de 500 tokens com overlap.')"
+        },
+        {
+          "nome": "duas alternativas, vale a primeira",
+          "codigo": "_verificar(extrair_conteudo('{\"choices\": [{\"index\": 0, \"message\": {\"role\": \"assistant\", \"content\": \"primeira opção\"}}, {\"index\": 1, \"message\": {\"role\": \"assistant\", \"content\": \"segunda opção\"}}]}'), 'primeira opção')"
+        },
+        {
+          "nome": "resposta vazia ainda é resposta",
+          "codigo": "_verificar(extrair_conteudo('{\"choices\": [{\"index\": 0, \"message\": {\"role\": \"assistant\", \"content\": \"\"}}]}'), '')"
+        }
+      ],
+      "dicas": [
+        "Primeiro transforme o texto em objeto; só depois navegue. `choices` é uma LISTA — o `[0]` vem antes de `message`.",
+        "A trilha completa é `resp[\"choices\"][0][\"message\"][\"content\"]` — quatro passos, um por colchete.",
+        "`resp = json.loads(texto_json)` e depois `return resp[\"choices\"][0][\"message\"][\"content\"]`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-arquivos-t2-03",
+      "nivel": "arquivos",
+      "tier": 2,
+      "conceitos": [
+        "jsonl",
+        "arquivos",
+        "loops"
+      ],
+      "titulo": "Curadoria do dataset",
+      "explicacao_md": null,
+      "enunciado_md": "Seu dataset de fine-tuning tem exemplos aprovados e reprovados pela revisão humana, em `dataset.jsonl`:\n\n```\n{\"pergunta\": \"O que é RAG?\", \"resposta\": \"...\", \"aprovado\": true}\n{\"pergunta\": \"2+2?\", \"resposta\": \"5\", \"aprovado\": false}\n```\n\nEscreva `filtrar_aprovados(origem, destino)` que:\n\n- lê o JSONL `origem`\n- grava em `destino` (JSONL, `ensure_ascii=False`) **somente** os registros com `\"aprovado\": true`, na mesma ordem\n- retorna quantos registros gravou\n\nSe nenhum for aprovado, `destino` fica vazio e o retorno é `0`.\n\n(No teste, `dataset.jsonl` tem mais linhas além dessas duas de exemplo — filtre todas.)",
+      "starter_code": "import json\n\ndef filtrar_aprovados(origem, destino):\n    # Leia a origem linha a linha, guarde só os aprovados; depois grave-os no\n    # destino, um JSON por linha (ensure_ascii=False, com \"\\n\" no fim de cada).\n    # Devolva quantos gravou.\n    ...\n",
+      "solucao_referencia": "import json\n\ndef filtrar_aprovados(origem, destino):\n    aprovados = []\n    with open(origem, encoding=\"utf-8\") as f:\n        for linha in f:\n            reg = json.loads(linha)\n            if reg[\"aprovado\"]:\n                aprovados.append(reg)\n    with open(destino, \"w\", encoding=\"utf-8\") as f:\n        for reg in aprovados:\n            f.write(json.dumps(reg, ensure_ascii=False) + \"\\n\")\n    return len(aprovados)\n",
+      "testes_visiveis": [
+        {
+          "nome": "filtra e conta",
+          "codigo": "import json\nn = filtrar_aprovados('dataset.jsonl', 'limpo.jsonl')\n_verificar(n, 2)\nwith open('limpo.jsonl', encoding='utf-8') as f:\n    registros = [json.loads(l) for l in f if l.strip()]\n_verificar([r['pergunta'] for r in registros], ['O que é RAG?', 'O que é chunking?'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "todos aprovados",
+          "codigo": "import json\n_verificar(filtrar_aprovados('dataset_b.jsonl', 'saida_b.jsonl'), 3)\nwith open('saida_b.jsonl', encoding='utf-8') as f:\n    registros = [json.loads(l) for l in f if l.strip()]\n_verificar(registros, [{'pergunta': 'A?', 'resposta': 'a', 'aprovado': True}, {'pergunta': 'B?', 'resposta': 'b', 'aprovado': True}, {'pergunta': 'C?', 'resposta': 'c', 'aprovado': True}])"
+        },
+        {
+          "nome": "nenhum aprovado",
+          "codigo": "_verificar(filtrar_aprovados('dataset_vazio.jsonl', 'saida_v.jsonl'), 0)\nwith open('saida_v.jsonl', encoding='utf-8') as f:\n    _verificar(f.read().strip(), '')"
+        },
+        {
+          "nome": "acentos preservados no destino",
+          "codigo": "filtrar_aprovados('dataset.jsonl', 'limpo2.jsonl')\nwith open('limpo2.jsonl', encoding='utf-8') as f:\n    texto = f.read()\nassert 'geração' in texto, 'Com ensure_ascii=False, os acentos aparecem de verdade no arquivo de saída'"
+        }
+      ],
+      "dicas": [
+        "São duas fases: coletar os registros aprovados numa lista, depois gravar cada um como UMA linha JSON no destino.",
+        "Na gravação: `json.dumps(reg, ensure_ascii=False) + \"\\n\"` — a quebra de linha é sua; o dumps não a adiciona.",
+        "Leia com `for linha in f` + `json.loads`; acumule se `reg[\"aprovado\"]`; grave com `f.write(json.dumps(reg, ensure_ascii=False) + \"\\n\")` e retorne `len(aprovados)`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "arquivos": {
+        "dataset.jsonl": "{\"pergunta\": \"O que é RAG?\", \"resposta\": \"Busca + geração.\", \"aprovado\": true}\n{\"pergunta\": \"2+2?\", \"resposta\": \"5\", \"aprovado\": false}\n{\"pergunta\": \"O que é chunking?\", \"resposta\": \"Divisão do texto em pedaços.\", \"aprovado\": true}\n{\"pergunta\": \"Capital?\", \"resposta\": \"n/a\", \"aprovado\": false}\n",
+        "dataset_b.jsonl": "{\"pergunta\": \"A?\", \"resposta\": \"a\", \"aprovado\": true}\n{\"pergunta\": \"B?\", \"resposta\": \"b\", \"aprovado\": true}\n{\"pergunta\": \"C?\", \"resposta\": \"c\", \"aprovado\": true}\n",
+        "dataset_vazio.jsonl": "{\"pergunta\": \"X?\", \"resposta\": \"x\", \"aprovado\": false}\n"
+      },
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-arquivos-t2-04",
+      "nivel": "arquivos",
+      "tier": 2,
+      "conceitos": [
+        "jsonl",
+        "utf-8"
+      ],
+      "titulo": "Exportador de exemplos",
+      "explicacao_md": null,
+      "enunciado_md": "Você montou exemplos de treino em memória (lista de dicts) e precisa entregá-los no formato que as ferramentas de fine-tuning esperam: JSONL.\n\nEscreva `exportar_jsonl(registros, caminho)` que:\n\n- grava cada dict de `registros` como uma linha JSON em `caminho` (com `ensure_ascii=False`)\n- termina cada linha com `\\n`\n- retorna o número de linhas gravadas\n\nLista vazia → arquivo vazio, retorno `0`.\n\nExemplo: `exportar_jsonl([{\"q\": \"oi\"}], \"out.jsonl\")` → `1`; o arquivo contém `{\"q\": \"oi\"}` e uma quebra de linha.",
+      "starter_code": "import json\n\ndef exportar_jsonl(registros, caminho):\n    # Abra para escrita e, para cada dict, grave a linha JSON (ensure_ascii=False)\n    # seguida de \"\\n\" — inclusive na última. Devolva quantas linhas gravou.\n    ...\n",
+      "solucao_referencia": "import json\n\ndef exportar_jsonl(registros, caminho):\n    with open(caminho, \"w\", encoding=\"utf-8\") as f:\n        for reg in registros:\n            f.write(json.dumps(reg, ensure_ascii=False) + \"\\n\")\n    return len(registros)\n",
+      "testes_visiveis": [
+        {
+          "nome": "dois registros, duas linhas",
+          "codigo": "import json\nn = exportar_jsonl([{'q': 'O que é RAG?', 'a': 'Busca + geração.'}, {'q': 'Tokens?', 'a': 'Pedaços de texto.'}], 'treino.jsonl')\n_verificar(n, 2)\nwith open('treino.jsonl', encoding='utf-8') as f:\n    linhas = f.read().splitlines()\n_verificar([json.loads(l) for l in linhas], [{'q': 'O que é RAG?', 'a': 'Busca + geração.'}, {'q': 'Tokens?', 'a': 'Pedaços de texto.'}])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "lista vazia, arquivo vazio",
+          "codigo": "_verificar(exportar_jsonl([], 'vazio.jsonl'), 0)\nwith open('vazio.jsonl', encoding='utf-8') as f:\n    _verificar(f.read(), '')"
+        },
+        {
+          "nome": "acentos crus no arquivo",
+          "codigo": "exportar_jsonl([{'msg': 'revisão urgente'}], 'msgs.jsonl')\nwith open('msgs.jsonl', encoding='utf-8') as f:\n    texto = f.read()\nassert 'revisão' in texto, 'Com ensure_ascii=False, o acento aparece de verdade no arquivo'"
+        },
+        {
+          "nome": "uma linha por registro",
+          "codigo": "exportar_jsonl([{'i': 1}, {'i': 2}, {'i': 3}], 'tres.jsonl')\nwith open('tres.jsonl', encoding='utf-8') as f:\n    linhas = f.read().splitlines()\nassert len(linhas) == 3, 'Cada registro deve ocupar exatamente uma linha'"
+        },
+        {
+          "nome": "cada linha termina com quebra, inclusive a última",
+          "codigo": "exportar_jsonl([{'q': 'oi'}], 'nl_check.jsonl')\nwith open('nl_check.jsonl', encoding='utf-8') as _f:\n    _bytes = _f.read()\n_verificar(_bytes, '{\"q\": \"oi\"}\\n')"
+        }
+      ],
+      "dicas": [
+        "É o inverso do leitor de JSONL: um `dumps` por registro, cada um na sua própria linha.",
+        "Abra com `\"w\"` + UTF-8 e escreva `json.dumps(reg, ensure_ascii=False) + \"\\n\"` para cada registro.",
+        "`with open(caminho, \"w\", encoding=\"utf-8\") as f:` → loop com `f.write(json.dumps(reg, ensure_ascii=False) + \"\\n\")` → `return len(registros)`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-arquivos-t2-05",
+      "nivel": "arquivos",
+      "tier": 2,
+      "conceitos": [
+        "json",
+        "arquivos",
+        "dicts-aninhados"
+      ],
+      "titulo": "Fatura de tokens",
+      "explicacao_md": null,
+      "enunciado_md": "O relatório mensal de uso vem num JSON aninhado, `uso.json`:\n\n```json\n{\"periodo\": \"2026-07\", \"modelos\": [\n  {\"nome\": \"mock-4\", \"tokens\": {\"entrada\": 1200, \"saida\": 800}},\n  {\"nome\": \"mock-mini\", \"tokens\": {\"entrada\": 5000, \"saida\": 2500}}\n]}\n```\n\nEscreva `tokens_totais(caminho)` que lê o arquivo e retorna a soma de `entrada + saida` de **todos** os modelos.\n\nCom o arquivo acima → `9500`. Se a lista `modelos` estiver vazia, retorne `0`.",
+      "starter_code": "import json\n\ndef tokens_totais(caminho):\n    # Leia o JSON do arquivo (json.load direto), percorra a lista de modelos e\n    # some entrada + saida de cada um. Lista vazia -> 0.\n    ...\n",
+      "solucao_referencia": "import json\n\ndef tokens_totais(caminho):\n    with open(caminho, encoding=\"utf-8\") as f:\n        relatorio = json.load(f)\n    total = 0\n    for modelo in relatorio[\"modelos\"]:\n        total += modelo[\"tokens\"][\"entrada\"] + modelo[\"tokens\"][\"saida\"]\n    return total\n",
+      "testes_visiveis": [
+        {
+          "nome": "relatório de exemplo",
+          "codigo": "_verificar(tokens_totais('uso.json'), 9500)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro relatório",
+          "codigo": "_verificar(tokens_totais('uso_b.json'), 15)"
+        },
+        {
+          "nome": "mês sem uso",
+          "codigo": "_verificar(tokens_totais('uso_vazio.json'), 0)"
+        },
+        {
+          "nome": "retorna número, não string",
+          "codigo": "assert isinstance(tokens_totais('uso.json'), int), 'A soma de tokens deve ser um número inteiro'"
+        }
+      ],
+      "dicas": [
+        "Primeiro carregue o JSON inteiro; depois percorra a lista `modelos` somando os dois campos de cada `tokens`.",
+        "Dentro do loop: `modelo[\"tokens\"][\"entrada\"] + modelo[\"tokens\"][\"saida\"]` — dois níveis por modelo.",
+        "`json.load` no with, `total = 0`, `for modelo in relatorio[\"modelos\"]:` acumulando a soma, `return total`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "arquivos": {
+        "uso.json": "{\"periodo\": \"2026-07\", \"modelos\": [{\"nome\": \"mock-4\", \"tokens\": {\"entrada\": 1200, \"saida\": 800}}, {\"nome\": \"mock-mini\", \"tokens\": {\"entrada\": 5000, \"saida\": 2500}}]}\n",
+        "uso_b.json": "{\"periodo\": \"2026-06\", \"modelos\": [{\"nome\": \"a\", \"tokens\": {\"entrada\": 1, \"saida\": 2}}, {\"nome\": \"b\", \"tokens\": {\"entrada\": 3, \"saida\": 4}}, {\"nome\": \"c\", \"tokens\": {\"entrada\": 5, \"saida\": 0}}]}\n",
+        "uso_vazio.json": "{\"periodo\": \"2026-08\", \"modelos\": []}\n"
+      },
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-arquivos-t3-01",
+      "nivel": "arquivos",
+      "tier": 3,
+      "conceitos": [
+        "json",
+        "arquivos",
+        "try-except"
+      ],
+      "titulo": "Config blindada",
+      "explicacao_md": "No tier 3, arquivos mentem: somem, chegam corrompidos, vêm pela metade. Três defesas:\n\n1. `except FileNotFoundError:` — arquivo ausente vira um caminho de código previsto, não um crash.\n2. `except json.JSONDecodeError:` — JSON quebrado. Às vezes você re-levanta como um erro SEU, com contexto (`raise ValueError(f\"JSON inválido em {caminho}\")`); às vezes, num lote linha a linha, é melhor **pular a linha podre e contar** — depende de quem chama poder perder uma linha ou não.\n3. `dados.get(chave, padrao)` — usa o padrão só quando a chave NÃO EXISTE.\n\nCuidado com o atalho `dados.get(chave) or padrao`: ele também troca valores **falsos legítimos** (`0`, `0.0`, `\"\"`, `False`) pelo padrão — bug clássico de config.\n\n```python\n{\"temperatura\": 0.0}.get(\"temperatura\") or 0.7   # 0.7 — errado!\n{\"temperatura\": 0.0}.get(\"temperatura\", 0.7)     # 0.0 — certo\n```",
+      "enunciado_md": "Todo agente precisa de uma config à prova de mundo real.\n\nEscreva `carregar_config(caminho)` com os padrões `{\"modelo\": \"mock-mini\", \"temperatura\": 0.7, \"max_tokens\": 256}` e este contrato:\n\n- arquivo não existe → retorna os padrões\n- JSON inválido → levanta `ValueError` com o `caminho` na mensagem\n- campo ausente no arquivo → entra o padrão daquele campo\n- campo presente prevalece — **inclusive** `temperatura: 0.0`\n- o retorno tem exatamente essas 3 chaves (extras do arquivo são descartadas)\n\nExemplo: arquivo com `{\"max_tokens\": 1024}` → `{\"modelo\": \"mock-mini\", \"temperatura\": 0.7, \"max_tokens\": 1024}`",
+      "starter_code": "import json\n\nPADROES = {\"modelo\": \"mock-mini\", \"temperatura\": 0.7, \"max_tokens\": 256}\n\ndef carregar_config(caminho):\n    \"\"\"Carrega a config do agente a partir de um arquivo JSON.\n\n    Contrato:\n    - arquivo ausente -> retorna uma CÓPIA dos padrões\n    - JSON inválido -> ValueError com o caminho na mensagem\n    - campo ausente -> padrão daquele campo; campo presente prevalece\n      (temperatura 0.0 é valor legítimo!)\n    - retorna exatamente as chaves de PADROES\n    \"\"\"\n    # Dois try separados: um para o open (arquivo ausente), outro para o loads\n    # (JSON quebrado). Monte o retorno campo a campo com .get(chave, padrao) —\n    # nunca `.get(chave) or padrao`, que come o 0.0. E devolva uma CÓPIA, não PADROES.\n    ...\n",
+      "solucao_referencia": "import json\n\nPADROES = {\"modelo\": \"mock-mini\", \"temperatura\": 0.7, \"max_tokens\": 256}\n\ndef carregar_config(caminho):\n    try:\n        with open(caminho, encoding=\"utf-8\") as f:\n            texto = f.read()\n    except FileNotFoundError:\n        return dict(PADROES)\n    try:\n        dados = json.loads(texto)\n    except json.JSONDecodeError:\n        raise ValueError(f\"JSON inválido em {caminho}\")\n    return {chave: dados.get(chave, padrao) for chave, padrao in PADROES.items()}\n",
+      "testes_visiveis": [
+        {
+          "nome": "campos ausentes ganham padrão",
+          "codigo": "_verificar(carregar_config('config_parcial.json'), {'modelo': 'mock-mini', 'temperatura': 0.7, 'max_tokens': 1024})"
+        },
+        {
+          "nome": "arquivo ausente devolve padrões",
+          "codigo": "_verificar(carregar_config('nao_existe.json'), {'modelo': 'mock-mini', 'temperatura': 0.7, 'max_tokens': 256})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "temperatura zero é intencional",
+          "codigo": "_verificar(carregar_config('config_ok.json'), {'modelo': 'mock-4', 'temperatura': 0.0, 'max_tokens': 256})"
+        },
+        {
+          "nome": "JSON inválido explica onde",
+          "codigo": "try:\n    carregar_config('config_quebrada.json')\n    assert False, 'JSON inválido deveria levantar ValueError'\nexcept ValueError as e:\n    assert 'config_quebrada.json' in str(e), 'A mensagem do ValueError deve conter o caminho do arquivo'"
+        },
+        {
+          "nome": "extras são descartados",
+          "codigo": "_verificar(carregar_config('config_extras.json'), {'modelo': 'mock-4', 'temperatura': 0.3, 'max_tokens': 512})"
+        },
+        {
+          "nome": "os padrões devolvidos são uma cópia, não o objeto compartilhado",
+          "codigo": "_c = carregar_config('nao_existe.json')\n_c['temperatura'] = 99\n_verificar(carregar_config('nao_existe.json'), {'modelo': 'mock-mini', 'temperatura': 0.7, 'max_tokens': 256})"
+        }
+      ],
+      "dicas": [
+        "Três perigos, três defesas: `except FileNotFoundError` para o arquivo sumido, `except json.JSONDecodeError` para o texto podre, e `.get(chave, padrao)` para campo faltando. E lembre: `or` engole o 0.0 legítimo.",
+        "Estruture em camadas: tente abrir (senão, padrões); tente decodificar (senão, `raise ValueError(f\"JSON inválido em {caminho}\")`); monte o resultado só com as chaves de PADROES, usando o `.get` de dois argumentos.",
+        "`return {chave: dados.get(chave, padrao) for chave, padrao in PADROES.items()}` fecha o caso feliz — faltam só os dois try/except, em volta da leitura e do `json.loads`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "arquivos": {
+        "config_ok.json": "{\"modelo\": \"mock-4\", \"temperatura\": 0.0}\n",
+        "config_parcial.json": "{\"max_tokens\": 1024}\n",
+        "config_quebrada.json": "{modelo: mock-4, temperatura:}\n",
+        "config_extras.json": "{\"modelo\": \"mock-4\", \"temperatura\": 0.3, \"max_tokens\": 512, \"debug\": true}\n"
+      },
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-arquivos-t3-02",
+      "nivel": "arquivos",
+      "tier": 3,
+      "conceitos": [
+        "round-trip",
+        "utf-8",
+        "json"
+      ],
+      "titulo": "Acentos que sobrevivem à viagem",
+      "explicacao_md": null,
+      "enunciado_md": "Anotações de revisão humana (nomes, acentos, cedilhas) vão para o disco e voltam — e precisam voltar **idênticas**. E o arquivo deve ser legível para um humano no editor.\n\nEscreva o par:\n\n- `salvar_registro(registro, caminho)` — grava o dict como JSON com `ensure_ascii=False` e `indent=2`\n- `ler_registro(caminho)` — lê o arquivo de volta para dict\n\nContrato:\n\n- round-trip sem perda: `ler_registro` devolve um dict igual ao salvo\n- o ARQUIVO contém os caracteres reais (`João`, não `Jo\\u00e3o`) e tem indentação\n- ambos usam UTF-8\n\nExemplo: salvar `{\"autor\": \"João\"}` e ler de volta → `{\"autor\": \"João\"}`",
+      "starter_code": "import json\n\ndef salvar_registro(registro, caminho):\n    \"\"\"Grava `registro` como JSON legível: ensure_ascii=False, indent=2, UTF-8.\"\"\"\n    # json.dump (sem \"s\") grava direto no arquivo. ensure_ascii=False mantém os\n    # acentos crus; indent=2 deixa legível para um humano.\n    ...\n\ndef ler_registro(caminho):\n    \"\"\"Lê o JSON de volta. Round-trip sem perda: ler(salvar(x)) == x.\"\"\"\n    ...\n",
+      "solucao_referencia": "import json\n\ndef salvar_registro(registro, caminho):\n    with open(caminho, \"w\", encoding=\"utf-8\") as f:\n        json.dump(registro, f, ensure_ascii=False, indent=2)\n\ndef ler_registro(caminho):\n    with open(caminho, encoding=\"utf-8\") as f:\n        return json.load(f)\n",
+      "testes_visiveis": [
+        {
+          "nome": "ida e volta sem perda",
+          "codigo": "salvar_registro({'autor': 'João', 'nota': 'ótima resposta'}, 'reg.json')\n_verificar(ler_registro('reg.json'), {'autor': 'João', 'nota': 'ótima resposta'})"
+        },
+        {
+          "nome": "o arquivo é legível",
+          "codigo": "salvar_registro({'autor': 'João'}, 'leg.json')\nwith open('leg.json', encoding='utf-8') as f:\n    texto = f.read()\nassert 'João' in texto, 'Com ensure_ascii=False, o nome aparece com acento de verdade no arquivo'\nassert '\\n' in texto, 'Com indent=2, o JSON ocupa várias linhas'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "cedilha e til crus no arquivo",
+          "codigo": "salvar_registro({'acao': 'coração e atenção'}, 'anota.json')\nwith open('anota.json', encoding='utf-8') as f:\n    texto = f.read()\nassert 'coração' in texto and 'atenção' in texto, 'Os caracteres acentuados devem estar crus no arquivo, não escapados'"
+        },
+        {
+          "nome": "estrutura aninhada roda e volta",
+          "codigo": "dados = {'tags': ['ação', 'revisão'], 'meta': {'versao': 2, 'ativo': False}}\nsalvar_registro(dados, 'aninhado.json')\n_verificar(ler_registro('aninhado.json'), dados)"
+        },
+        {
+          "nome": "indentação de 2 espaços",
+          "codigo": "salvar_registro({'a': 1}, 'ind.json')\nwith open('ind.json', encoding='utf-8') as f:\n    texto = f.read()\n_verificar(texto.rstrip('\\n'), '{\\n  \"a\": 1\\n}')"
+        },
+        {
+          "nome": "zero e False sobrevivem",
+          "codigo": "salvar_registro({'temperatura': 0.0, 'stream': False}, 'zf.json')\n_verificar(ler_registro('zf.json'), {'temperatura': 0.0, 'stream': False})"
+        }
+      ],
+      "dicas": [
+        "`json.dump` (sem s) grava direto no arquivo aberto; `json.load` lê de volta. Os parâmetros de legibilidade vão todos no dump.",
+        "São duas funções espelhadas: uma abre com `\"w\"` e despeja o dict; a outra abre para leitura e retorna `json.load(f)`. O `encoding=\"utf-8\"` vai nos DOIS opens.",
+        "Salvar: `with open(caminho, \"w\", encoding=\"utf-8\") as f: json.dump(registro, f, ensure_ascii=False, indent=2)`. Ler: `with open(caminho, encoding=\"utf-8\") as f: return json.load(f)`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-arquivos-t3-03",
+      "nivel": "arquivos",
+      "tier": 3,
+      "conceitos": [
+        "jsonl",
+        "try-except"
+      ],
+      "titulo": "A linha podre no meio do lote",
+      "explicacao_md": null,
+      "enunciado_md": "Um export de logs veio com linhas corrompidas no meio — acontece em pipeline real (processo morto no meio da escrita, disco cheio...). Perder o lote inteiro por causa de uma linha é inaceitável.\n\nEscreva `carregar_dataset(caminho)` que retorna a **tupla** `(registros, puladas)`:\n\n- `registros`: lista dos dicts das linhas válidas, na ordem original\n- `puladas`: quantas linhas tinham JSON inválido (foram ignoradas)\n- linhas em branco (vazias ou só espaços) são ignoradas SEM contar como puladas\n- arquivo inteiro corrompido → `([], total_de_linhas_corrompidas)`\n\nExemplo: um arquivo com 2 linhas boas, 1 corrompida e 1 em branco → `([{...}, {...}], 1)`",
+      "starter_code": "import json\n\ndef carregar_dataset(caminho):\n    \"\"\"Lê um JSONL possivelmente corrompido.\n\n    Contrato:\n    - retorna (registros, puladas)\n    - linha com JSON inválido: ignorada e contada em `puladas`\n    - linha em branco: ignorada SEM contar\n    - ordem das linhas válidas preservada\n    \"\"\"\n    # Itere o arquivo. Dê strip em cada linha: se ficou vazia, pule SEM contar\n    # (isso trata espaços e a quebra final). No try/except do json.loads, a podre\n    # entra em `puladas`.\n    ...\n",
+      "solucao_referencia": "import json\n\ndef carregar_dataset(caminho):\n    registros = []\n    puladas = 0\n    with open(caminho, encoding=\"utf-8\") as f:\n        for linha in f:\n            linha = linha.strip()\n            if not linha:\n                continue\n            try:\n                registros.append(json.loads(linha))\n            except json.JSONDecodeError:\n                puladas += 1\n    return (registros, puladas)\n",
+      "testes_visiveis": [
+        {
+          "nome": "pula a podre, mantém as boas",
+          "codigo": "_verificar(carregar_dataset('lote.jsonl'), ([{'id': 1, 'prompt': 'Resuma o contrato.'}, {'id': 3, 'prompt': 'Traduza a cláusula.'}, {'id': 4, 'prompt': 'Liste os riscos.'}], 1))"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "podres nas pontas",
+          "codigo": "_verificar(carregar_dataset('lote_b.jsonl'), ([{'id': 10, 'prompt': 'ok'}], 2))"
+        },
+        {
+          "nome": "arquivo 100% corrompido",
+          "codigo": "_verificar(carregar_dataset('lote_podre.jsonl'), ([], 2))"
+        },
+        {
+          "nome": "arquivo limpo não pula nada",
+          "codigo": "_verificar(carregar_dataset('lote_limpo.jsonl'), ([{'id': 20, 'prompt': 'a'}, {'id': 21, 'prompt': 'b'}], 0))"
+        }
+      ],
+      "dicas": [
+        "O try/except vai DENTRO do loop, em volta do `json.loads` de UMA linha — assim uma linha ruim não derruba as demais. Linha em branco se resolve antes, com strip + continue.",
+        "Dois acumuladores: a lista dos válidos e o contador de puladas; o `except json.JSONDecodeError` só incrementa o contador.",
+        "`for linha in f:` → `linha = linha.strip()` → `if not linha: continue` → `try: registros.append(json.loads(linha))` / `except json.JSONDecodeError: puladas += 1` → `return (registros, puladas)`"
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "arquivos": {
+        "lote.jsonl": "{\"id\": 1, \"prompt\": \"Resuma o contrato.\"}\n{\"id\": 2, \"prompt\": \"quebrou aqui...\n{\"id\": 3, \"prompt\": \"Traduza a cláusula.\"}\n\n{\"id\": 4, \"prompt\": \"Liste os riscos.\"}\n",
+        "lote_b.jsonl": "lixo total\n{\"id\": 10, \"prompt\": \"ok\"}\n{\"id\": 11\n",
+        "lote_podre.jsonl": "???\n{{{\n",
+        "lote_limpo.jsonl": "{\"id\": 20, \"prompt\": \"a\"}\n   \n{\"id\": 21, \"prompt\": \"b\"}\n"
+      },
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-regex-t1-01",
+      "nivel": "regex",
+      "tier": 1,
+      "conceitos": [
+        "regex-basico",
+        "classes-caracteres",
+        "quantificadores"
+      ],
+      "titulo": "Caça-números no log",
+      "explicacao_md": "Expressões regulares (**regex**) são padrões de busca em texto — a ferramenta número um para arrancar dados de logs e respostas de LLM. Aquele campo `modelo=` que você caçou com split e startswith? Uma linha de regex — e sem se perder.\n\nEm Python, quem trabalha é o módulo `re`, e o padrão vai numa **raw string** (`r\"...\"`), que impede o Python de mexer nas barras invertidas:\n\n```python\nimport re\nre.findall(r\"\\d+\", \"gastei 120 tokens e 45 centavos\")\n# ['120', '45']\n```\n\n- `\\d` casa **um dígito** (0–9)\n- `+` repete o item anterior **uma ou mais** vezes → `\\d+` casa `7`, `42`, `1200`...\n- `re.findall(padrao, texto)` devolve a **lista** de todos os trechos que casaram — sempre strings, mesmo quando parecem números",
+      "enunciado_md": "Cada chamada de LLM gera uma linha de log com contagens: `\"prompt=120 completion=45 total=165\"`.\n\nComplete `extrair_numeros(texto)` que retorna a lista de **todos** os números inteiros do texto, como **strings**, na ordem em que aparecem. Sem nenhum número, retorna lista vazia.\n\nExemplo: `extrair_numeros(\"prompt=120 completion=45\")` → `[\"120\", \"45\"]`",
+      "starter_code": "import re\n\ndef extrair_numeros(texto):\n    # \\d casa UM dígito. Falta o quantificador que cola dígitos vizinhos num\n    # número só (senão \"120\" vira \"1\",\"2\",\"0\"). Depois é re.findall e a lista sai pronta.\n    padrao = r\"\\d\"\n    ...\n",
+      "solucao_referencia": "import re\n\ndef extrair_numeros(texto):\n    padrao = r\"\\d+\"\n    return re.findall(padrao, texto)\n",
+      "testes_visiveis": [
+        {
+          "nome": "dois números",
+          "codigo": "_verificar(extrair_numeros('prompt=120 completion=45'), ['120', '45'])"
+        },
+        {
+          "nome": "um número no meio da frase",
+          "codigo": "_verificar(extrair_numeros('custo de 7 centavos'), ['7'])"
+        },
+        {
+          "nome": "sem números",
+          "codigo": "_verificar(extrair_numeros('nenhum aqui'), [])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "três números",
+          "codigo": "_verificar(extrair_numeros('a=1 b=22 c=333'), ['1', '22', '333'])"
+        },
+        {
+          "nome": "número grande não pode vir picado",
+          "codigo": "_verificar(extrair_numeros('total=1200'), ['1200'])"
+        },
+        {
+          "nome": "string vazia",
+          "codigo": "_verificar(extrair_numeros(''), [])"
+        }
+      ],
+      "dicas": [
+        "`\\d` sozinho casa UM dígito por vez — para `120`, o findall devolveria `['1', '2', '0']`. Falta o quantificador que cola dígitos vizinhos num casamento só.",
+        "O quantificador é `+` logo depois da classe: `r\"\\d+\"`. Depois, `re.findall(padrao, texto)` já devolve a lista pronta.",
+        "`padrao = r\"\\d+\"` e `return re.findall(padrao, texto)`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-regex-t1-02",
+      "nivel": "regex",
+      "tier": 1,
+      "conceitos": [
+        "regex-basico",
+        "classes-caracteres"
+      ],
+      "titulo": "Tem ID de requisição?",
+      "explicacao_md": null,
+      "enunciado_md": "Todo request do gateway ganha um id no formato `req-` seguido de dígitos (ex.: `req-4812`).\n\n`re.search(padrao, texto)` procura a **primeira** ocorrência: devolve um objeto `Match` se achou, ou `None` se não achou.\n\nComplete `tem_request_id(linha)` que retorna `True` se a linha contém um id nesse formato, senão `False`.\n\nExemplo: `tem_request_id(\"ok req-4812 200\")` → `True`; `tem_request_id(\"sem id\")` → `False`",
+      "starter_code": "import re\n\ndef tem_request_id(linha):\n    # Complete o literal \"req-\" com um ou mais dígitos. re.search devolve um Match\n    # OU None — traduza isso para True/False comparando com None (não devolva o Match cru).\n    padrao = r\"req-\"\n    ...\n",
+      "solucao_referencia": "import re\n\ndef tem_request_id(linha):\n    return re.search(r\"req-\\d+\", linha) is not None\n",
+      "testes_visiveis": [
+        {
+          "nome": "id no meio da linha",
+          "codigo": "_verificar(tem_request_id('ok req-4812 200'), True)"
+        },
+        {
+          "nome": "linha sem id",
+          "codigo": "_verificar(tem_request_id('sem id'), False)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "req- sem dígitos não vale",
+          "codigo": "_verificar(tem_request_id('req- perdido'), False)"
+        },
+        {
+          "nome": "id no início da linha",
+          "codigo": "_verificar(tem_request_id('req-1 ok'), True)"
+        },
+        {
+          "nome": "retorna booleano de verdade",
+          "codigo": "assert tem_request_id('req-9') is True and tem_request_id('x') is False, 'Retorne True/False, não o objeto Match ou None'"
+        }
+      ],
+      "dicas": [
+        "`re.search` não devolve True/False — devolve um objeto `Match` (achou) ou `None` (não achou). Seu trabalho é transformar isso num booleano.",
+        "O padrão é o literal mais a classe de dígito repetida: `r\"req-\\d+\"`. Para o booleano, compare o resultado da busca com `None`.",
+        "`return re.search(r\"req-\\d+\", linha) is not None`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-regex-t1-03",
+      "nivel": "regex",
+      "tier": 1,
+      "conceitos": [
+        "classes-caracteres",
+        "quantificadores"
+      ],
+      "titulo": "Palavras do prompt",
+      "explicacao_md": null,
+      "enunciado_md": "Uma aproximação comum para estimar o custo de um prompt é contar palavras.\n\nA classe `\\w` casa **letra, dígito ou `_`** — e em Python ela entende acentos (`é` e `ç` contam como letra).\n\nComplete `palavras(texto)` que retorna a **lista de palavras** do texto, deixando pontuação e espaços de fora.\n\nExemplo: `palavras(\"Olá, mundo!\")` → `[\"Olá\", \"mundo\"]`",
+      "starter_code": "import re\n\ndef palavras(texto):\n    # A classe \\w (letra, dígito ou _, e entende acento) repetida uma ou mais\n    # vezes recorta cada palavra; a pontuação fica de fora sozinha.\n    padrao = r\"\"\n    ...\n",
+      "solucao_referencia": "import re\n\ndef palavras(texto):\n    return re.findall(r\"\\w+\", texto)\n",
+      "testes_visiveis": [
+        {
+          "nome": "pontuação fica de fora",
+          "codigo": "_verificar(palavras('Olá, mundo!'), ['Olá', 'mundo'])"
+        },
+        {
+          "nome": "frase simples",
+          "codigo": "_verificar(palavras('regex em python'), ['regex', 'em', 'python'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "acentos não quebram a palavra",
+          "codigo": "_verificar(palavras('atenção é tudo'), ['atenção', 'é', 'tudo'])"
+        },
+        {
+          "nome": "dígitos também entram",
+          "codigo": "_verificar(palavras('top 3 modelos'), ['top', '3', 'modelos'])"
+        },
+        {
+          "nome": "só pontuação",
+          "codigo": "_verificar(palavras('?!... --'), [])"
+        }
+      ],
+      "dicas": [
+        "Uma palavra aqui é uma sequência de caracteres `\\w` — vírgula, ponto e espaço não pertencem à classe, então quebram o casamento naturalmente.",
+        "O padrão é a classe com o quantificador de repetição: `r\"\\w+\"`.",
+        "`return re.findall(r\"\\w+\", texto)`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-regex-t1-04",
+      "nivel": "regex",
+      "tier": 1,
+      "conceitos": [
+        "regex-basico",
+        "classes-caracteres"
+      ],
+      "titulo": "Censura de dígitos",
+      "explicacao_md": null,
+      "enunciado_md": "Antes de mandar logs para um LLM externo, números sensíveis (telefone, CPF) precisam sumir.\n\n`re.sub(padrao, novo, texto)` devolve uma cópia do texto com **todas** as ocorrências do padrão trocadas por `novo`.\n\nComplete `censurar_digitos(texto)` que troca **cada dígito** por `\"#\"`.\n\nExemplo: `censurar_digitos(\"fone 9812\")` → `\"fone ####\"`",
+      "starter_code": "import re\n\ndef censurar_digitos(texto):\n    # A classe que casa UM dígito, SEM quantificador — assim cada dígito vira um #\n    # separado. re.sub troca todas as ocorrências de uma vez.\n    padrao = r\"\"\n    ...\n",
+      "solucao_referencia": "import re\n\ndef censurar_digitos(texto):\n    return re.sub(r\"\\d\", \"#\", texto)\n",
+      "testes_visiveis": [
+        {
+          "nome": "telefone mascarado",
+          "codigo": "_verificar(censurar_digitos('fone 9812'), 'fone ####')"
+        },
+        {
+          "nome": "sem dígitos, sem mudança",
+          "codigo": "_verificar(censurar_digitos('tudo limpo'), 'tudo limpo')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "dígitos espalhados",
+          "codigo": "_verificar(censurar_digitos('cpf 123 e id 9'), 'cpf ### e id #')"
+        },
+        {
+          "nome": "quatro dígitos, quatro #",
+          "codigo": "_verificar(censurar_digitos('ano 2026'), 'ano ####')"
+        },
+        {
+          "nome": "string vazia",
+          "codigo": "_verificar(censurar_digitos(''), '')"
+        }
+      ],
+      "dicas": [
+        "O `sub` é o replace do mundo regex: cada trecho que casar é trocado pelo texto novo. Como cada `#` cobre UM dígito, o padrão não leva `+`.",
+        "O padrão é `r\"\\d\"` (um dígito só). A chamada é `re.sub(padrao, \"#\", texto)`.",
+        "`return re.sub(r\"\\d\", \"#\", texto)`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-regex-t1-05",
+      "nivel": "regex",
+      "tier": 1,
+      "conceitos": [
+        "regex-basico",
+        "classes-caracteres",
+        "quantificadores"
+      ],
+      "titulo": "Achar o modelo",
+      "explicacao_md": null,
+      "enunciado_md": "Nos logs do gateway, o nome do modelo aparece no formato `mock-` seguido de letras ou números (ex.: `mock-4`, `mock-claude`) — e **sempre** existe um por linha.\n\nUm objeto `Match` guarda o trecho que casou: `match.group()` devolve esse trecho.\n\nComplete `achar_modelo(texto)` que retorna o nome completo do modelo mencionado.\n\nExemplo: `achar_modelo(\"roteado para mock-4 em 12ms\")` → `\"mock-4\"`",
+      "starter_code": "import re\n\ndef achar_modelo(texto):\n    # \"mock-\" seguido de um ou mais \\w. re.search guarda o Match; o trecho casado\n    # sai com .group(). (O enunciado garante que sempre há um — sem None aqui.)\n    padrao = r\"mock-\"\n    ...\n",
+      "solucao_referencia": "import re\n\ndef achar_modelo(texto):\n    match = re.search(r\"mock-\\w+\", texto)\n    return match.group()\n",
+      "testes_visiveis": [
+        {
+          "nome": "modelo no meio da linha",
+          "codigo": "_verificar(achar_modelo('roteado para mock-4 em 12ms'), 'mock-4')"
+        },
+        {
+          "nome": "nome com letras",
+          "codigo": "_verificar(achar_modelo('usando mock-claude agora'), 'mock-claude')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "modelo no início",
+          "codigo": "_verificar(achar_modelo('mock-mini respondeu primeiro'), 'mock-mini')"
+        },
+        {
+          "nome": "nome com números",
+          "codigo": "_verificar(achar_modelo('teste do mock-42 ok'), 'mock-42')"
+        },
+        {
+          "nome": "retorna só o nome, sem o resto da linha",
+          "codigo": "_verificar(achar_modelo('x mock-7 y'), 'mock-7')"
+        }
+      ],
+      "dicas": [
+        "`re.search` devolve um `Match`, e o texto que casou sai com `.group()`. Como o enunciado garante que o modelo existe, aqui não precisa tratar `None`.",
+        "O padrão é `r\"mock-\\w+\"` — o literal ancora onde o nome começa e o `\\w+` estica até o fim dele.",
+        "`return re.search(r\"mock-\\w+\", texto).group()`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-regex-t2-01",
+      "nivel": "regex",
+      "tier": 2,
+      "conceitos": [
+        "grupos",
+        "classes-caracteres",
+        "quantificadores"
+      ],
+      "titulo": "Nota do juiz",
+      "explicacao_md": "**Parênteses criam grupos de captura**: além de saber que o padrão casou, você pega só o pedaço que interessa.\n\n```python\nimport re\nm = re.search(r\"Nota:\\s*(\\d+)/10\", \"Avaliação — Nota: 8/10\")\nm.group()   # \"Nota: 8/10\"  (o casamento inteiro)\nm.group(1)  # \"8\"           (só o 1º grupo)\n```\n\n- `\\s` casa espaço, tab ou quebra de linha; `*` = **zero ou mais** — então `\\s*` aceita tanto `Nota:8` quanto `Nota:  8`.\n- Com `re.findall`, se o padrão tem grupos, a lista traz só o conteúdo dos grupos (tuplas, quando há 2 ou mais).\n- Flags mudam a busca: `flags=re.IGNORECASE` ignora maiúsculas/minúsculas.",
+      "enunciado_md": "Você usa um LLM como juiz de qualidade e ele responde num formato quase fixo:\n\n```\nCritério atendido. Nota: 8/10\n```\n\nEscreva `extrair_nota(resposta)` que retorna a nota como **int**. O campo `Nota:` sempre existe e sempre termina em `/10`, mas o espaçamento após os dois-pontos varia (`Nota:8/10`, `Nota:   8/10`). Outros números podem aparecer no texto — só a nota interessa.\n\nExemplo: `extrair_nota(\"Bom trabalho. Nota: 8/10\")` → `8`",
+      "starter_code": "import re\n\ndef extrair_nota(resposta):\n    # Ancore no campo certo: \"Nota:\" seguido de espaçamento variável (\\s*) e um\n    # GRUPO com os dígitos, terminando em \"/10\". O group(1) traz só a nota — vire int.\n    ...\n",
+      "solucao_referencia": "import re\n\ndef extrair_nota(resposta):\n    m = re.search(r\"Nota:\\s*(\\d+)/10\", resposta)\n    return int(m.group(1))\n",
+      "testes_visiveis": [
+        {
+          "nome": "formato padrão",
+          "codigo": "_verificar(extrair_nota('Bom trabalho. Nota: 8/10'), 8)"
+        },
+        {
+          "nome": "sem espaço após os dois-pontos",
+          "codigo": "_verificar(extrair_nota('Nota:5/10'), 5)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "nota 10 tem dois dígitos",
+          "codigo": "_verificar(extrair_nota('Excelente. Nota: 10/10'), 10)"
+        },
+        {
+          "nome": "muitos espaços",
+          "codigo": "_verificar(extrair_nota('Nota:    3/10'), 3)"
+        },
+        {
+          "nome": "outros números no texto não confundem",
+          "codigo": "_verificar(extrair_nota('Usou 3 exemplos e 2 fontes. Nota: 6/10'), 6)"
+        },
+        {
+          "nome": "retorna int de verdade",
+          "codigo": "assert isinstance(extrair_nota('Nota: 7/10'), int), 'A nota deve ser int, não string'"
+        },
+        {
+          "nome": "outro /10 antes não rouba a nota (precisa da âncora Nota:)",
+          "codigo": "_verificar(extrair_nota('Usou 3/10 exemplos. Nota: 6/10'), 6)"
+        }
+      ],
+      "dicas": [
+        "O grupo `( )` isola só o número — e ancorar o padrão em `Nota:` e `/10` impede que outros números do texto sejam capturados por engano.",
+        "Padrão: `r\"Nota:\\s*(\\d+)/10\"` — o `\\s*` absorve o espaçamento variável. Pegue o número com `.group(1)` e converta com `int()`.",
+        "`m = re.search(r\"Nota:\\s*(\\d+)/10\", resposta)` e `return int(m.group(1))`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-regex-t2-02",
+      "nivel": "regex",
+      "tier": 2,
+      "conceitos": [
+        "grupos",
+        "classes-caracteres"
+      ],
+      "titulo": "Ficha técnica da resposta",
+      "explicacao_md": null,
+      "enunciado_md": "Você pediu ao LLM uma ficha em linhas `chave: valor`:\n\n```\nmodelo: mock-4\nidioma: pt\ncusto: 0.002\n```\n\nEscreva `extrair_campos(texto)` que devolve um **dict** com todos os pares. A chave é uma palavra (`\\w+`); o valor vem depois de `:` (espaçamento variável) e não tem espaços — use `\\S+`, a classe que casa tudo que **não** é espaço. Linhas que não seguem o formato são ignoradas.\n\nExemplo: o texto acima → `{\"modelo\": \"mock-4\", \"idioma\": \"pt\", \"custo\": \"0.002\"}`",
+      "starter_code": "import re\n\ndef extrair_campos(texto):\n    # Dois grupos por linha: a chave (\\w+), os dois-pontos + espaço variável, e o\n    # valor. Use \\S+ no valor (para no primeiro espaço); com dois grupos, findall\n    # devolve tuplas — dict(...) monta o dicionário.\n    ...\n",
+      "solucao_referencia": "import re\n\ndef extrair_campos(texto):\n    return dict(re.findall(r\"(\\w+):\\s*(\\S+)\", texto))\n",
+      "testes_visiveis": [
+        {
+          "nome": "ficha com dois campos",
+          "codigo": "_verificar(extrair_campos('modelo: mock-4\\nidioma: pt'), {'modelo': 'mock-4', 'idioma': 'pt'})"
+        },
+        {
+          "nome": "sem espaço após os dois-pontos",
+          "codigo": "_verificar(extrair_campos('custo:0.002'), {'custo': '0.002'})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "três campos",
+          "codigo": "_verificar(extrair_campos('a: 1\\nb: 2\\nc: 3'), {'a': '1', 'b': '2', 'c': '3'})"
+        },
+        {
+          "nome": "linha fora do formato é ignorada",
+          "codigo": "_verificar(extrair_campos('cabeçalho sem par\\nmodelo: mini'), {'modelo': 'mini'})"
+        },
+        {
+          "nome": "texto vazio",
+          "codigo": "_verificar(extrair_campos(''), {})"
+        },
+        {
+          "nome": "o valor para no primeiro espaço (\\S+, não .+)",
+          "codigo": "_verificar(extrair_campos('modelo: mini turbo'), {'modelo': 'mini'})"
+        }
+      ],
+      "dicas": [
+        "Dois grupos no mesmo padrão: com `re.findall`, cada casamento vira uma **tupla** `(chave, valor)` — e uma lista de tuplas de 2 itens é exatamente o que `dict()` aceita.",
+        "Padrão: `r\"(\\w+):\\s*(\\S+)\"` — o `\\S+` (S maiúsculo) é o oposto do `\\s`: um ou mais caracteres que NÃO são espaço.",
+        "`return dict(re.findall(r\"(\\w+):\\s*(\\S+)\", texto))`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-regex-t2-03",
+      "nivel": "regex",
+      "tier": 2,
+      "conceitos": [
+        "quantificadores",
+        "classes-caracteres",
+        "regex-basico"
+      ],
+      "titulo": "Prompt na dieta",
+      "explicacao_md": null,
+      "enunciado_md": "Espaço em branco também vira token — e token é dinheiro. Prompts colados de PDFs chegam cheios de espaços duplos, tabs e quebras de linha.\n\nEscreva `compactar(texto)` que:\n\n- troca **qualquer sequência** de espaços/tabs/quebras de linha por UM espaço\n- remove espaços das pontas do resultado\n- texto só de espaços → retorna `\"\"`\n\nExemplo: `compactar(\"resuma   o\\n\\ntexto\\tabaixo\")` → `\"resuma o texto abaixo\"`",
+      "starter_code": "import re\n\ndef compactar(texto):\n    # \\s+ casa QUALQUER sequência de espaço/tab/quebra — troque toda ela por um\n    # espaço só com re.sub, e depois tire as pontas com .strip().\n    ...\n",
+      "solucao_referencia": "import re\n\ndef compactar(texto):\n    return re.sub(r\"\\s+\", \" \", texto).strip()\n",
+      "testes_visiveis": [
+        {
+          "nome": "espaços, tabs e quebras",
+          "codigo": "_verificar(compactar('resuma   o\\n\\ntexto\\tabaixo'), 'resuma o texto abaixo')"
+        },
+        {
+          "nome": "já compacto, não mexe",
+          "codigo": "_verificar(compactar('tudo certo'), 'tudo certo')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "pontas sujas",
+          "codigo": "_verificar(compactar('  oi  mundo  '), 'oi mundo')"
+        },
+        {
+          "nome": "só espaços e tabs",
+          "codigo": "_verificar(compactar(' \\t\\n '), '')"
+        },
+        {
+          "nome": "uma palavra cercada de lixo",
+          "codigo": "_verificar(compactar('\\n\\nrelatório\\t'), 'relatório')"
+        }
+      ],
+      "dicas": [
+        "A classe `\\s` cobre espaço, tab e quebra de linha de uma vez; com `+`, a sequência inteira vira UM casamento só — e o `sub` troca cada casamento por um espaço.",
+        "`re.sub(r\"\\s+\", \" \", texto)` resolve o miolo, mas ainda sobra um espaço em cada ponta quando o texto começa ou termina com branco — feche com `.strip()`.",
+        "`return re.sub(r\"\\s+\", \" \", texto).strip()`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-regex-t2-04",
+      "nivel": "regex",
+      "tier": 2,
+      "conceitos": [
+        "regex-flags",
+        "grupos"
+      ],
+      "titulo": "Veredito é veredito",
+      "explicacao_md": null,
+      "enunciado_md": "Seu LLM-juiz deveria responder `Veredito: aprovado`, mas cada rodada vem de um jeito: `VEREDITO: APROVADO`, `veredito:reprovado`...\n\nEscreva `extrair_veredito(resposta)` que retorna a palavra do veredito **em minúsculas**. O campo sempre existe; a caixa (maiúsculas/minúsculas) e o espaçamento após os dois-pontos variam.\n\nUse `flags=re.IGNORECASE` para casar o campo em qualquer caixa — lembrando que o flag muda a **busca**, não o texto devolvido.\n\nExemplo: `extrair_veredito(\"VEREDITO: APROVADO\")` → `\"aprovado\"`",
+      "starter_code": "import re\n\ndef extrair_veredito(resposta):\n    # flags=re.IGNORECASE casa \"veredito\" em qualquer caixa — mas o flag muda a\n    # BUSCA, não o texto: aplique .lower() no que você capturou no grupo.\n    ...\n",
+      "solucao_referencia": "import re\n\ndef extrair_veredito(resposta):\n    m = re.search(r\"veredito:\\s*(\\w+)\", resposta, flags=re.IGNORECASE)\n    return m.group(1).lower()\n",
+      "testes_visiveis": [
+        {
+          "nome": "tudo maiúsculo",
+          "codigo": "_verificar(extrair_veredito('VEREDITO: APROVADO'), 'aprovado')"
+        },
+        {
+          "nome": "tudo minúsculo",
+          "codigo": "_verificar(extrair_veredito('veredito: reprovado'), 'reprovado')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "caixa mista",
+          "codigo": "_verificar(extrair_veredito('Veredito: Aprovado'), 'aprovado')"
+        },
+        {
+          "nome": "caixa alternada e sem espaço",
+          "codigo": "_verificar(extrair_veredito('vErEdItO:RevisAr'), 'revisar')"
+        },
+        {
+          "nome": "texto em volta não atrapalha",
+          "codigo": "_verificar(extrair_veredito('Análise concluída. Veredito: reprovado. Fim.'), 'reprovado')"
+        }
+      ],
+      "dicas": [
+        "São dois problemas de caixa, independentes: ACHAR o campo escrito de qualquer jeito (isso o flag resolve) e DEVOLVER o valor minúsculo (isso o flag não faz).",
+        "`re.search(r\"veredito:\\s*(\\w+)\", resposta, flags=re.IGNORECASE)` acha o campo em qualquer caixa; normalize a saída com `.lower()` no grupo.",
+        "`m = re.search(r\"veredito:\\s*(\\w+)\", resposta, flags=re.IGNORECASE)` e `return m.group(1).lower()`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-regex-t3-01",
+      "nivel": "regex",
+      "tier": 3,
+      "conceitos": [
+        "quantificadores",
+        "grupos",
+        "regex-basico"
+      ],
+      "titulo": "O primeiro bloco vence",
+      "explicacao_md": "Quantificadores são **gananciosos** por padrão: `.*` estica o máximo que puder. Com dois blocos `<r>a</r> x <r>b</r>` no mesmo texto, `<r>(.*)</r>` engole TUDO de `a` até `b`. A versão **preguiçosa** `.*?` para no primeiro fechamento:\n\n```python\nimport re\ntexto = \"<r>a</r> x <r>b</r>\"\nre.search(r\"<r>(.*)</r>\", texto).group(1)   # \"a</r> x <r>b\"  (ganancioso!)\nre.search(r\"<r>(.*?)</r>\", texto).group(1)  # \"a\"\n```\n\nDuas regras de sobrevivência no tier 3:\n\n- `re.search` pode devolver `None` — **nunca** chame `.group()` direto; guarde o `Match` e teste antes.\n- O `.` não casa quebra de linha; para blocos multilinha, use `flags=re.DOTALL`.",
+      "enunciado_md": "Você pediu ao modelo para embrulhar a resposta final em `<resposta>...</resposta>` — mas às vezes ele emite mais de um bloco, e às vezes nenhum.\n\nEscreva `primeira_resposta(texto)`:\n\n- retorna o conteúdo do **primeiro** bloco `<resposta>...</resposta>` (as tags ficam na mesma linha)\n- com mais de um bloco, os demais são ignorados — cuidado com a ganância do `.*`\n- sem nenhum bloco completo → retorna `None`, sem levantar erro\n\nExemplo: `primeira_resposta(\"<resposta>42</resposta> e <resposta>43</resposta>\")` → `\"42\"`",
+      "starter_code": "import re\n\ndef primeira_resposta(texto):\n    \"\"\"Retorna o conteúdo do PRIMEIRO bloco <resposta>...</resposta>.\n\n    - Mais de um bloco: só o primeiro conta.\n    - Nenhum bloco completo (tag aberta sem fechar, ou nada): None.\n    \"\"\"\n    # Cuidado com a ganância: o .* padrão engole até o ÚLTIMO fechamento. A versão\n    # preguiçosa .*? para no primeiro. E re.search (não match) acha o bloco mesmo\n    # com texto antes. Guarde o Match e teste None ANTES de .group().\n    ...\n",
+      "solucao_referencia": "import re\n\ndef primeira_resposta(texto):\n    m = re.search(r\"<resposta>(.*?)</resposta>\", texto)\n    if m is None:\n        return None\n    return m.group(1)\n",
+      "testes_visiveis": [
+        {
+          "nome": "um bloco só",
+          "codigo": "_verificar(primeira_resposta('<resposta>sim</resposta>'), 'sim')"
+        },
+        {
+          "nome": "dois blocos, vale o primeiro",
+          "codigo": "_verificar(primeira_resposta('<resposta>42</resposta> e <resposta>43</resposta>'), '42')"
+        },
+        {
+          "nome": "sem bloco nenhum",
+          "codigo": "_verificar(primeira_resposta('nada aqui'), None)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "três blocos seguidos",
+          "codigo": "_verificar(primeira_resposta('<resposta>a</resposta><resposta>b</resposta><resposta>c</resposta>'), 'a')"
+        },
+        {
+          "nome": "tag aberta sem fechar",
+          "codigo": "_verificar(primeira_resposta('<resposta>incompleto'), None)"
+        },
+        {
+          "nome": "bloco vazio é válido",
+          "codigo": "_verificar(primeira_resposta('<resposta></resposta>'), '')"
+        },
+        {
+          "nome": "texto vazio",
+          "codigo": "_verificar(primeira_resposta(''), None)"
+        },
+        {
+          "nome": "bloco depois de um preâmbulo (re.search, não re.match)",
+          "codigo": "_verificar(primeira_resposta('resultado: <resposta>ok</resposta>'), 'ok')"
+        }
+      ],
+      "dicas": [
+        "Dois perigos independentes aqui: o `.*` ganancioso atravessa blocos vizinhos, e o `.group()` explode quando a busca devolveu `None`.",
+        "O padrão é `r\"<resposta>(.*?)</resposta>\"` — o `?` depois do `.*` o torna preguiçoso. Guarde o resultado do `re.search` numa variável e só chame `.group(1)` se ela não for `None`.",
+        "`m = re.search(r\"<resposta>(.*?)</resposta>\", texto)` e `return None if m is None else m.group(1)`"
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-regex-t3-02",
+      "nivel": "regex",
+      "tier": 3,
+      "conceitos": [
+        "grupos",
+        "quantificadores",
+        "classes-caracteres"
+      ],
+      "titulo": "Custos no meio do caos",
+      "explicacao_md": null,
+      "enunciado_md": "O log de billing do gateway mistura de tudo:\n\n```\nok custo=0.002 modelo=mock-4\nWARN sem custo nesta linha\ncusto=1.5 retry\ncusto=abc (corrompido)\n```\n\nEscreva `extrair_custos(log)` que retorna a lista de **floats** de todo campo `custo=` bem-formado — dígitos, ponto, dígitos (ex.: `0.002`, `1.5`). Campos corrompidos (`custo=abc`, `custo=`, `custo=7` sem ponto) e linhas sem o campo são ignorados sem erro. Log vazio → `[]`.\n\nExemplo: o log acima → `[0.002, 1.5]`",
+      "starter_code": "import re\n\ndef extrair_custos(log):\n    \"\"\"Lista de floats de cada campo custo=<dígitos>.<dígitos> do log.\n\n    - Campos corrompidos (custo=abc, custo=, custo=7 sem ponto): ignorados.\n    - Log vazio ou sem campos válidos: [].\n    \"\"\"\n    # \"Bem-formado\" é dígito(s), ponto, dígito(s) — os DOIS lados obrigatórios, para\n    # que custo=7 (sem ponto) e custo=.5 (sem dígito antes) fiquem de fora. Capture\n    # o número num grupo e converta cada captura para float.\n    ...\n",
+      "solucao_referencia": "import re\n\ndef extrair_custos(log):\n    return [float(c) for c in re.findall(r\"custo=(\\d+\\.\\d+)\", log)]\n",
+      "testes_visiveis": [
+        {
+          "nome": "log com duas linhas válidas",
+          "codigo": "_verificar(extrair_custos('ok custo=0.002 x\\ncusto=1.5 retry'), [0.002, 1.5])"
+        },
+        {
+          "nome": "linha corrompida ignorada",
+          "codigo": "_verificar(extrair_custos('custo=abc\\ncusto=0.1'), [0.1])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "dois campos na mesma linha",
+          "codigo": "_verificar(extrair_custos('custo=0.5 custo=2.25'), [0.5, 2.25])"
+        },
+        {
+          "nome": "custo= sem valor",
+          "codigo": "_verificar(extrair_custos('custo= vazio custo=3.0'), [3.0])"
+        },
+        {
+          "nome": "letra no lugar do ponto é corrompido",
+          "codigo": "_verificar(extrair_custos('custo=1x5 custo=2.0'), [2.0])"
+        },
+        {
+          "nome": "sem ponto decimal não é bem-formado",
+          "codigo": "_verificar(extrair_custos('custo=7 custo=0.7'), [0.7])"
+        },
+        {
+          "nome": "log vazio",
+          "codigo": "_verificar(extrair_custos(''), [])"
+        },
+        {
+          "nome": "retorna floats, não strings",
+          "codigo": "assert all(isinstance(c, float) for c in extrair_custos('custo=1.5')), 'Converta cada valor capturado para float'"
+        },
+        {
+          "nome": "sem dígito antes do ponto (.5) é corrompido",
+          "codigo": "_verificar(extrair_custos('custo=.5 custo=2.0'), [2.0])"
+        }
+      ],
+      "dicas": [
+        "O grupo captura só o número (sem o `custo=`); o `findall` varre o log inteiro, atravessando linhas, e junta todas as capturas numa lista de strings.",
+        "Padrão: `r\"custo=(\\d+\\.\\d+)\"` — o ponto precisa de escape (`\\.`), senão vira coringa e casa qualquer caractere. Depois converta cada string com `float()`.",
+        "`return [float(c) for c in re.findall(r\"custo=(\\d+\\.\\d+)\", log)]`"
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-regex-t3-03",
+      "nivel": "regex",
+      "tier": 3,
+      "conceitos": [
+        "regex-flags",
+        "grupos",
+        "quantificadores"
+      ],
+      "titulo": "O JSON dentro da cerca",
+      "explicacao_md": null,
+      "enunciado_md": "LLMs adoram entregar JSON dentro de uma **cerca de código**: uma linha abre com três crases e a palavra `json`, o JSON (que pode ter **várias linhas**) vem no meio, e uma linha de três crases fecha — com texto solto antes e depois.\n\nEscreva `extrair_json(resposta)`:\n\n- retorna o conteúdo do **primeiro** bloco cercado, sem as cercas de abertura e fechamento, com `.strip()` aplicado\n- o JSON tem várias linhas — sem `re.DOTALL`, o `.` não atravessa `\\n`\n- sem bloco completo (não abre, ou abre e não fecha) → retorna `None`\n\nPor exemplo, para a resposta `Aqui está:` seguida da cerca contendo `{\"nota\": 8,` e `\"ok\": true}` em duas linhas → `'{\"nota\": 8,\\n \"ok\": true}'`",
+      "starter_code": "import re\n\ndef extrair_json(resposta):\n    \"\"\"Extrai o conteúdo do PRIMEIRO bloco ```json ... ``` da resposta.\n\n    - O conteúdo pode ter várias linhas.\n    - Retorno com .strip() aplicado (sem quebras nas pontas).\n    - Sem bloco completo: None (nunca chame .group() sem checar).\n    \"\"\"\n    # O JSON tem várias linhas: sem flags=re.DOTALL o . não atravessa \\n. Use a\n    # versão preguiçosa para parar no primeiro fechamento, teste None, e .strip() no grupo.\n    ...\n",
+      "solucao_referencia": "import re\n\ndef extrair_json(resposta):\n    m = re.search(r\"```json(.*?)```\", resposta, flags=re.DOTALL)\n    if m is None:\n        return None\n    return m.group(1).strip()\n",
+      "testes_visiveis": [
+        {
+          "nome": "bloco multilinha extraído",
+          "codigo": "_verificar(extrair_json('Aqui está:\\n```json\\n{\"nota\": 8}\\n```\\nfim'), '{\"nota\": 8}')"
+        },
+        {
+          "nome": "resposta sem bloco",
+          "codigo": "_verificar(extrair_json('resposta sem código'), None)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "JSON de duas linhas",
+          "codigo": "_verificar(extrair_json('```json\\n{\"a\": 1,\\n \"b\": 2}\\n```'), '{\"a\": 1,\\n \"b\": 2}')"
+        },
+        {
+          "nome": "dois blocos, vale o primeiro",
+          "codigo": "_verificar(extrair_json('```json\\n{\"x\": 1}\\n```\\n e ```json\\n{\"y\": 2}\\n```'), '{\"x\": 1}')"
+        },
+        {
+          "nome": "cerca aberta sem fechar",
+          "codigo": "_verificar(extrair_json('```json\\n{\"quebrado\": true'), None)"
+        },
+        {
+          "nome": "resultado sai limpo, sem quebras nas pontas",
+          "codigo": "_verificar(extrair_json('```json\\n\\n  {\"z\": 0}\\n\\n```'), '{\"z\": 0}')"
+        },
+        {
+          "nome": "texto vazio",
+          "codigo": "_verificar(extrair_json(''), None)"
+        }
+      ],
+      "dicas": [
+        "Sem o flag certo, o `.` para na primeira quebra de linha e um bloco multilinha nunca casa; e a versão gananciosa do `.*` atravessa até a ÚLTIMA cerca quando há dois blocos.",
+        "O padrão precisa casar a cerca de abertura (três crases seguidas de `json`), capturar o miolo com um grupo preguiçoso `(.*?)`, e casar a cerca de fechamento (três crases) — tudo com `flags=re.DOTALL` para o `.` cruzar as quebras de linha. Guarde o `Match`, teste `None` antes do `.group(1)` e termine com `.strip()`.",
+        "Monte a raw-string `r\"...\"` com: três crases, `json`, o grupo `(.*?)`, três crases. Depois `m = re.search(padrao, resposta, flags=re.DOTALL)` e `return None if m is None else m.group(1).strip()`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-classes-t1-01",
+      "nivel": "classes",
+      "tier": 1,
+      "conceitos": [
+        "dataclasses",
+        "type-hints"
+      ],
+      "titulo": "A mensagem vira objeto",
+      "explicacao_md": "Até aqui você agrupou dados em dicts. Uma **classe** define um tipo seu, com dados e comportamento juntos — e nos SDKs de IA tudo é objeto: mensagens, respostas, configurações. Quando `resp.choices[0].message.content` aparecer no Ato 4, você vai ler a cadeia sem piscar.\n\nO decorator `@dataclass` gera o código repetitivo por você: `__init__` (o construtor), `__repr__` (representação legível) e `__eq__` (comparação por valor), a partir dos campos declarados com *type hints*:\n\n```python\nfrom dataclasses import dataclass\n\n@dataclass\nclass Modelo:\n    nome: str\n    contexto: int\n\nm = Modelo(\"mock-4\", 8000)\nm.nome    # \"mock-4\"\nrepr(m)   # \"Modelo(nome='mock-4', contexto=8000)\"\n```\n\nO hint (`str`, `int`) documenta o tipo esperado — o Python não o força na execução, mas é ele que diz à dataclass quais campos existem.",
+      "enunciado_md": "Todo SDK de LLM representa uma mensagem de chat como um objeto com papel e conteúdo.\n\nCrie a dataclass `Mensagem` com exatamente dois campos, nesta ordem:\n\n- `role: str` — quem fala (`\"system\"`, `\"user\"`, `\"assistant\"`)\n- `content: str` — o texto da mensagem\n\nExemplo de uso:\n\n```python\nm = Mensagem(\"user\", \"Oi, Dojo!\")\nm.role    # \"user\"\nrepr(m)   # \"Mensagem(role='user', content='Oi, Dojo!')\"\n```\n\nO decorator faz todo o resto — você não escreve `__init__` nenhum.",
+      "starter_code": "from dataclasses import dataclass\n\n# O decorator vai na linha de cima da classe; no corpo, cada campo é um nome\n# com type hint, um por linha, na ordem do enunciado. O resto ele gera sozinho.\nclass Mensagem:\n    ...\n",
+      "solucao_referencia": "from dataclasses import dataclass\n\n@dataclass\nclass Mensagem:\n    role: str\n    content: str\n",
+      "testes_visiveis": [
+        {
+          "nome": "criar e ler atributos",
+          "codigo": "m = Mensagem('user', 'Oi, Dojo!')\n_verificar(m.role, 'user')\n_verificar(m.content, 'Oi, Dojo!')"
+        },
+        {
+          "nome": "repr gerado pelo decorator",
+          "codigo": "_verificar(repr(Mensagem('system', 'seja claro')), \"Mensagem(role='system', content='seja claro')\")"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outros valores",
+          "codigo": "m = Mensagem('assistant', 'claro!')\n_verificar(m.role, 'assistant')\n_verificar(m.content, 'claro!')"
+        },
+        {
+          "nome": "é uma dataclass de verdade",
+          "codigo": "import dataclasses\nassert dataclasses.is_dataclass(Mensagem), 'Use o decorator @dataclass, não uma classe escrita à mão'"
+        },
+        {
+          "nome": "aceita argumentos nomeados",
+          "codigo": "m = Mensagem(role='tool', content='42')\n_verificar((m.role, m.content), ('tool', '42'))"
+        }
+      ],
+      "dicas": [
+        "O @dataclass lê os campos declarados no corpo da classe (nome: tipo) e gera __init__, __repr__ e __eq__ sozinho — você só declara os campos.",
+        "Importe com `from dataclasses import dataclass`, escreva `@dataclass` na linha imediatamente acima de `class Mensagem:` e declare um campo por linha, com o hint depois dos dois-pontos.",
+        "`@dataclass` sobre `class Mensagem:`; no corpo, apenas duas linhas: `role: str` e `content: str` — nada mais."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-classes-t1-02",
+      "nivel": "classes",
+      "tier": 1,
+      "conceitos": [
+        "classes",
+        "dataclasses",
+        "f-strings"
+      ],
+      "titulo": "Do objeto ao log",
+      "explicacao_md": null,
+      "enunciado_md": "Com a dataclass pronta (já vem no código), falta usá-la.\n\nEscreva duas funções:\n\n- `criar_sistema(texto)` — retorna uma `Mensagem` com `role=\"system\"` e `content=texto`\n- `formatar(msg)` — recebe uma `Mensagem` e retorna a string `\"[role] content\"` (role entre colchetes, espaço, conteúdo)\n\nExemplo: `formatar(Mensagem(\"user\", \"oi\"))` → `\"[user] oi\"` — é assim que uma conversa vira texto de log para depuração.",
+      "starter_code": "from dataclasses import dataclass\n\n@dataclass\nclass Mensagem:\n    role: str\n    content: str\n\ndef criar_sistema(texto):\n    # A dataclass já está pronta lá em cima — construa uma instância dela com o\n    # role fixo do sistema e o texto que chegou.\n    ...\n\ndef formatar(msg):\n    # Os campos saem com ponto: msg.role, msg.content. O formato do log é exato —\n    # colchetes, espaço — monte com f-string.\n    ...\n",
+      "solucao_referencia": "from dataclasses import dataclass\n\n@dataclass\nclass Mensagem:\n    role: str\n    content: str\n\ndef criar_sistema(texto):\n    return Mensagem(\"system\", texto)\n\ndef formatar(msg):\n    return f\"[{msg.role}] {msg.content}\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "criar_sistema monta a mensagem",
+          "codigo": "m = criar_sistema('responda em pt-br')\n_verificar(m.role, 'system')\n_verificar(m.content, 'responda em pt-br')"
+        },
+        {
+          "nome": "formatar com colchetes",
+          "codigo": "_verificar(formatar(Mensagem('user', 'oi')), '[user] oi')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro role e conteúdo",
+          "codigo": "_verificar(formatar(Mensagem('assistant', 'olá, tudo bem?')), '[assistant] olá, tudo bem?')"
+        },
+        {
+          "nome": "criar_sistema retorna Mensagem",
+          "codigo": "assert isinstance(criar_sistema('x'), Mensagem), 'criar_sistema deve retornar uma instância de Mensagem, não outro tipo'"
+        },
+        {
+          "nome": "as duas funções combinadas",
+          "codigo": "_verificar(formatar(criar_sistema('regras do jogo')), '[system] regras do jogo')"
+        }
+      ],
+      "dicas": [
+        "Instanciar é chamar a classe como se fosse função: `Mensagem(valor1, valor2)` — os argumentos preenchem os campos na ordem em que foram declarados.",
+        "Em `criar_sistema`, o primeiro argumento é fixo (\"system\") e o segundo é o texto recebido; em `formatar`, acesse `msg.role` e `msg.content` dentro de uma f-string.",
+        "`return Mensagem(\"system\", texto)` e `return f\"[{msg.role}] {msg.content}\"`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-classes-t1-03",
+      "nivel": "classes",
+      "tier": 1,
+      "conceitos": [
+        "classes",
+        "dataclasses"
+      ],
+      "titulo": "Prompt que se mede",
+      "explicacao_md": null,
+      "enunciado_md": "Métodos são funções que vivem DENTRO da classe e enxergam a instância através do `self`.\n\nComplete a dataclass `Prompt` (campo `texto: str`, já declarado) com o método `n_palavras(self)` que retorna quantas palavras `self.texto` tem (separe com `.split()`).\n\nContar palavras é a estimativa mais barata do tamanho de um prompt antes de pagar por tokens.\n\nExemplo: `Prompt(\"explique RAG em uma frase\").n_palavras()` → `5`",
+      "starter_code": "from dataclasses import dataclass\n\n@dataclass\nclass Prompt:\n    texto: str\n\n    # O método vive AQUI dentro, indentado no corpo da classe, e recebe self.\n    # De dentro dele, o texto da instância é self.texto — conte as palavras dele.\n",
+      "solucao_referencia": "from dataclasses import dataclass\n\n@dataclass\nclass Prompt:\n    texto: str\n\n    def n_palavras(self):\n        return len(self.texto.split())\n",
+      "testes_visiveis": [
+        {
+          "nome": "cinco palavras",
+          "codigo": "_verificar(Prompt('explique RAG em uma frase').n_palavras(), 5)"
+        },
+        {
+          "nome": "uma palavra",
+          "codigo": "_verificar(Prompt('oi').n_palavras(), 1)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "texto vazio",
+          "codigo": "_verificar(Prompt('').n_palavras(), 0)"
+        },
+        {
+          "nome": "espaços repetidos não criam palavras",
+          "codigo": "_verificar(Prompt('a  b   c').n_palavras(), 3)"
+        },
+        {
+          "nome": "cada instância mede o próprio texto",
+          "codigo": "p1 = Prompt('um dois')\np2 = Prompt('um dois três quatro')\n_verificar(p1.n_palavras(), 2)\n_verificar(p2.n_palavras(), 4)"
+        }
+      ],
+      "dicas": [
+        "Um método é um `def` indentado dentro da classe; o primeiro parâmetro é sempre `self` — a própria instância, que dá acesso aos campos.",
+        "Dentro do método, o campo aparece como `self.texto`; `.split()` sem argumento separa por qualquer quantidade de espaços e devolve uma lista.",
+        "`def n_palavras(self):` no corpo da classe, com `return len(self.texto.split())` dentro."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-classes-t1-04",
+      "nivel": "classes",
+      "tier": 1,
+      "conceitos": [
+        "dataclasses",
+        "listas"
+      ],
+      "titulo": "Iguais por valor",
+      "explicacao_md": null,
+      "enunciado_md": "Dataclasses ganham comparação por VALOR de graça: `Mensagem(\"user\", \"oi\") == Mensagem(\"user\", \"oi\")` é `True`, mesmo sendo dois objetos distintos. (Numa classe manual, sem `__eq__`, isso seria `False`.)\n\nEscreva `eh_repetida(nova, historico)`: recebe uma `Mensagem` e uma lista de `Mensagem`, e retorna `True` se `nova` já aparece na lista — útil para não reenviar a mesma mensagem ao modelo.\n\nExemplo: `eh_repetida(Mensagem(\"user\", \"oi\"), [Mensagem(\"user\", \"oi\")])` → `True`",
+      "starter_code": "from dataclasses import dataclass\n\n@dataclass\nclass Mensagem:\n    role: str\n    content: str\n\ndef eh_repetida(nova, historico):\n    # Dataclasses comparam por VALOR com == (o decorator gera o __eq__) — e o\n    # operador de pertencimento em listas usa exatamente essa comparação.\n    ...\n",
+      "solucao_referencia": "from dataclasses import dataclass\n\n@dataclass\nclass Mensagem:\n    role: str\n    content: str\n\ndef eh_repetida(nova, historico):\n    return nova in historico\n",
+      "testes_visiveis": [
+        {
+          "nome": "mensagem repetida detectada",
+          "codigo": "h = [Mensagem('user', 'oi'), Mensagem('assistant', 'olá')]\n_verificar(eh_repetida(Mensagem('user', 'oi'), h), True)"
+        },
+        {
+          "nome": "mensagem nova passa",
+          "codigo": "h = [Mensagem('user', 'oi')]\n_verificar(eh_repetida(Mensagem('user', 'tchau'), h), False)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "mesmo texto, role diferente",
+          "codigo": "_verificar(eh_repetida(Mensagem('system', 'oi'), [Mensagem('user', 'oi')]), False)"
+        },
+        {
+          "nome": "histórico vazio",
+          "codigo": "_verificar(eh_repetida(Mensagem('user', 'x'), []), False)"
+        },
+        {
+          "nome": "retorna booleano de verdade",
+          "codigo": "r = eh_repetida(Mensagem('u', 'a'), [Mensagem('u', 'a')])\nassert r is True, 'Retorne True/False de verdade, não outro tipo de valor'"
+        }
+      ],
+      "dicas": [
+        "O `__eq__` que o decorator gera compara campo a campo — dois objetos com os mesmos valores são iguais, mesmo criados separadamente.",
+        "Não precisa de loop: o operador `in` já percorre a lista comparando com `==` e devolve True/False prontos.",
+        "`return nova in historico`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-classes-t1-05",
+      "nivel": "classes",
+      "tier": 1,
+      "conceitos": [
+        "classes",
+        "repr"
+      ],
+      "titulo": "O que o decorator poupa",
+      "explicacao_md": null,
+      "enunciado_md": "Uma vez na vida, escreva à mão **parte** do que o `@dataclass` gera — o `__init__` e o `__repr__` — para entender exatamente o que ele poupa.\n\nCrie a classe `Chamada` (SEM decorator) com:\n\n- `__init__(self, modelo, tokens)` guardando `self.modelo` e `self.tokens`\n- `__repr__(self)` retornando exatamente o formato `Chamada(modelo='mock-4', tokens=120)` (aspas simples só no modelo)\n\nExemplo: `repr(Chamada(\"mini\", 7))` → `\"Chamada(modelo='mini', tokens=7)\"`",
+      "starter_code": "class Chamada:\n    # Sem decorator desta vez: você escreve o construtor (guarda os dois valores\n    # em self) e o __repr__ (uma f-string no formato exato do enunciado —\n    # repare onde ficam as aspas simples).\n    ...\n",
+      "solucao_referencia": "class Chamada:\n    def __init__(self, modelo, tokens):\n        self.modelo = modelo\n        self.tokens = tokens\n\n    def __repr__(self):\n        return f\"Chamada(modelo='{self.modelo}', tokens={self.tokens})\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "atributos guardados",
+          "codigo": "c = Chamada('mock-4', 120)\n_verificar(c.modelo, 'mock-4')\n_verificar(c.tokens, 120)"
+        },
+        {
+          "nome": "repr no formato exato",
+          "codigo": "_verificar(repr(Chamada('mock-4', 120)), \"Chamada(modelo='mock-4', tokens=120)\")"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outros valores",
+          "codigo": "_verificar(repr(Chamada('mini', 7)), \"Chamada(modelo='mini', tokens=7)\")"
+        },
+        {
+          "nome": "instâncias independentes",
+          "codigo": "a = Chamada('a1', 1)\nb = Chamada('b2', 2)\n_verificar(a.modelo, 'a1')\n_verificar(b.tokens, 2)"
+        }
+      ],
+      "dicas": [
+        "`__init__` roda na criação do objeto; cada `self.nome = valor` cria um atributo da instância. `__repr__` deve RETORNAR uma string, nunca imprimir.",
+        "No `__repr__`, use f-string e escreva as aspas simples direto no template, em volta do valor do modelo: `modelo='{self.modelo}'` — tokens fica sem aspas.",
+        "`def __init__(self, modelo, tokens):` guarda os dois em `self`; depois `def __repr__(self): return f\"Chamada(modelo='{self.modelo}', tokens={self.tokens})\"`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-classes-t2-01",
+      "nivel": "classes",
+      "tier": 2,
+      "conceitos": [
+        "dataclasses",
+        "type-hints",
+        "excecoes-customizadas"
+      ],
+      "titulo": "Alfândega do JSON",
+      "explicacao_md": "Quando um LLM devolve JSON, `json.loads` entrega um dict — e dict não garante nada: campo pode faltar, tipo pode vir errado. O padrão de produção é converter o dict numa **dataclass validada**: se algo está errado, uma exceção explode cedo, com mensagem clara.\n\n```python\nclass CampoInvalido(Exception):\n    pass\n\nif not isinstance(valor, str):\n    raise CampoInvalido(\"campo inválido: role\")\n```\n\n`isinstance(x, str)` checa o tipo de verdade — o hint sozinho não valida nada.\n\nAinda neste tier (uma peça por etapa, não tudo de uma vez): métodos de instância (`def custo(self, ...)`), `field(default_factory=list)` para campos que nascem como lista vazia, e `@classmethod` para fábricas como `from_dict(cls, dados)` — `cls` é a própria classe, então `cls(...)` constrói a instância.",
+      "enunciado_md": "Um LLM devolveu JSON e `json.loads` produziu um dict — valide antes de confiar.\n\nComplete `validar_mensagem(dados)`:\n\n- se a chave `\"role\"` ou `\"content\"` estiver ausente, OU o valor não for `str`, levante `CampoInvalido` com uma mensagem que contenha o nome do campo problemático\n- caso contrário, retorne `Mensagem(role, content)`\n\nChaves extras no dict são ignoradas.\n\nExemplo: `validar_mensagem({\"role\": \"user\", \"content\": 42})` → levanta `CampoInvalido` citando `content`.",
+      "starter_code": "from dataclasses import dataclass\n\nclass CampoInvalido(Exception):\n    pass\n\n@dataclass\nclass Mensagem:\n    role: str\n    content: str\n\ndef validar_mensagem(dados):\n    # Duas checagens por campo: existe? é str? Qualquer uma falhando, levante\n    # CampoInvalido citando O CAMPO na mensagem. Só construa a Mensagem no final,\n    # quando tudo passou.\n    ...\n",
+      "solucao_referencia": "from dataclasses import dataclass\n\nclass CampoInvalido(Exception):\n    pass\n\n@dataclass\nclass Mensagem:\n    role: str\n    content: str\n\ndef validar_mensagem(dados):\n    for campo in (\"role\", \"content\"):\n        if campo not in dados or not isinstance(dados[campo], str):\n            raise CampoInvalido(f\"campo inválido: {campo}\")\n    return Mensagem(dados[\"role\"], dados[\"content\"])\n",
+      "testes_visiveis": [
+        {
+          "nome": "dict válido vira Mensagem",
+          "codigo": "m = validar_mensagem({'role': 'user', 'content': 'oi'})\n_verificar((m.role, m.content), ('user', 'oi'))"
+        },
+        {
+          "nome": "content com tipo errado explode",
+          "codigo": "try:\n    validar_mensagem({'role': 'user', 'content': 42})\n    assert False, 'Deveria levantar CampoInvalido para content=42'\nexcept CampoInvalido as e:\n    assert 'content' in str(e), 'A mensagem do erro deve citar o campo content'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "campo ausente também é inválido",
+          "codigo": "try:\n    validar_mensagem({'content': 'oi'})\n    assert False, 'Deveria levantar CampoInvalido quando role falta'\nexcept CampoInvalido as e:\n    assert 'role' in str(e), 'A mensagem do erro deve citar o campo role'"
+        },
+        {
+          "nome": "role com tipo errado",
+          "codigo": "try:\n    validar_mensagem({'role': ['user'], 'content': 'oi'})\n    assert False, 'Deveria levantar CampoInvalido para role não-string'\nexcept CampoInvalido as e:\n    assert 'role' in str(e), 'A mensagem do erro deve citar o campo role'"
+        },
+        {
+          "nome": "chaves extras são ignoradas",
+          "codigo": "m = validar_mensagem({'role': 'assistant', 'content': 'pronto', 'tokens': 9})\n_verificar((m.role, m.content), ('assistant', 'pronto'))"
+        },
+        {
+          "nome": "retorna a dataclass, não o dict",
+          "codigo": "assert isinstance(validar_mensagem({'role': 'a', 'content': 'b'}), Mensagem), 'Retorne uma instância de Mensagem'"
+        }
+      ],
+      "dicas": [
+        "O hint `role: str` não valida nada em tempo de execução — quem valida é você, com `isinstance(valor, str)`, ANTES de construir a dataclass.",
+        "Percorra `(\"role\", \"content\")` num for: se `campo not in dados` ou `not isinstance(dados[campo], str)`, levante `CampoInvalido` com uma f-string citando `campo`.",
+        "As duas checagens cabem num if só com `or`; depois do for, `return Mensagem(dados[\"role\"], dados[\"content\"])`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-classes-t2-02",
+      "nivel": "classes",
+      "tier": 2,
+      "conceitos": [
+        "dataclasses",
+        "classes"
+      ],
+      "titulo": "A conta dos tokens",
+      "explicacao_md": null,
+      "enunciado_md": "Toda resposta de API de LLM vem com a contagem de tokens — e tokens custam dinheiro.\n\nComplete a dataclass `Uso` (campos `tokens_entrada: int` e `tokens_saida: int`) com o método `custo(self, preco_entrada, preco_saida)` que retorna o custo total em dólares. Os preços são por **1000 tokens**.\n\nExemplo: `Uso(500, 200).custo(0.01, 0.03)` → `0.011`\n(500/1000 × 0.01 + 200/1000 × 0.03 = 0.005 + 0.006)",
+      "starter_code": "from dataclasses import dataclass\n\n@dataclass\nclass Uso:\n    tokens_entrada: int\n    tokens_saida: int\n\n    def custo(self, preco_entrada, preco_saida):\n        # Os preços são por MIL tokens — cada lado tem a sua conta, e o custo\n        # total é a soma das duas.\n        ...\n",
+      "solucao_referencia": "from dataclasses import dataclass\n\n@dataclass\nclass Uso:\n    tokens_entrada: int\n    tokens_saida: int\n\n    def custo(self, preco_entrada, preco_saida):\n        return (self.tokens_entrada / 1000 * preco_entrada\n                + self.tokens_saida / 1000 * preco_saida)\n",
+      "testes_visiveis": [
+        {
+          "nome": "custo de 500+200 tokens",
+          "codigo": "_verificar(Uso(500, 200).custo(0.01, 0.03), 0.011)"
+        },
+        {
+          "nome": "mil tokens de cada lado",
+          "codigo": "_verificar(Uso(1000, 1000).custo(0.5, 1.5), 2.0)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "sem tokens, sem custo",
+          "codigo": "_verificar(Uso(0, 0).custo(0.01, 0.03), 0.0)"
+        },
+        {
+          "nome": "outros preços",
+          "codigo": "_verificar(Uso(2000, 500).custo(0.25, 1.0), 1.0)"
+        },
+        {
+          "nome": "só tokens de saída",
+          "codigo": "_verificar(Uso(0, 3000).custo(0.5, 0.2), 0.6)"
+        }
+      ],
+      "dicas": [
+        "Preço por 1000 tokens significa dividir a contagem por 1000 antes de multiplicar pelo preço — e são duas parcelas: entrada e saída.",
+        "Dentro do método, os campos são `self.tokens_entrada` e `self.tokens_saida`; some as duas parcelas e retorne o total.",
+        "`return self.tokens_entrada / 1000 * preco_entrada + self.tokens_saida / 1000 * preco_saida`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-classes-t2-03",
+      "nivel": "classes",
+      "tier": 2,
+      "conceitos": [
+        "dataclasses",
+        "type-hints"
+      ],
+      "titulo": "Conversa com memória própria",
+      "explicacao_md": null,
+      "enunciado_md": "Uma conversa nasce vazia e acumula mensagens.\n\nCrie a dataclass `Conversa`:\n\n- campo `modelo: str`\n- campo `mensagens: list[str]` que começa como **lista vazia** quando não for passado — dataclasses proíbem `= []`; o jeito certo é `field(default_factory=list)`\n- método `adicionar(self, texto)` que acrescenta `texto` ao fim de `mensagens`\n\nExemplo:\n\n```python\nc = Conversa(\"mock-4\")\nc.adicionar(\"oi\")\nc.mensagens   # [\"oi\"]\n```\n\nCada instância tem a SUA lista — duas conversas nunca dividem histórico.",
+      "starter_code": "from dataclasses import dataclass, field\n\n@dataclass\nclass Conversa:\n    # Dois campos: o modelo, e a lista que nasce vazia — dataclass proíbe = [],\n    # o caminho é o field(default_factory=...) do enunciado.\n    ...\n\n    def adicionar(self, texto):\n        # Engate no fim da lista DESTA instância (self).\n        ...\n",
+      "solucao_referencia": "from dataclasses import dataclass, field\n\n@dataclass\nclass Conversa:\n    modelo: str\n    mensagens: list[str] = field(default_factory=list)\n\n    def adicionar(self, texto):\n        self.mensagens.append(texto)\n",
+      "testes_visiveis": [
+        {
+          "nome": "nasce vazia e acumula",
+          "codigo": "c = Conversa('mock-4')\n_verificar(c.mensagens, [])\nc.adicionar('oi')\nc.adicionar('olá!')\n_verificar(c.mensagens, ['oi', 'olá!'])"
+        },
+        {
+          "nome": "lista inicial explícita",
+          "codigo": "c = Conversa('mini', ['bem-vindo'])\n_verificar(c.mensagens, ['bem-vindo'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "duas conversas não dividem histórico",
+          "codigo": "c1 = Conversa('a')\nc2 = Conversa('b')\nc1.adicionar('só na primeira')\n_verificar(c2.mensagens, [])"
+        },
+        {
+          "nome": "ordem de chegada preservada",
+          "codigo": "c = Conversa('x')\nfor t in ['3', '1', '2']:\n    c.adicionar(t)\n_verificar(c.mensagens, ['3', '1', '2'])"
+        },
+        {
+          "nome": "modelo guardado",
+          "codigo": "_verificar(Conversa('mock-4-mini').modelo, 'mock-4-mini')"
+        }
+      ],
+      "dicas": [
+        "Default mutável (`= []`) é proibido em dataclass de propósito: a mesma lista seria compartilhada por todas as instâncias. `field(default_factory=list)` cria uma lista NOVA para cada uma.",
+        "Importe `field` junto do `dataclass`; o campo fica `mensagens: list[str] = field(default_factory=list)` — repare: é `list` sem parênteses (a função que fabrica, não uma lista pronta).",
+        "Campos: `modelo: str` e `mensagens: list[str] = field(default_factory=list)`; no método, `self.mensagens.append(texto)`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-classes-t2-04",
+      "nivel": "classes",
+      "tier": 2,
+      "conceitos": [
+        "classes",
+        "dataclasses",
+        "dicts"
+      ],
+      "titulo": "Fábrica de configs",
+      "explicacao_md": null,
+      "enunciado_md": "Configs de modelo chegam como dict (vindas de um JSON de configuração). O padrão para construir o objeto a partir do dict é um **classmethod de fábrica**.\n\nComplete `ConfigLLM.from_dict(cls, dados)`:\n\n- `dados[\"modelo\"]` sempre existe\n- se `\"temperatura\"` estiver ausente do dict, use `1.0`\n- retorne a instância construída com `cls(...)`\n\nExemplo: `ConfigLLM.from_dict({\"modelo\": \"mock-4\"})` → `ConfigLLM(modelo=\"mock-4\", temperatura=1.0)`",
+      "starter_code": "from dataclasses import dataclass\n\n@dataclass\nclass ConfigLLM:\n    modelo: str\n    temperatura: float\n\n    @classmethod\n    def from_dict(cls, dados):\n        # cls é a própria classe: cls(...) constrói a instância. Para a\n        # temperatura ausente, o .get com padrão resolve — cuidado para não usar\n        # um atalho que também troque o 0.0 legítimo.\n        ...\n",
+      "solucao_referencia": "from dataclasses import dataclass\n\n@dataclass\nclass ConfigLLM:\n    modelo: str\n    temperatura: float\n\n    @classmethod\n    def from_dict(cls, dados):\n        return cls(dados[\"modelo\"], dados.get(\"temperatura\", 1.0))\n",
+      "testes_visiveis": [
+        {
+          "nome": "dict completo",
+          "codigo": "cfg = ConfigLLM.from_dict({'modelo': 'mock-4', 'temperatura': 0.2})\n_verificar((cfg.modelo, cfg.temperatura), ('mock-4', 0.2))"
+        },
+        {
+          "nome": "temperatura ausente vira 1.0",
+          "codigo": "cfg = ConfigLLM.from_dict({'modelo': 'mini'})\n_verificar(cfg.temperatura, 1.0)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro modelo",
+          "codigo": "cfg = ConfigLLM.from_dict({'modelo': 'mock-claude', 'temperatura': 1.8})\n_verificar((cfg.modelo, cfg.temperatura), ('mock-claude', 1.8))"
+        },
+        {
+          "nome": "temperatura 0.0 explícita é respeitada",
+          "codigo": "_verificar(ConfigLLM.from_dict({'modelo': 'm', 'temperatura': 0.0}).temperatura, 0.0)"
+        },
+        {
+          "nome": "retorna instância de ConfigLLM",
+          "codigo": "assert isinstance(ConfigLLM.from_dict({'modelo': 'x'}), ConfigLLM), 'from_dict deve retornar uma instância de ConfigLLM'"
+        },
+        {
+          "nome": "construção direta continua funcionando",
+          "codigo": "c = ConfigLLM('direto', 0.5)\n_verificar((c.modelo, c.temperatura), ('direto', 0.5))"
+        }
+      ],
+      "dicas": [
+        "Num classmethod, o primeiro parâmetro é `cls` — a própria classe. `cls(a, b)` constrói a instância, exatamente como chamar `ConfigLLM(a, b)`.",
+        "Para a chave opcional, `dados.get(\"temperatura\", 1.0)` devolve 1.0 só quando a chave NÃO existe — cuidado para não usar `or`, que trocaria um 0.0 legítimo.",
+        "`return cls(dados[\"modelo\"], dados.get(\"temperatura\", 1.0))`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-classes-t3-01",
+      "nivel": "classes",
+      "tier": 3,
+      "conceitos": [
+        "dataclasses",
+        "type-hints",
+        "dicts"
+      ],
+      "titulo": "O bug do default compartilhado",
+      "explicacao_md": "O bug real deste tier: **default mutável**. Em Python, o valor default é criado UMA única vez:\n\n```python\ndef registrar(item, lista=[]):   # ARMADILHA\n    lista.append(item)\n    return lista\n\nregistrar(\"a\")  # [\"a\"]\nregistrar(\"b\")  # [\"a\", \"b\"]  ← a MESMA lista!\n```\n\nDataclasses bloqueiam `campo: list = []` com erro já na definição da classe — a forma certa é `field(default_factory=list)` (ou `dict`): a *factory* roda a cada instância nova, e cada objeto ganha o seu.\n\nMais duas peças do tier: `__post_init__(self)` roda logo depois do `__init__` gerado — é o lugar de validar faixas e levantar exceção; e o hint `int | None = None` marca campo opcional: ausente vira `None`, e o código checa `is not None` antes de usar.",
+      "enunciado_md": "Um gateway de IA soma o custo de cada chamada, modelo por modelo.\n\nCrie a dataclass `RegistroCustos`:\n\n- campo `por_modelo: dict[str, float]` que começa como dict **vazio** (lembre: `field(default_factory=dict)` — nunca `= {}`)\n- `lancar(self, modelo, valor)` — soma `valor` ao acumulado do modelo, criando a chave na primeira vez\n- `total(self)` — soma de todos os modelos; `0.0` com registro vazio\n\nExemplo:\n\n```python\nr = RegistroCustos()\nr.lancar(\"mock-4\", 0.5)\nr.lancar(\"mock-4\", 0.25)\nr.por_modelo   # {\"mock-4\": 0.75}\n```\n\nInstâncias diferentes NUNCA compartilham o dict — os testes conferem.",
+      "starter_code": "from dataclasses import dataclass, field\n\n@dataclass\nclass RegistroCustos:\n    \"\"\"Acumulador de custo por modelo.\n\n    Contrato:\n    - por_modelo: dict[str, float], nasce VAZIO e nunca é compartilhado\n      entre instâncias (cuidado com o bug do default mutável)\n    - lancar(modelo, valor): soma valor ao acumulado do modelo,\n      criando a chave na primeira vez\n    - total(): soma de todos os modelos; 0.0 com registro vazio\n    \"\"\"\n    # Falta declarar o campo — e é aqui que mora o bug clássico: nada de = {},\n    # a factory do field é quem dá um dict novo a cada instância.\n\n    def lancar(self, modelo, valor):\n        ...\n\n    def total(self):\n        ...\n",
+      "solucao_referencia": "from dataclasses import dataclass, field\n\n@dataclass\nclass RegistroCustos:\n    por_modelo: dict[str, float] = field(default_factory=dict)\n\n    def lancar(self, modelo, valor):\n        self.por_modelo[modelo] = self.por_modelo.get(modelo, 0.0) + valor\n\n    def total(self):\n        return sum(self.por_modelo.values())\n",
+      "testes_visiveis": [
+        {
+          "nome": "acumula por modelo",
+          "codigo": "r = RegistroCustos()\nr.lancar('mock-4', 0.5)\nr.lancar('mock-4', 0.25)\nr.lancar('mini', 0.1)\n_verificar(r.por_modelo, {'mock-4': 0.75, 'mini': 0.1})\n_verificar(r.total(), 0.85)"
+        },
+        {
+          "nome": "registro vazio",
+          "codigo": "r = RegistroCustos()\n_verificar(r.por_modelo, {})\n_verificar(r.total(), 0.0)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "instâncias não compartilham estado (o bug clássico)",
+          "codigo": "r1 = RegistroCustos()\nr2 = RegistroCustos()\nr1.lancar('mock-4', 1.5)\n_verificar(r2.por_modelo, {})\n_verificar(r2.total(), 0.0)"
+        },
+        {
+          "nome": "outros modelos e valores",
+          "codigo": "r = RegistroCustos()\nr.lancar('a', 0.2)\nr.lancar('b', 0.3)\nr.lancar('a', 0.1)\n_verificar(r.total(), 0.6)\n_verificar(r.por_modelo['a'], 0.3)"
+        },
+        {
+          "nome": "primeira vez cria a chave",
+          "codigo": "r = RegistroCustos()\nr.lancar('novo-modelo', 2.0)\n_verificar(r.por_modelo, {'novo-modelo': 2.0})"
+        }
+      ],
+      "dicas": [
+        "É o mesmo padrão do default_factory de lista, só que com dict — e o acumulador precisa funcionar na PRIMEIRA vez que um modelo aparece, quando a chave ainda não existe.",
+        "`self.por_modelo.get(modelo, 0.0)` devolve o acumulado atual (ou 0.0 na primeira vez); some `valor` e guarde de volta na chave. Para o total, `sum(self.por_modelo.values())`.",
+        "Campo: `por_modelo: dict[str, float] = field(default_factory=dict)`. Em lancar: `self.por_modelo[modelo] = self.por_modelo.get(modelo, 0.0) + valor`; em total: `return sum(self.por_modelo.values())`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-classes-t3-02",
+      "nivel": "classes",
+      "tier": 3,
+      "conceitos": [
+        "post-init",
+        "type-hints",
+        "dataclasses"
+      ],
+      "titulo": "Validação na porta de entrada",
+      "explicacao_md": null,
+      "enunciado_md": "Config inválida tem que explodir na CRIAÇÃO — não no meio de uma chamada paga.\n\nComplete `ConfigGeracao` (campos já declarados: `modelo: str`, `temperatura: float = 1.0`, `max_tokens: int | None = None`):\n\n- `__post_init__`: `temperatura` fora de 0 a 2 (inclusive) → `ValueError` com mensagem contendo `temperatura`; `max_tokens` não-`None` e `<= 0` → `ValueError` contendo `max_tokens`\n- `from_dict(cls, dados)` (classmethod): `\"modelo\"` sempre vem; `\"temperatura\"` ausente → `1.0`; `\"max_tokens\"` ausente → `None`\n\nExemplo: `ConfigGeracao(\"mock-4\", 2.5)` → `ValueError`; `ConfigGeracao.from_dict({\"modelo\": \"mini\"})` → temperatura `1.0`, max_tokens `None`.",
+      "starter_code": "from dataclasses import dataclass\n\n@dataclass\nclass ConfigGeracao:\n    \"\"\"Config de geração validada na criação.\n\n    Contrato:\n    - temperatura fora de 0 a 2 (inclusive) -> ValueError citando 'temperatura'\n    - max_tokens não-None e <= 0 -> ValueError citando 'max_tokens'\n    - from_dict(dados): 'modelo' sempre existe; 'temperatura' ausente -> 1.0;\n      'max_tokens' ausente -> None\n    \"\"\"\n    modelo: str\n    temperatura: float = 1.0\n    max_tokens: int | None = None\n\n    def __post_init__(self):\n        # Roda logo depois do __init__ gerado: é a porta de entrada. Valide as\n        # duas regras aqui — e lembre que None se testa com \"is not None\".\n        ...\n\n    @classmethod\n    def from_dict(cls, dados):\n        # .get com valor-padrão para os ausentes — sem o atalho \"or\", que\n        # trocaria um 0.0 explícito pelo padrão.\n        ...\n",
+      "solucao_referencia": "from dataclasses import dataclass\n\n@dataclass\nclass ConfigGeracao:\n    modelo: str\n    temperatura: float = 1.0\n    max_tokens: int | None = None\n\n    def __post_init__(self):\n        if not 0 <= self.temperatura <= 2:\n            raise ValueError(f\"temperatura fora da faixa 0-2: {self.temperatura}\")\n        if self.max_tokens is not None and self.max_tokens <= 0:\n            raise ValueError(f\"max_tokens deve ser positivo: {self.max_tokens}\")\n\n    @classmethod\n    def from_dict(cls, dados):\n        return cls(dados[\"modelo\"], dados.get(\"temperatura\", 1.0),\n                   dados.get(\"max_tokens\"))\n",
+      "testes_visiveis": [
+        {
+          "nome": "config válida passa",
+          "codigo": "c = ConfigGeracao('mock-4', 0.7, 100)\n_verificar((c.modelo, c.temperatura, c.max_tokens), ('mock-4', 0.7, 100))"
+        },
+        {
+          "nome": "temperatura 2.5 explode na criação",
+          "codigo": "try:\n    ConfigGeracao('mock-4', 2.5)\n    assert False, 'temperatura 2.5 deveria levantar ValueError'\nexcept ValueError as e:\n    assert 'temperatura' in str(e), 'A mensagem do erro deve citar temperatura'"
+        },
+        {
+          "nome": "from_dict com chaves ausentes",
+          "codigo": "c = ConfigGeracao.from_dict({'modelo': 'mini'})\n_verificar(c.temperatura, 1.0)\nassert c.max_tokens is None, 'max_tokens ausente deve virar None'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "as bordas 0 e 2 são válidas",
+          "codigo": "_verificar(ConfigGeracao('m', 0.0).temperatura, 0.0)\n_verificar(ConfigGeracao('m', 2.0).temperatura, 2.0)"
+        },
+        {
+          "nome": "temperatura negativa",
+          "codigo": "try:\n    ConfigGeracao('m', -0.1)\n    assert False, 'temperatura negativa deveria levantar ValueError'\nexcept ValueError as e:\n    assert 'temperatura' in str(e), 'A mensagem do erro deve citar temperatura'"
+        },
+        {
+          "nome": "max_tokens zero é rejeitado",
+          "codigo": "try:\n    ConfigGeracao('m', 1.0, 0)\n    assert False, 'max_tokens 0 deveria levantar ValueError'\nexcept ValueError as e:\n    assert 'max_tokens' in str(e), 'A mensagem do erro deve citar max_tokens'"
+        },
+        {
+          "nome": "from_dict completo também valida",
+          "codigo": "c = ConfigGeracao.from_dict({'modelo': 'x', 'temperatura': 1.5, 'max_tokens': 32})\n_verificar((c.temperatura, c.max_tokens), (1.5, 32))\ntry:\n    ConfigGeracao.from_dict({'modelo': 'x', 'temperatura': 9.0})\n    assert False, 'from_dict com temperatura 9.0 deveria levantar ValueError'\nexcept ValueError:\n    pass"
+        },
+        {
+          "nome": "from_dict respeita temperatura 0.0 explícita",
+          "codigo": "_verificar(ConfigGeracao.from_dict({'modelo': 'm', 'temperatura': 0.0}).temperatura, 0.0)"
+        }
+      ],
+      "dicas": [
+        "`__post_init__` roda automaticamente logo após o `__init__` gerado — TODA criação de instância (direta ou via from_dict) passa por ele; é ali que se levanta o ValueError.",
+        "Faixa inclusiva: `if not 0 <= self.temperatura <= 2: raise ValueError(...)`. Para max_tokens, cheque `is not None` ANTES de comparar com 0 — comparar None com número dá TypeError.",
+        "No from_dict: `return cls(dados[\"modelo\"], dados.get(\"temperatura\", 1.0), dados.get(\"max_tokens\"))` — o `.get` sem segundo argumento já devolve None quando a chave falta."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato2-classes-t3-03",
+      "nivel": "classes",
+      "tier": 3,
+      "conceitos": [
+        "dataclasses",
+        "classes"
+      ],
+      "titulo": "Mude sem mudar",
+      "explicacao_md": null,
+      "enunciado_md": "Perfis de chamada são compartilhados pelo time — mutar um perfil em uso é receita para bug. O padrão: métodos que devolvem uma CÓPIA modificada, deixando o original intacto.\n\nComplete `Perfil.com_temperatura(self, nova)`:\n\n- retorna um **novo** `Perfil` com a `temperatura` trocada por `nova`\n- `modelo` e `tags` vêm da instância original\n- `self` não muda em nada\n- a lista `tags` do novo perfil é uma **cópia** — mexer numa não pode afetar a outra\n\nExemplo: `Perfil(\"mock-4\", 1.0, [\"rag\"]).com_temperatura(0.2)` → `Perfil(modelo='mock-4', temperatura=0.2, tags=['rag'])`, com o original intacto.",
+      "starter_code": "from dataclasses import dataclass, field\n\n@dataclass\nclass Perfil:\n    \"\"\"Perfil de chamada compartilhado pelo time.\n\n    Contrato de com_temperatura(nova):\n    - retorna um Perfil NOVO com temperatura=nova\n    - self não muda em NADA (nem temperatura, nem tags)\n    - tags do novo perfil é uma CÓPIA da lista\n      (mexer numa não pode afetar a outra)\n    \"\"\"\n    modelo: str\n    temperatura: float\n    tags: list[str] = field(default_factory=list)\n\n    def com_temperatura(self, nova):\n        # Construa um Perfil novo com os dados desta instância — e copie a lista\n        # de tags de verdade, senão os dois perfis passam a dividir a mesma.\n        ...\n",
+      "solucao_referencia": "from dataclasses import dataclass, field\n\n@dataclass\nclass Perfil:\n    modelo: str\n    temperatura: float\n    tags: list[str] = field(default_factory=list)\n\n    def com_temperatura(self, nova):\n        return Perfil(self.modelo, nova, list(self.tags))\n",
+      "testes_visiveis": [
+        {
+          "nome": "novo perfil com temperatura trocada",
+          "codigo": "base = Perfil('mock-4', 1.0, ['rag'])\nnovo = base.com_temperatura(0.2)\n_verificar((novo.modelo, novo.temperatura, novo.tags), ('mock-4', 0.2, ['rag']))"
+        },
+        {
+          "nome": "o original não muda",
+          "codigo": "base = Perfil('mock-4', 1.0, ['rag'])\nbase.com_temperatura(0.2)\n_verificar((base.temperatura, base.tags), (1.0, ['rag']))"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "sempre devolve um objeto novo",
+          "codigo": "p = Perfil('m', 0.5, [])\nq = p.com_temperatura(0.5)\nassert q is not p, 'Mesmo com a mesma temperatura, retorne uma instância NOVA — nunca self'"
+        },
+        {
+          "nome": "tags não são compartilhadas",
+          "codigo": "p = Perfil('m', 1.0, ['a'])\nq = p.com_temperatura(2.0)\nq.tags.append('b')\n_verificar(p.tags, ['a'])\np.tags.append('c')\n_verificar(q.tags, ['a', 'b'])"
+        },
+        {
+          "nome": "tags default vazia",
+          "codigo": "q = Perfil('outro', 1.5).com_temperatura(0.9)\n_verificar((q.modelo, q.temperatura, q.tags), ('outro', 0.9, []))"
+        }
+      ],
+      "dicas": [
+        "Imutabilidade na prática: em vez de alterar `self`, construa e RETORNE uma instância nova com os valores desejados — quem chamou fica com as duas versões.",
+        "Cuidado com a lista: passar `self.tags` direto faz as duas instâncias apontarem para a MESMA lista (é o que `dataclasses.replace` faria aqui). `list(self.tags)` cria uma cópia.",
+        "`return Perfil(self.modelo, nova, list(self.tags))`"
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# Pins alinhados ao pyodide-lock.json do Pyodide v0.27.7 (Python 3.12.7)
+# https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide-lock.json
+numpy==2.0.2
+pandas==2.2.3

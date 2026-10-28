@@ -1,0 +1,14 @@
+{
+  "name": "python-ai-dojo",
+  "private": true,
+  "description": "Dev tooling only (browser checks). The game itself is a static site with no build step.",
+  "scripts": {
+    "parity": "node tools/parity_pyodide.js",
+    "weblab": "node tools/webtest.js",
+    "flows": "node tools/verifica_fluxos.js",
+    "md": "node tools/testa_md.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.64.1"
+  }
+}

@@ -1,0 +1,974 @@
+{
+ "icones.png": [
+  {
+   "nome": "icone-01",
+   "papel": "pasta-noodles",
+   "folha": "icones.png",
+   "celula": [
+    1,
+    1
+   ],
+   "tamanho": [
+    175,
+    148
+   ]
+  },
+  {
+   "nome": "icone-02",
+   "papel": "livro-circuitos",
+   "folha": "icones.png",
+   "celula": [
+    1,
+    2
+   ],
+   "tamanho": [
+    170,
+    170
+   ]
+  },
+  {
+   "nome": "icone-03",
+   "papel": "docs-pasta",
+   "folha": "icones.png",
+   "celula": [
+    1,
+    3
+   ],
+   "tamanho": [
+    179,
+    161
+   ]
+  },
+  {
+   "nome": "icone-04",
+   "papel": "fluxograma",
+   "folha": "icones.png",
+   "celula": [
+    1,
+    4
+   ],
+   "tamanho": [
+    177,
+    178
+   ]
+  },
+  {
+   "nome": "icone-05",
+   "papel": "besouro",
+   "folha": "icones.png",
+   "celula": [
+    1,
+    5
+   ],
+   "tamanho": [
+    172,
+    167
+   ]
+  },
+  {
+   "nome": "icone-06",
+   "papel": "lupa-papel",
+   "folha": "icones.png",
+   "celula": [
+    1,
+    6
+   ],
+   "tamanho": [
+    162,
+    166
+   ]
+  },
+  {
+   "nome": "icone-07",
+   "papel": "rede-neural",
+   "folha": "icones.png",
+   "celula": [
+    2,
+    1
+   ],
+   "tamanho": [
+    176,
+    180
+   ]
+  },
+  {
+   "nome": "icone-08",
+   "papel": "planilha-balde",
+   "folha": "icones.png",
+   "celula": [
+    2,
+    2
+   ],
+   "tamanho": [
+    173,
+    176
+   ]
+  },
+  {
+   "nome": "icone-09",
+   "papel": "cerebro-progresso",
+   "folha": "icones.png",
+   "celula": [
+    2,
+    3
+   ],
+   "tamanho": [
+    180,
+    176
+   ]
+  },
+  {
+   "nome": "icone-10",
+   "papel": "grafico-seta",
+   "folha": "icones.png",
+   "celula": [
+    2,
+    4
+   ],
+   "tamanho": [
+    180,
+    179
+   ]
+  },
+  {
+   "nome": "icone-11",
+   "papel": "robo-balao",
+   "folha": "icones.png",
+   "celula": [
+    2,
+    5
+   ],
+   "tamanho": [
+    173,
+    176
+   ]
+  },
+  {
+   "nome": "icone-12",
+   "papel": "engrenagens",
+   "folha": "icones.png",
+   "celula": [
+    2,
+    6
+   ],
+   "tamanho": [
+    174,
+    183
+   ]
+  },
+  {
+   "nome": "icone-13",
+   "papel": "janela-llm",
+   "folha": "icones.png",
+   "celula": [
+    3,
+    1
+   ],
+   "tamanho": [
+    177,
+    184
+   ]
+  },
+  {
+   "nome": "icone-14",
+   "papel": "balanca",
+   "folha": "icones.png",
+   "celula": [
+    3,
+    2
+   ],
+   "tamanho": [
+    177,
+    176
+   ]
+  },
+  {
+   "nome": "icone-15",
+   "papel": "trofeu-grafico",
+   "folha": "icones.png",
+   "celula": [
+    3,
+    3
+   ],
+   "tamanho": [
+    176,
+    183
+   ]
+  },
+  {
+   "nome": "icone-16",
+   "papel": "terminal-verde",
+   "folha": "icones.png",
+   "celula": [
+    3,
+    4
+   ],
+   "tamanho": [
+    179,
+    171
+   ]
+  },
+  {
+   "nome": "icone-17",
+   "papel": "calculadora",
+   "folha": "icones.png",
+   "celula": [
+    3,
+    5
+   ],
+   "tamanho": [
+    133,
+    180
+   ]
+  },
+  {
+   "nome": "icone-18",
+   "papel": "cadeado",
+   "folha": "icones.png",
+   "celula": [
+    3,
+    6
+   ],
+   "tamanho": [
+    123,
+    171
+   ]
+  },
+  {
+   "nome": "icone-19",
+   "papel": "estrela-dourada",
+   "folha": "icones.png",
+   "celula": [
+    4,
+    1
+   ],
+   "tamanho": [
+    181,
+    180
+   ]
+  },
+  {
+   "nome": "icone-20",
+   "papel": "selo-check",
+   "folha": "icones.png",
+   "celula": [
+    4,
+    2
+   ],
+   "tamanho": [
+    177,
+    173
+   ]
+  },
+  {
+   "nome": "icone-21",
+   "papel": "ampulheta",
+   "folha": "icones.png",
+   "celula": [
+    4,
+    3
+   ],
+   "tamanho": [
+    113,
+    181
+   ]
+  },
+  {
+   "nome": "icone-22",
+   "papel": "disquete",
+   "folha": "icones.png",
+   "celula": [
+    4,
+    4
+   ],
+   "tamanho": [
+    173,
+    173
+   ]
+  },
+  {
+   "nome": "icone-23",
+   "papel": "presente",
+   "folha": "icones.png",
+   "celula": [
+    4,
+    5
+   ],
+   "tamanho": [
+    171,
+    181
+   ]
+  },
+  {
+   "nome": "icone-24",
+   "papel": "livro-ajuda",
+   "folha": "icones.png",
+   "celula": [
+    4,
+    6
+   ],
+   "tamanho": [
+    189,
+    149
+   ]
+  }
+ ],
+ "tutores.png": [
+  {
+   "nome": "tutor-gato",
+   "papel": null,
+   "folha": "tutores.png",
+   "celula": [
+    1,
+    1
+   ],
+   "tamanho": [
+    524,
+    708
+   ]
+  },
+  {
+   "nome": "tutor-cao",
+   "papel": null,
+   "folha": "tutores.png",
+   "celula": [
+    1,
+    2
+   ],
+   "tamanho": [
+    584,
+    737
+   ]
+  }
+ ],
+ "chrome.png": [
+  {
+   "nome": "chrome-01",
+   "papel": "titlebar-esq",
+   "folha": "chrome.png",
+   "caixa": [
+    17,
+    25,
+    258,
+    135
+   ],
+   "tamanho": [
+    225,
+    94
+   ]
+  },
+  {
+   "nome": "chrome-02",
+   "papel": "titlebar-meio-tile",
+   "folha": "chrome.png",
+   "caixa": [
+    280,
+    25,
+    614,
+    135
+   ],
+   "tamanho": [
+    317,
+    94
+   ]
+  },
+  {
+   "nome": "chrome-03",
+   "papel": "titlebar-dir",
+   "folha": "chrome.png",
+   "caixa": [
+    624,
+    25,
+    820,
+    135
+   ],
+   "tamanho": [
+    179,
+    94
+   ]
+  },
+  {
+   "nome": "chrome-04",
+   "papel": "botao-minimizar",
+   "folha": "chrome.png",
+   "caixa": [
+    871,
+    25,
+    986,
+    141
+   ],
+   "tamanho": [
+    100,
+    100
+   ]
+  },
+  {
+   "nome": "chrome-05",
+   "papel": "botao-maximizar",
+   "folha": "chrome.png",
+   "caixa": [
+    1049,
+    25,
+    1164,
+    141
+   ],
+   "tamanho": [
+    99,
+    100
+   ]
+  },
+  {
+   "nome": "chrome-06",
+   "papel": "botao-fechar",
+   "folha": "chrome.png",
+   "caixa": [
+    1233,
+    25,
+    1347,
+    141
+   ],
+   "tamanho": [
+    100,
+    100
+   ]
+  },
+  {
+   "nome": "chrome-07",
+   "papel": "janela-completa",
+   "folha": "chrome.png",
+   "caixa": [
+    17,
+    169,
+    258,
+    410
+   ],
+   "tamanho": [
+    226,
+    226
+   ]
+  },
+  {
+   "nome": "chrome-08",
+   "papel": "corpo-textura-tile",
+   "folha": "chrome.png",
+   "caixa": [
+    338,
+    175,
+    602,
+    571
+   ],
+   "tamanho": [
+    248,
+    379
+   ]
+  },
+  {
+   "nome": "chrome-09",
+   "papel": "borda-horizontal",
+   "folha": "chrome.png",
+   "caixa": [
+    630,
+    249,
+    820,
+    290
+   ],
+   "tamanho": [
+    174,
+    25
+   ]
+  },
+  {
+   "nome": "chrome-10",
+   "papel": "borda-vertical",
+   "folha": "chrome.png",
+   "caixa": [
+    900,
+    186,
+    941,
+    370
+   ],
+   "tamanho": [
+    25,
+    168
+   ]
+  },
+  {
+   "nome": "chrome-11",
+   "papel": "botao-normal",
+   "folha": "chrome.png",
+   "caixa": [
+    1026,
+    232,
+    1175,
+    329
+   ],
+   "tamanho": [
+    134,
+    82
+   ]
+  },
+  {
+   "nome": "chrome-12",
+   "papel": "botao-pressionado",
+   "folha": "chrome.png",
+   "caixa": [
+    1209,
+    232,
+    1359,
+    329
+   ],
+   "tamanho": [
+    134,
+    82
+   ]
+  },
+  {
+   "nome": "chrome-13",
+   "papel": "scroll-seta-cima",
+   "folha": "chrome.png",
+   "caixa": [
+    23,
+    444,
+    149,
+    571
+   ],
+   "tamanho": [
+    112,
+    111
+   ]
+  },
+  {
+   "nome": "chrome-14",
+   "papel": "scroll-seta-baixo",
+   "folha": "chrome.png",
+   "caixa": [
+    189,
+    444,
+    315,
+    571
+   ],
+   "tamanho": [
+    111,
+    111
+   ]
+  },
+  {
+   "nome": "chrome-15",
+   "papel": "scroll-polegar",
+   "folha": "chrome.png",
+   "caixa": [
+    682,
+    404,
+    745,
+    565
+   ],
+   "tamanho": [
+    48,
+    145
+   ]
+  },
+  {
+   "nome": "chrome-16",
+   "papel": "scroll-trilho",
+   "folha": "chrome.png",
+   "caixa": [
+    883,
+    398,
+    957,
+    576
+   ],
+   "tamanho": [
+    58,
+    162
+   ]
+  },
+  {
+   "nome": "chrome-17",
+   "papel": "checkbox-off",
+   "folha": "chrome.png",
+   "caixa": [
+    1049,
+    433,
+    1153,
+    536
+   ],
+   "tamanho": [
+    88,
+    88
+   ]
+  },
+  {
+   "nome": "chrome-18",
+   "papel": "checkbox-on",
+   "folha": "chrome.png",
+   "caixa": [
+    1233,
+    433,
+    1336,
+    536
+   ],
+   "tamanho": [
+    88,
+    88
+   ]
+  },
+  {
+   "nome": "chrome-19",
+   "papel": "radio-off",
+   "folha": "chrome.png",
+   "caixa": [
+    40,
+    633,
+    138,
+    731
+   ],
+   "tamanho": [
+    82,
+    82
+   ]
+  },
+  {
+   "nome": "chrome-20",
+   "papel": "radio-on",
+   "folha": "chrome.png",
+   "caixa": [
+    212,
+    633,
+    309,
+    731
+   ],
+   "tamanho": [
+    82,
+    82
+   ]
+  },
+  {
+   "nome": "chrome-21",
+   "papel": "input-texto",
+   "folha": "chrome.png",
+   "caixa": [
+    361,
+    627,
+    815,
+    737
+   ],
+   "tamanho": [
+    438,
+    94
+   ]
+  },
+  {
+   "nome": "chrome-22",
+   "papel": "progresso-tile",
+   "folha": "chrome.png",
+   "caixa": [
+    889,
+    627,
+    951,
+    737
+   ],
+   "tamanho": [
+    48,
+    94
+   ]
+  },
+  {
+   "nome": "chrome-23",
+   "papel": "ampulheta-espera",
+   "folha": "chrome.png",
+   "caixa": [
+    1055,
+    599,
+    1153,
+    754
+   ],
+   "tamanho": [
+    83,
+    140
+   ]
+  }
+ ],
+ "taskbar.png": [
+  {
+   "nome": "taskbar-01",
+   "papel": "start-normal",
+   "folha": "taskbar.png",
+   "caixa": [
+    12,
+    53,
+    222,
+    140
+   ],
+   "tamanho": [
+    195,
+    72
+   ]
+  },
+  {
+   "nome": "taskbar-02",
+   "papel": "start-pressionado",
+   "folha": "taskbar.png",
+   "caixa": [
+    246,
+    53,
+    457,
+    140
+   ],
+   "tamanho": [
+    196,
+    73
+   ]
+  },
+  {
+   "nome": "taskbar-03",
+   "papel": "app-normal",
+   "folha": "taskbar.png",
+   "caixa": [
+    481,
+    53,
+    692,
+    140
+   ],
+   "tamanho": [
+    196,
+    72
+   ]
+  },
+  {
+   "nome": "taskbar-04",
+   "papel": "app-ativo",
+   "folha": "taskbar.png",
+   "caixa": [
+    716,
+    53,
+    926,
+    140
+   ],
+   "tamanho": [
+    195,
+    73
+   ]
+  },
+  {
+   "nome": "taskbar-05",
+   "papel": "fundo-tile",
+   "folha": "taskbar.png",
+   "caixa": [
+    480,
+    395,
+    690,
+    550
+   ],
+   "tamanho": [
+    211,
+    156
+   ]
+  },
+  {
+   "nome": "taskbar-06",
+   "papel": "relogio-painel",
+   "folha": "taskbar.png",
+   "caixa": [
+    1068,
+    229,
+    1396,
+    345
+   ],
+   "tamanho": [
+    313,
+    102
+   ]
+  },
+  {
+   "nome": "taskbar-07",
+   "papel": "mini-pasta",
+   "folha": "taskbar.png",
+   "caixa": [
+    41,
+    604,
+    181,
+    720
+   ],
+   "tamanho": [
+    125,
+    102
+   ]
+  },
+  {
+   "nome": "taskbar-08",
+   "papel": "mini-terminal",
+   "folha": "taskbar.png",
+   "caixa": [
+    275,
+    604,
+    428,
+    720
+   ],
+   "tamanho": [
+    138,
+    101
+   ]
+  },
+  {
+   "nome": "taskbar-09",
+   "papel": "mini-trofeu",
+   "folha": "taskbar.png",
+   "caixa": [
+    516,
+    592,
+    656,
+    732
+   ],
+   "tamanho": [
+    125,
+    125
+   ]
+  },
+  {
+   "nome": "taskbar-10",
+   "papel": "mini-frasco",
+   "folha": "taskbar.png",
+   "caixa": [
+    763,
+    598,
+    873,
+    732
+   ],
+   "tamanho": [
+    95,
+    119
+   ]
+  },
+  {
+   "nome": "taskbar-11",
+   "papel": "mini-alto-falante",
+   "folha": "taskbar.png",
+   "caixa": [
+    991,
+    598,
+    1126,
+    726
+   ],
+   "tamanho": [
+    120,
+    113
+   ]
+  },
+  {
+   "nome": "taskbar-12",
+   "papel": "mini-moeda-xp",
+   "folha": "taskbar.png",
+   "caixa": [
+    1227,
+    598,
+    1360,
+    732
+   ],
+   "tamanho": [
+    119,
+    119
+   ]
+  }
+ ],
+ "cursores.png": [
+  {
+   "nome": "cursor-seta",
+   "papel": "seta",
+   "folha": "cursores.png",
+   "caixa": [
+    87,
+    41,
+    275,
+    345
+   ],
+   "tamanho": [
+    172,
+    289
+   ]
+  },
+  {
+   "nome": "cursor-mao",
+   "papel": "mao",
+   "folha": "cursores.png",
+   "caixa": [
+    416,
+    41,
+    639,
+    345
+   ],
+   "tamanho": [
+    208,
+    289
+   ]
+  },
+  {
+   "nome": "cursor-texto",
+   "papel": "ibeam",
+   "folha": "cursores.png",
+   "caixa": [
+    827,
+    41,
+    920,
+    345
+   ],
+   "tamanho": [
+    78,
+    289
+   ]
+  },
+  {
+   "nome": "cursor-espera",
+   "papel": "ampulheta",
+   "folha": "cursores.png",
+   "caixa": [
+    1144,
+    41,
+    1319,
+    345
+   ],
+   "tamanho": [
+    160,
+    289
+   ]
+  }
+ ],
+ "wallpaper.png": {
+  "copia": "wallpaper.png",
+  "tamanho": [
+   2752,
+   1536
+  ]
+ },
+ "keycaps.png": {
+  "keycap": [
+   309,
+   311
+  ]
+ },
+ "tv.png": {
+  "moldura": [
+   990,
+   714
+  ],
+  "botoes": [
+   120,
+   230
+  ],
+  "antena": [
+   301,
+   618
+  ],
+  "buraco_na_moldura": [
+   150,
+   92,
+   168,
+   98
+  ]
+ },
+ "sala.png": {
+  "tamanho": [
+   3168,
+   1344
+  ]
+ }
+}

@@ -1,0 +1,642 @@
+/* Python AI Dojo — skin "DOJO OS" (r8, 2026-07-21).
+   Desktop retrô de OS anos-90 construído 100% a partir do pacote de assets
+   gerado pelo dono (assets/*.png, fatiados de assets/src/pack/ por
+   tools/build_assets.py). NENHUM pixel de arte é desenhado aqui: o CSS só
+   POSICIONA sprites (border-image, background) e usa cores AMOSTRADAS deles.
+   Regras: tipografia monoespaçada, zero border-radius, contratos DOM da base
+   neutra preservados (ids/classes de app.js). Bump ?v= em TODA mudança. */
+
+:root {
+  /* cores amostradas dos assets (creme da janela, marrons da taskbar) */
+  --os-creme: #f2ebce;
+  --os-creme-2: #e6dcb8;
+  --os-creme-3: #d8caa2;
+  --os-marrom: #7c533d;
+  --os-marrom-2: #61422a;
+  --os-marrom-3: #452a19;
+  --os-borda: #8a6a48;
+  --bg: #274a35;
+  --superficie: var(--os-creme);
+  --superficie-2: var(--os-creme-2);
+  --borda: var(--os-borda);
+  --ink: #2e1d10;
+  --ink-soft: #5d4632;
+  --ink-faint: #93805f;
+  --acao: #7c533d;
+  --acao-escuro: #61422a;
+  --ok: #2f8f4e;
+  --erro: #b23a2a;
+  --aviso: #a87f12;
+  --num-cor: #8a5a1e;
+  --editor-bg: #241c14;
+  --editor-ink: #f0e7d1;
+  --glow: rgba(168, 127, 18, 0.5);
+  /* consumidas por telas antigas — mapeadas à paleta OS */
+  --laranja: #a87f12; --laranja-deep: #8a6a0e; --laranja-edge: #6f550b;
+  --verde: #2f8f4e; --verde-deep: #226b43; --verde-edge: #1a5434;
+  --amarelo: #d4a017; --amarelo-deep: #a87f12;
+  --erro-suave: #ecd9c8; --info: #5d4632;
+  --d1: #6a8f6f; --d2: #a8945a; --d3: #a87a5a; --d4: #7a6a8f;
+  --mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+  --fonte: var(--mono);
+  --ease: steps(4, end);
+}
+/* modo escuro: mesmo OS (as janelas continuam creme — é um sistema retrô);
+   só o papel de parede escurece um pouco via overlay */
+:root[data-escuro="1"] { color-scheme: light; }
+
+* { box-sizing: border-box; border-radius: 0; }
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+/* ------------------------------------------------- a TV na sala (Dojo OS)
+   O jogo INTEIRO vive dentro de uma TV de tubo pixel-art (assets do dono:
+   sala.png ultrawide 21:9 + tv.png fatiada em moldura/botões/antena).
+   --tvx/--tvy = margens da TV; em telas largas sobra sala dos dois lados. */
+:root {
+  --tvx: max(14px, calc((100vw - 160vh) / 2));
+  --tvy: 14px;
+}
+body {
+  /* a SALA é o fundo de verdade (nativa 3168x1344, 21:9) */
+  background: #241c14 url("../assets/sala.png?v=56") center bottom / cover fixed no-repeat;
+  image-rendering: pixelated;
+  color: var(--ink);
+  font: 14px/1.6 var(--mono);
+}
+/* a tela da TV: a CENA mora DENTRO do buraco do tubo. --cena é trocada por
+   tela/ato (js/ui.js): cada ato e o laboratório podem ter o seu cenário, com
+   fallback para o papel de parede padrão enquanto a arte não existir. */
+:root { --cena: url("../assets/wallpaper.png?v=56"); }
+body::before {
+  content: ""; position: fixed; z-index: -1;
+  inset: calc(var(--tvy) + 26px) calc(var(--tvx) + 34px) calc(var(--tvy) + 42px);
+  background: #274a35 var(--cena) center top / cover no-repeat;
+  image-rendering: pixelated;
+  transition: opacity 200ms steps(3, end);
+}
+/* a área útil do tubo: contêiner de scroll — o conteúdo NUNCA passa da moldura */
+#tv-scroll {
+  position: fixed; z-index: 0;
+  top: calc(var(--tvy) + 26px); bottom: calc(var(--tvy) + 42px);
+  left: calc(var(--tvx) + 34px); right: calc(var(--tvx) + 34px);
+  overflow-y: auto; overflow-x: hidden;
+}
+/* a moldura da TV por cima de tudo que é tela (buraco é transparente) */
+body::after {
+  content: ""; position: fixed; z-index: 80; pointer-events: none;
+  inset: var(--tvy) var(--tvx);
+  border: 30px solid transparent;
+  border-width: 30px 40px 48px 40px;
+  border-image: url("../assets/tv-moldura.png?v=56") 92 168 98 150 / 30px 40px 48px 40px stretch;
+  image-rendering: pixelated;
+}
+/* botões rotativos (sprite separado — não estica com a moldura) e antena */
+html::after {
+  content: ""; position: fixed; z-index: 81; pointer-events: none;
+  right: calc(var(--tvx) + 2px); bottom: calc(var(--tvy) + 40px);
+  width: 36px; height: 70px;
+  background: url("../assets/tv-botoes.png?v=56") center / contain no-repeat;
+  image-rendering: pixelated;
+}
+html::before {
+  content: ""; display: none; position: fixed; z-index: 3; pointer-events: none;
+  right: calc(var(--tvx) - 290px); bottom: 20px;
+  width: 160px; height: 330px;
+  background: url("../assets/tv-antena.png?v=56") center bottom / contain no-repeat;
+  image-rendering: pixelated;
+}
+/* antena só quando há sala de sobra dos lados (ultrawide de verdade) */
+@media (min-width: 2200px) { html::before { display: block; } }
+:root[data-escuro="1"] body {
+  background-blend-mode: multiply;
+  background-color: #9a9a9a;
+}
+img { image-rendering: pixelated; }
+h1 { font-size: 24px; margin: 0 0 8px; }
+h2 { font-size: 18px; margin: 0 0 10px; }
+h3 { font-size: 15px; margin: 14px 0 6px; }
+p { margin: 8px 0; }
+a { color: var(--os-marrom); }
+code { font-family: var(--mono); font-size: 0.92em; background: var(--os-creme-2); padding: 1px 5px; border: 1px solid var(--os-creme-3); }
+pre.cod { background: var(--editor-bg); color: var(--editor-ink); padding: 12px 14px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.6; border: 2px solid var(--os-marrom-3); }
+pre.cod code { background: none; border: 0; padding: 0; color: inherit; }
+.mono { font-family: var(--mono); }
+.peq { font-size: 12px; color: var(--ink-soft); }
+.sub { color: var(--ink-soft); margin-top: 4px; }
+.oculto { display: none !important; }
+.chip { font-size: 11px; background: var(--os-creme-2); border: 1px solid var(--os-creme-3); padding: 2px 8px; color: var(--ink-soft); }
+.chip-rev { color: var(--aviso); }
+.ico { width: 14px; height: 14px; vertical-align: -2px; }
+.num, .hdr-xp, .tempo-num, .stat-card .num, .preta-stats .num, .evo-tempos, .hdr-prog { font-variant-numeric: tabular-nums; }
+
+/* ---------------------------------------------------------------- botões */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 9px solid transparent;
+  border-image: url("../assets/chrome-11.png?v=56") 16 fill / 9px stretch;
+  image-rendering: pixelated;
+  background: none; color: var(--ink);
+  padding: 2px 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+  font-family: var(--mono); line-height: 1.5; text-decoration: none;
+}
+.btn:hover:not(:disabled) { filter: brightness(1.05); }
+.btn:active:not(:disabled), .btn.afundado {
+  border-image-source: url("../assets/chrome-12.png?v=56");
+  transform: translateY(1px);
+}
+.btn:disabled { opacity: 0.5; cursor: default; }
+.btn-primario { color: var(--os-marrom-3); }
+.btn-primario::before { content: "►"; font-size: 10px; color: var(--os-marrom); }
+.btn-grande { padding: 6px 20px; font-size: 15px; }
+.btn-peq { padding: 0 6px; font-size: 12px; border-width: 7px; border-image-width: 7px; }
+.btn-fantasma { border-image: none; border: 1px solid var(--os-borda); background: rgba(242, 235, 206, 0.85); color: var(--ink); padding: 3px 10px; }
+.btn-fantasma:hover:not(:disabled) { background: var(--os-creme); }
+.btn-perigo { color: var(--erro); }
+.btn-icone { background: none; border: 0; color: var(--ink-soft); cursor: pointer; padding: 6px 8px; }
+.btn-icone svg { width: 17px; height: 17px; display: block; }
+.atalho { font-size: 10px; opacity: 0.65; }
+.linha-botoes { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+:focus-visible { outline: 2px dashed var(--os-marrom-3); outline-offset: 2px; }
+.editor:focus-visible { outline-offset: -2px; }
+.btn.realce { outline: 3px solid var(--glow); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------- janela */
+.janela {
+  position: relative;
+  border: 8px solid transparent;
+  border-top-width: 38px;
+  border-image: url("../assets/chrome-07.png?v=56") 58 17 17 17 fill / 38px 8px 8px 8px stretch;
+  image-rendering: pixelated;
+  margin-top: 18px;
+  text-align: left;
+  box-shadow: 6px 6px 0 rgba(30, 18, 8, 0.35);
+}
+.janela-barra {
+  position: absolute; top: -32px; left: 2px; right: 4px; height: 28px;
+  display: flex; align-items: center; gap: 8px;
+  color: #f6eede; font-weight: 700; font-size: 13px;
+  text-shadow: 1px 1px 0 var(--os-marrom-3);
+  pointer-events: none;
+}
+.janela-titulo { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.janela-btns { display: inline-flex; gap: 4px; }
+.jbt { width: 22px; height: 22px; display: inline-block; background: center / contain no-repeat; }
+.jbt-min { background-image: url("../assets/chrome-04.png?v=56"); }
+.jbt-max { background-image: url("../assets/chrome-05.png?v=56"); }
+.jbt-x { background-image: url("../assets/chrome-06.png?v=56"); }
+.janela-corpo { padding: 10px 12px; }
+.janela-corpo > :first-child { margin-top: 0; }
+
+/* painéis internos (recuo estilo campo de formulário) */
+.painel {
+  background: var(--os-creme);
+  border: 2px solid var(--os-borda);
+  border-top-color: var(--os-marrom-2); border-left-color: var(--os-marrom-2);
+  border-bottom-color: #fff8e2; border-right-color: #fff8e2;
+  padding: 14px 18px; margin-top: 16px; text-align: left;
+}
+.painel-erro { border-color: var(--erro); }
+.tela-centro { max-width: 640px; margin: 6vh auto 0; text-align: center; padding: 0 20px; }
+.tela-centro .janela { text-align: left; }
+
+/* --------------------------------------------------------------- taskbar */
+.hdr {
+  position: fixed; z-index: 40;
+  left: calc(var(--tvx) + 38px); right: calc(var(--tvx) + 38px);
+  bottom: calc(var(--tvy) + 44px);
+  display: flex; align-items: center; gap: 6px;
+  height: 54px; padding: 4px 8px;
+  background: url("../assets/taskbar-05.png?v=56") repeat-x left center / auto 100%;
+  image-rendering: pixelated;
+  border-top: 2px solid var(--os-marrom-3);
+  font-size: 12.5px;
+}
+.tb-start {
+  flex-shrink: 0; width: 104px; height: 42px; border: 0; cursor: pointer;
+  background: url("../assets/taskbar-01.png?v=56") center / 100% 100% no-repeat;
+  color: transparent; font-size: 0;
+  image-rendering: pixelated;
+}
+.tb-start:active { background-image: url("../assets/taskbar-02.png?v=56"); }
+.tb-app {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 40px; padding: 0 12px; cursor: pointer;
+  border: 8px solid transparent;
+  border-image: url("../assets/taskbar-03.png?v=56") 18 fill / 8px stretch;
+  image-rendering: pixelated;
+  color: #f6eede; font-family: var(--mono); font-size: 12.5px; font-weight: 700;
+  text-decoration: none; text-shadow: 1px 1px 0 var(--os-marrom-3);
+  white-space: nowrap;
+}
+.tb-app:hover { filter: brightness(1.12); }
+.tb-app.ativo, .tb-app:active {
+  border-image-source: url("../assets/taskbar-04.png?v=56");
+  transform: translateY(1px);
+}
+.tb-app img { width: 20px; height: 20px; }
+.tb-espaco { flex: 1; }
+.hdr-titulo { display: none; }
+.hdr-meio { display: flex; align-items: center; gap: 6px; }
+.hdr-dir { display: flex; align-items: center; gap: 10px; }
+.hdr-xp { font-weight: 700; color: #ffd97a; display: inline-flex; align-items: center; gap: 5px; text-shadow: 1px 1px 0 var(--os-marrom-3); }
+.hdr-xp img { width: 20px; height: 20px; }
+.hdr-streak { color: #ffd97a; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; text-shadow: 1px 1px 0 var(--os-marrom-3); }
+.hdr-fila { color: #f6eede; font-size: 11.5px; text-decoration: none; text-shadow: 1px 1px 0 var(--os-marrom-3); }
+.hdr-prog { color: #f6eede; text-shadow: 1px 1px 0 var(--os-marrom-3); }
+.tb-relogio {
+  flex-shrink: 0; min-width: 92px; height: 40px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 8px solid transparent;
+  border-image: url("../assets/taskbar-06.png?v=56") 24 fill / 8px stretch;
+  image-rendering: pixelated;
+  color: #ffd97a; font-weight: 700; letter-spacing: 1px;
+  text-shadow: 1px 1px 0 #000;
+}
+.barra-ato { width: 120px; height: 10px; background: var(--os-marrom-3); border: 1px solid var(--os-marrom-2); overflow: hidden; }
+.barra-ato-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=56") repeat-x left center / auto 100%; }
+.faixa-ico { vertical-align: -4px; }
+
+/* ------------------------------------------------------------------ main
+   O conteúdo vive dentro da tela da TV: respiro extra p/ o bezel. */
+.main {
+  max-width: min(1040px, calc(100vw - 2 * var(--tvx) - 120px));
+  margin: 0 auto;
+  padding: 22px 20px 116px; /* 116 = respiro p/ a taskbar dentro do tubo */
+}
+.main-mapa { max-width: min(1280px, calc(100vw - 2 * var(--tvx) - 120px)); }
+/* exercícios: o código merece a horizontal — usa a tela da TV quase toda */
+.main-exercicio, .main-exercicioWeb { max-width: min(1560px, calc(100vw - 2 * var(--tvx) - 120px)); }
+
+/* --------------------------------------------------- mapa = área de trabalho
+   Espaço negativo: ícones em COLUNA à esquerda (como desktop clássico), a
+   janela leia-me encostada à direita — o sol e o vale ficam livres no centro. */
+.desktop { display: flex; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+.desktop .mapa-atos { flex: 0 0 auto; order: 1; }
+.desktop .janela-leiame { order: 2; margin-left: auto; margin-top: 6px; flex: 0 1 500px; min-width: 320px; }
+.mapa-atos { display: flex; flex-direction: column; gap: 8px; margin-top: 0; }
+.mapa-ato h2 {
+  display: inline-block; margin: 4px 0; padding: 1px 10px;
+  color: #f6eede; font-size: 13px; background: rgba(69, 42, 25, 0.82);
+  text-shadow: 1px 1px 0 var(--os-marrom-3);
+}
+.mapa-niveis { display: grid; grid-template-columns: repeat(2, 106px); gap: 10px 8px; justify-content: start; }
+.no {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: none; border: 2px solid transparent; padding: 6px 2px 4px;
+  cursor: pointer; color: #fff; font-family: var(--mono); font-size: 11.5px;
+  text-align: center; width: 106px;
+}
+.no:hover:not(:disabled), .no:focus-visible { border-color: rgba(242, 235, 206, 0.6); background: rgba(242, 235, 206, 0.14); }
+.no:disabled { cursor: default; }
+.no:disabled .no-icone img.no-img { filter: grayscale(0.9) brightness(0.7); }
+.no.atual .no-rotulo { background: var(--os-marrom); }
+.no-icone { position: relative; width: 58px; height: 58px; }
+.no-icone img.no-img { width: 100%; height: 100%; object-fit: contain; }
+.no-cadeado { position: absolute; right: -7px; bottom: -3px; width: 24px; height: 24px; }
+.no-badge { position: absolute; right: -7px; top: -5px; width: 22px; height: 22px; }
+.no-rotulo {
+  display: block; max-width: 102px; padding: 1px 4px;
+  background: rgba(69, 42, 25, 0.85); color: #f6eede;
+  font-size: 10.5px; line-height: 1.3;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
+}
+.no-sub { font-size: 10.5px; color: #ffd97a; text-shadow: 1px 1px 0 rgba(0,0,0,0.8); }
+.no-etiqueta { display: contents; }
+.no-nome { display: contents; }
+.no-estrelas { color: var(--aviso); }
+.cadeado-mini svg { width: 12px; height: 12px; }
+.trilha-topo, .mapa-topo { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
+.janela-leiame { max-width: 560px; }
+.janela-leiame h1 { font-size: 18px; margin: 0; }
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 5px 0 5px 26px; position: relative; }
+.checklist li::before { content: "[ ]"; position: absolute; left: 0; color: var(--ink-faint); font-family: var(--mono); }
+.checklist li.ok::before { content: "[x]"; color: var(--ok); }
+
+/* ------------------------------------------------------------- exercício
+   Espaço negativo: o GATO fala numa coluna estreita à esquerda; o CÓDIGO
+   domina a horizontal à direita, com o teclado logo abaixo da caixa. */
+.ex-layout { display: grid; grid-template-columns: minmax(280px, 400px) minmax(460px, 1.7fr); gap: 22px; align-items: start; }
+.ex-sidebar { display: none; }
+.ex-cab { display: inline-flex; gap: 10px; align-items: center; margin-bottom: 8px; color: var(--ink); flex-wrap: wrap; background: rgba(242, 235, 206, 0.85); border: 1px solid var(--os-borda); padding: 4px 10px; }
+.ex-cab .peq { color: var(--ink-soft); }
+.ex-cab .peq { flex: 1; }
+.ex-enunciado h2 { font-size: 18px; margin-bottom: 10px; }
+.explicacao { background: var(--os-creme-2); border: 1px solid var(--os-creme-3); border-left: 4px solid var(--aviso); padding: 12px 16px; margin: 14px 0; }
+.explicacao-rever summary { cursor: pointer; color: var(--ink-soft); font-size: 13px; padding: 6px 0; }
+.enunciado { margin: 14px 0; font-size: 14px; line-height: 1.65; }
+.enunciado .cod, .explicacao .cod { margin: 10px 0; }
+
+/* dicas = janela do tutor com retrato */
+.janela-tutor { margin-top: 16px; }
+.tutor-fala { display: flex; gap: 14px; align-items: flex-start; }
+.tutor-retrato { width: 84px; flex-shrink: 0; image-rendering: pixelated; }
+.tutor-dicas { flex: 1; min-width: 0; }
+
+/* papéis fixos dos tutores: o GATO ensina (fala), o CÃO só codifica —
+   o balão de fala do cão É a caixa de código ao lado dele */
+.aula-cab { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 8px; }
+.aula-cab .tutor-mini { width: 64px; }
+.aula-cab h2 { margin: 0 0 2px; }
+.aula-fala { margin: 0; }
+.tutor-mini { flex-shrink: 0; image-rendering: pixelated; }
+.cao-codigo { display: flex; gap: 10px; align-items: flex-start; }
+.cao-codigo .tutor-mini { width: 56px; margin-top: 4px; }
+.cao-codigo .editor-caixa, .cao-codigo .web-editores { flex: 1; min-width: 0; }
+/* microfala do Billy: uma linha só, do lado do editor — ele apoia, não dá aula */
+.billy-fala {
+  margin: 8px 0 0 66px; padding: 6px 11px; font-size: 12.5px; line-height: 1.45;
+  color: var(--ink-soft); background: var(--os-creme-2);
+  border: 1px solid var(--os-creme-3); border-left: 4px solid var(--verde);
+}
+.billy-fala::before { content: "Billy: "; font-weight: 700; color: var(--verde-deep); }
+.dica { background: var(--os-creme-2); border: 1px solid var(--os-creme-3); border-left: 4px solid var(--os-marrom); padding: 9px 13px; margin: 0 0 8px; font-size: 13.5px; }
+.dica-num { font-weight: 700; color: var(--os-marrom); margin-right: 6px; font-size: 11.5px; }
+.dicas-area { margin-top: 14px; }
+
+code.glos { position: relative; cursor: help; border-bottom: 1px dotted var(--os-marrom); }
+code.glos:hover, code.glos:focus-visible { background: var(--os-creme-3); outline: none; }
+.glos-balao {
+  position: absolute; bottom: calc(100% + 9px); left: 50%; transform: translateX(-50%);
+  width: max-content; max-width: min(320px, 78vw); z-index: 45;
+  background: var(--os-marrom-3); color: var(--os-creme);
+  font-family: var(--mono); font-size: 12px; line-height: 1.5;
+  border: 2px solid var(--os-marrom-2);
+  padding: 9px 12px; text-align: left; white-space: normal;
+  visibility: hidden; pointer-events: none;
+}
+.glos-balao strong { display: block; font-family: var(--mono); font-size: 12px; margin-bottom: 3px; color: #ffd97a; }
+code.glos:hover .glos-balao, code.glos:focus-visible .glos-balao, code.glos:focus .glos-balao { visibility: visible; }
+.glos-balao.esq { left: -4px; transform: none; }
+.glos-balao.dir { left: auto; right: -4px; transform: none; }
+.glos-balao::after { display: none; }
+
+/* editor = terminal escuro dentro da janela resolucao.py */
+.editor-caixa { display: flex; background: var(--editor-bg); border: 2px solid var(--os-marrom-3); overflow: hidden; }
+.editor-gutter { padding: 12px 8px 12px 12px; text-align: right; color: #8a7a5e; font-family: var(--mono); font-size: 13px; line-height: 1.6; user-select: none; white-space: pre; overflow: hidden; min-width: 36px; background: rgba(0, 0, 0, 0.35); }
+.editor { flex: 1; min-height: 320px; resize: vertical; border: 0; outline: none; background: transparent; color: var(--editor-ink); caret-color: #ffd97a; font-family: var(--mono); font-size: 13px; line-height: 1.6; padding: 12px 14px; tab-size: 4; white-space: pre; overflow-x: auto; }
+.editor-acoes { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+.pkg-status { flex: 1; }
+
+.resultados { margin-top: 14px; display: grid; gap: 10px; }
+.res { padding: 12px 15px; background: var(--os-creme-2); border: 2px solid var(--os-borda); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.res-titulo { font-weight: 700; margin: 0; }
+.res-ok { border-color: var(--ok); }
+.res-ok .res-titulo { color: var(--ok); }
+.res-falha { display: block; border-color: var(--erro); }
+.res-falha .res-titulo { color: var(--erro); }
+.res-erro { display: block; background: var(--erro-suave); border-color: var(--erro); }
+.res-erro .res-titulo { color: var(--erro); }
+.res-sintaxe { display: block; border-color: var(--aviso); }
+.res-sintaxe .res-titulo { color: var(--aviso); }
+.check-svg { width: 26px; height: 26px; color: var(--ok); }
+.check-svg svg { width: 100%; height: 100%; }
+.check-path { stroke-dasharray: 40; stroke-dashoffset: 0; }
+.xp-badge, .pb-badge { font-weight: 700; color: var(--num-cor); }
+.teste { background: var(--os-creme); border: 1px solid var(--os-creme-3); padding: 8px 13px; font-size: 13px; }
+.teste summary { cursor: pointer; font-weight: 600; }
+.teste-falha { border-left: 3px solid var(--erro); }
+.esp-obt { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.esp-obt .rotulo { display: block; margin-bottom: 3px; }
+.rotulo { font-size: 10.5px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-soft); font-weight: 700; }
+.diff { color: var(--ink-soft); }
+.tempo-caixa { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--os-creme-2); border: 1px solid var(--os-creme-3); margin-top: 8px; flex-wrap: wrap; }
+.tempo-num { font-family: var(--mono); font-size: 18px; font-weight: 700; }
+.tempo-comp { font-size: 12px; color: var(--ink-soft); }
+.tempo-melhora { color: var(--ok); font-weight: 700; }
+.tempo-piora { color: var(--ink-soft); }
+.spark { display: inline-flex; align-items: flex-end; gap: 3px; height: 24px; }
+.spark i { width: 6px; background: var(--os-creme-3); }
+.spark i.best { background: var(--os-marrom); }
+.toast-recorde { position: fixed; top: calc(var(--tvy) + 42px); right: calc(var(--tvx) + 56px); z-index: 55; background: var(--os-marrom-3); border: 2px solid #ffd97a; color: #ffd97a; padding: 11px 18px; font-weight: 700; font-family: var(--mono); }
+
+/* ------------------------------------------- fins / progresso / livre / dan */
+.painel-fim { text-align: left; }
+.fim-lista { list-style: none; padding: 0; font-size: 13.5px; }
+.fim-lista li { padding: 4px 0; }
+.barra-fim { height: 14px; background: var(--os-marrom-3); border: 1px solid var(--os-marrom-2); overflow: hidden; margin: 16px 0 6px; }
+.barra-fim-fill { display: block; height: 100%; width: 0; background: url("../assets/chrome-22.png?v=56") repeat-x left center / auto 100%; transition: width 600ms steps(12, end); }
+.tela-ato h1, .tela-run h1 { margin-top: 3vh; }
+.tela-ato, .tela-run { color: #f6eede; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7); }
+.tela-ato .janela, .tela-run .janela, .tela-preta .janela { color: var(--ink); text-shadow: none; }
+.grade-conceitos { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin: 18px 0; text-align: left; }
+.conceito-card { background: var(--os-creme); border: 1px solid var(--os-borda); padding: 9px 13px; display: flex; justify-content: space-between; font-size: 12.5px; color: var(--ink); text-shadow: none; }
+.estrela { color: var(--ink-faint); }
+.estrela.cheia { color: var(--aviso); }
+.estrelas { white-space: nowrap; }
+.mapa-mini { display: flex; gap: 10px; justify-content: center; margin: 18px 0; }
+.mapa-mini-ato { width: 34px; height: 34px; border: 2px solid var(--os-creme); display: inline-flex; align-items: center; justify-content: center; color: var(--os-creme); font-weight: 700; background: rgba(69, 42, 25, 0.8); }
+.mapa-mini-ato.feito { background: var(--ok); color: #fff; border-color: var(--ok); }
+.faixa-cerimonia { display: inline-block; margin: 18px 0 6px; }
+.brilho { display: none; }
+.cer-cubos { min-height: 16px; }
+.cer-sprite { position: fixed; width: 42px; height: 42px; z-index: 70; pointer-events: none; image-rendering: pixelated; }
+.preview-tier { margin-top: 20px; text-align: left; }
+.preview-lado-a-lado { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.preview-md { background: var(--os-creme); border: 1px solid var(--os-borda); padding: 11px 14px; font-size: 12px; max-height: 180px; overflow: hidden; color: var(--ink); text-shadow: none; }
+.tela-preta { max-width: 640px; margin: 6vh auto 0; text-align: center; color: #f6eede; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7); }
+.preta-sub { letter-spacing: 2px; text-transform: uppercase; font-size: 12px; }
+.preta-stats { display: flex; justify-content: center; gap: 34px; margin: 30px 0; flex-wrap: wrap; }
+.preta-stats div { display: flex; flex-direction: column; }
+.preta-stats .num { font-size: 30px; font-weight: 700; color: #ffd97a; }
+.preta-stats span:last-child { font-size: 12px; }
+.tela-preta .linha-botoes { justify-content: center; }
+.progresso-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 16px 0; }
+.stat-card { background: var(--os-creme-2); border: 2px solid var(--os-borda); padding: 12px 16px; }
+.stat-card .num { font-size: 24px; font-weight: 700; color: var(--num-cor); }
+.stat-card .lab { color: var(--ink-soft); font-size: 12px; }
+.evolucao { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.evo-linha { display: flex; align-items: center; gap: 12px; background: var(--os-creme-2); border: 1px solid var(--os-creme-3); padding: 10px 14px; flex-wrap: wrap; }
+.evo-nome { flex: 1; font-weight: 650; min-width: 130px; }
+.evo-tempos { font-family: var(--mono); font-size: 13px; color: var(--ink-soft); }
+.niveis { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-top: 12px; }
+.nivel { display: flex; flex-direction: column; gap: 4px; text-align: left; background: var(--os-creme-2); border: 2px solid var(--os-borda); padding: 10px 13px; cursor: pointer; color: var(--ink); font-family: var(--mono); font-size: 13px; }
+.nivel:hover:not(:disabled) { background: var(--os-creme-3); }
+.nivel.completo { border-color: var(--ok); }
+.nivel.bloqueado { opacity: 0.55; cursor: default; }
+.nivel-nome { font-weight: 650; display: flex; align-items: center; gap: 6px; }
+.nivel-nome .ico { color: var(--ok); }
+.nivel-info { display: flex; justify-content: space-between; color: var(--ink-soft); font-size: 12px; }
+.livre-nivel { margin: 16px 0 6px; color: var(--ink-soft); font-weight: 650; }
+.livre-grade { display: flex; flex-wrap: wrap; gap: 8px; }
+.livre-ex { font-family: var(--mono); font-size: 11px; background: var(--os-creme-2); border: 1px solid var(--os-borda); color: var(--ink-soft); padding: 5px 9px; cursor: pointer; }
+.livre-ex.completo { color: var(--ok); border-color: var(--ok); }
+.lab-hero { background: var(--os-creme-2); border: 2px solid var(--os-borda); padding: 14px 18px; margin: 12px 0 18px; }
+.lab-prog { height: 12px; background: var(--os-marrom-3); border: 1px solid var(--os-marrom-2); overflow: hidden; margin: 10px 0; }
+.lab-prog-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=56") repeat-x left center / auto 100%; }
+.lab-hero-info { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.lab-hero-num strong { font-size: 20px; color: var(--num-cor); }
+.lab-selo { color: var(--ok); }
+.lab-continuar-rotulo { display: inline-flex; align-items: center; gap: 6px; }
+.lab-trilhas { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
+.lab-trilha { background: var(--os-creme-2); border: 2px solid var(--os-borda); padding: 11px 14px; }
+.lab-trilha-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.lab-trilha-prog { height: 9px; background: var(--os-marrom-3); border: 1px solid var(--os-marrom-2); overflow: hidden; margin: 8px 0; }
+.lab-trilha-prog > span, .lab-trilha-prog i, .lab-trilha-prog .lab-prog-fill { display: block; height: 100%; background: url("../assets/chrome-22.png?v=56") repeat-x left center / auto 100%; }
+.lab-exs { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
+.lab-ex { display: flex; align-items: center; gap: 8px; background: none; border: 1px solid transparent; padding: 6px 8px; cursor: pointer; color: var(--ink); text-align: left; font-family: var(--mono); font-size: 13px; }
+.lab-ex:hover { background: var(--os-creme-3); }
+.lab-ex.feito { color: var(--ok); }
+.lab-ex-xp { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--num-cor); }
+.lab-continuar { margin-top: 10px; }
+.web-layout { display: grid; grid-template-columns: minmax(280px, 400px) minmax(460px, 1.7fr); gap: 22px; align-items: start; }
+/* Sticky SÓ quando a coluna cabe na tela do tubo: com o teclado acoplado ela
+   passa de 950px e o "Preview ao vivo" ficava preso fora da tela/atrás da
+   taskbar enquanto o sticky estava engatado. */
+.web-trabalho { position: static; }
+@media (min-height: 1100px) { .web-trabalho { position: sticky; top: 12px; } }
+.web-arquivo { margin-bottom: 14px; }
+.web-arquivo-cab { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.web-editor { min-height: 120px; }
+.web-preview-caixa { margin-top: 18px; }
+.web-preview-cab { display: flex; justify-content: space-between; align-items: center; padding: 4px 0 6px; }
+.web-preview { width: 100%; height: 260px; border: 2px solid var(--os-marrom-3); background: #fff; display: block; }
+.web-fixos { margin: 10px 0; }
+.web-fixos summary { cursor: pointer; color: var(--ink-soft); font-size: 13px; padding: 6px 0; }
+
+/* ----------------------------------------------------------------- modais */
+/* o modal vive DENTRO da tela do tubo (o bezel é opaco e fica por cima) */
+.modal-fundo { position: fixed; inset: calc(var(--tvy) + 26px) calc(var(--tvx) + 34px) calc(var(--tvy) + 44px); background: rgba(30, 18, 8, 0.55); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 18px; }
+.modal {
+  position: relative;
+  border: 8px solid transparent; border-top-width: 38px;
+  border-image: url("../assets/chrome-07.png?v=56") 58 17 17 17 fill / 38px 8px 8px 8px stretch;
+  image-rendering: pixelated;
+  padding: 14px 16px; max-width: 500px; width: 100%;
+  box-shadow: 8px 8px 0 rgba(30, 18, 8, 0.45);
+}
+.modal > h3:first-child {
+  position: absolute; top: -32px; left: 2px; margin: 0;
+  height: 28px; display: flex; align-items: center;
+  color: #f6eede; font-size: 13px; text-shadow: 1px 1px 0 var(--os-marrom-3);
+}
+/* desconta o bezel da TV (inset + borda inferior) para o rodapé do modal —
+   e o botão que fecha — nunca ficar escondido sob a moldura */
+.modal-larga { max-width: 720px; max-height: calc(100vh - 2 * var(--tvy) - 140px); overflow-y: auto; }
+.config-linha { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--os-creme-3); }
+select { background: var(--os-creme); color: var(--ink); border: 2px solid var(--os-borda); padding: 5px 8px; font-size: 13px; font-family: var(--mono); }
+input[type="text"], input[type="number"] {
+  border: 8px solid transparent;
+  border-image: url("../assets/chrome-21.png?v=56") 20 fill / 8px stretch;
+  background: none; font-family: var(--mono); font-size: 13px; color: var(--ink);
+}
+.switch { position: relative; width: 46px; height: 24px; flex-shrink: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch .trilho { position: absolute; inset: 0; background: var(--os-creme-3); border: 2px solid var(--os-borda); cursor: pointer; }
+.switch .trilho::before { content: ""; position: absolute; height: 14px; width: 14px; left: 3px; top: 3px; background: var(--os-marrom); transition: transform 150ms steps(3, end); }
+.switch input:checked + .trilho { background: var(--ok); }
+.switch input:checked + .trilho::before { transform: translateX(22px); background: var(--os-creme); }
+.switch input:focus-visible + .trilho { outline: 2px dashed var(--os-marrom-3); outline-offset: 2px; }
+
+/* ------------------------------------------------------- scrollbars do OS */
+::-webkit-scrollbar { width: 16px; height: 16px; }
+::-webkit-scrollbar-track { background: var(--os-creme-3); border-left: 1px solid var(--os-borda); }
+::-webkit-scrollbar-thumb { background: var(--os-creme) url("../assets/chrome-15.png?v=56") center / 10px auto no-repeat; border: 2px solid var(--os-borda); }
+::-webkit-scrollbar-corner { background: var(--os-creme-3); }
+pre.cod::-webkit-scrollbar-track, .editor::-webkit-scrollbar-track { background: #16100a; border: 0; }
+pre.cod::-webkit-scrollbar-thumb, .editor::-webkit-scrollbar-thumb { background-color: #5d4632; border-color: #16100a; }
+
+#juice-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 60; }
+.reveal, .reveal-esq, .reveal-escala { opacity: 1; transform: none; }
+.palavra-inner { transform: none; }
+.bv-sub, .bv-cta { opacity: 1; }
+
+/* ------------------------------------------- animações retrô (steps() only;
+   o data-reduz global já zera todas as durações) */
+@keyframes janela-pop { from { transform: scale(0.96); } }
+.janela, .modal { animation: janela-pop 130ms steps(2, end) backwards; }
+@keyframes icone-pop { from { transform: translateY(-10px); opacity: 0; } }
+.mapa-niveis .no { animation: icone-pop 220ms steps(3, end) backwards; animation-delay: calc(var(--i, 0) * 50ms); }
+.no .no-icone { transition: transform 90ms steps(2, end); }
+.no:hover:not(:disabled) .no-icone, .no:focus-visible .no-icone { transform: translateY(-3px); }
+@keyframes pisca-k { 50% { opacity: 0; } }
+.pisca { animation: pisca-k 2s steps(1, end) infinite; font-style: normal; }
+@keyframes bob-k { 50% { transform: translateY(-2px); } }
+.tutor-retrato { animation: bob-k 2.6s steps(2, end) infinite; }
+.btn.rodando { animation: pisca-k 700ms steps(2, end) infinite; }
+@keyframes marcha-k { to { background-position-x: 16px; } }
+.barra-fim-fill, .lab-prog-fill, .barra-ato-fill, .lab-trilha-prog > span { animation: marcha-k 900ms steps(4, end) infinite; }
+
+/* --------------------------------------------- teclado virtual (keycaps.png)
+   Espaço negativo: centrado sobre a floresta escura, acima da taskbar; o
+   conteúdo ganha padding extra p/ nunca ficar escondido atrás dele. */
+:root { --vk-u: 46px; }
+#teclado-virtual {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--tvy) + 104px);
+  z-index: 45; display: none;
+  background: var(--os-creme-3);
+  border: 3px solid var(--os-borda);
+  border-top-color: #fff8e2; border-left-color: #fff8e2;
+  box-shadow: 6px 6px 0 rgba(30, 18, 8, 0.4);
+  padding: 10px 12px 8px;
+  width: min(880px, calc(100vw - 24px));
+}
+/* o teclado só aparece ONDE SE DIGITA (acoplado no slot dos exercícios):
+   flutuando no desktop/lab ele só tapava a tela */
+body.vk-aberto .vk-slot #teclado-virtual { display: block; }
+.vk-linha { display: flex; gap: 5px; margin-bottom: 5px; }
+.vk-linha:last-child { margin-bottom: 0; }
+.vk-tecla {
+  position: relative; height: 46px; flex: 0 0 var(--vk-u); min-width: 0;
+  border: 12px solid transparent;
+  border-image: url("../assets/keycap.png?v=56") 42 / 12px stretch;
+  image-rendering: pixelated;
+  background: #e9e2ca; background-clip: padding-box;
+  color: var(--ink); font-family: var(--mono); font-size: 13px; font-weight: 700;
+  padding: 0; cursor: pointer; line-height: 1; text-align: center;
+}
+.vk-tecla.apertada, .vk-tecla:active { transform: translateY(2px); filter: brightness(0.9); }
+.vk-tecla.travada { transform: translateY(1px); filter: brightness(0.88); }
+
+/* teclado ACOPLADO no slot (exercícios): vira parte do layout, logo abaixo
+   da caixa de código — em vez de flutuar sobre a taskbar */
+.vk-slot { margin-top: 10px; }
+.vk-slot #teclado-virtual {
+  position: static; left: auto; bottom: auto; transform: none;
+  width: 100%; box-shadow: none; padding: 8px 8px 6px;
+  --vk-u: calc((100% - 66px) / 15.3);
+}
+.vk-slot .vk-tecla { height: 42px; font-size: 12px; }
+/* acoplado, o teclado é parte do fluxo: o main não precisa de respiro extra */
+body.vk-aberto .main { padding-bottom: 92px; }
+
+/* ------------------------------------------------------------- cursor OS */
+.cursor-os-ativo, .cursor-os-ativo * { cursor: none; }
+#cursor-os {
+  position: fixed; top: 0; left: 0; width: 26px; z-index: 200;
+  pointer-events: none; image-rendering: pixelated; display: none;
+}
+
+@media (max-width: 1100px) {
+  /* sem TV em tela pequena: o jogo ocupa tudo (a sala some) */
+  :root { --tvx: 0px; --tvy: 0px; }
+  body::before { inset: 0; }
+  body::after, html::before, html::after { display: none !important; }
+  #tv-scroll { top: 0; bottom: 0; left: 0; right: 0; }
+  .hdr { left: 0; right: 0; bottom: 0; }
+  .main { max-width: 1000px; padding: 20px 20px 92px; }
+  #teclado-virtual { bottom: 64px; }
+  .toast-recorde { top: 20px; right: 20px; }
+  .modal-fundo { inset: 0; }
+  .modal-larga { max-height: 84vh; }
+}
+@media (max-width: 900px) {
+  .ex-layout, .web-layout { grid-template-columns: 1fr; }
+  .web-trabalho { position: static; }
+  .cao-codigo { flex-direction: column; }
+  .billy-fala { margin-left: 0; }
+  .desktop { flex-direction: column; }
+  .desktop .janela-leiame { order: 0; margin-left: 0; flex: 1 1 auto; }
+  .mapa-niveis { flex-direction: row; flex-wrap: wrap; }
+  :root { --vk-u: 34px; }
+  .vk-tecla { height: 38px; font-size: 11px; border-width: 8px; border-image-width: 8px; }
+  .esp-obt, .preview-lado-a-lado { grid-template-columns: 1fr; }
+  .hdr { flex-wrap: nowrap; overflow-x: auto; }
+  .hdr-meio .tb-rotulo, .tb-app .tb-rotulo { display: none; }
+  .tb-start { width: 84px; }
+  .main { padding: 16px 12px 84px; }
+}
+:root[data-reduz="1"] *, :root[data-reduz="1"] *::before, :root[data-reduz="1"] *::after {
+  animation-duration: 0.01ms !important; transition-duration: 0.01ms !important;
+}
+:root[data-reduz="1"] #juice-canvas { display: none; }

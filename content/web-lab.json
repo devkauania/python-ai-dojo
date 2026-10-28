@@ -1,0 +1,1177 @@
+{
+  "trilha": "web",
+  "titulo": "Laboratório Web",
+  "exercicios": [
+    {
+      "id": "web-eventos-01",
+      "nivel": "eventos",
+      "categoria": "conserte-back",
+      "titulo": "Conserte o contador",
+      "conceitos": [
+        "dom",
+        "eventos"
+      ],
+      "explicacao_md": "A trilha Python te ensinou a construir o motor. Aqui você constrói o painel que as pessoas tocam — e painel quebrado é a única parte que o cliente vê.\n\nNo navegador, o **JavaScript** dá vida à página. Você seleciona um elemento com `document.getElementById(\"id\")` e reage a cliques com `.addEventListener(\"click\", funcao)`.\n\n```js\nbotao.addEventListener(\"click\", function () {\n  contador = contador + 1;\n});\n```\n\nO preview à direita atualiza sozinho — clique e veja.",
+      "enunciado_md": "Este contador **deveria** aumentar a cada clique no botão **+1**, mas está travado no zero.\n\nO problema está no `js`. Conserte a linha que atualiza `cliques` para que cada clique some **1**.\n\nClique no preview para testar visualmente; depois **Rodar testes**.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Cena: totem de contagem do distrito, ao anoitecer neon -->\n<div class=\"ceu\" aria-hidden=\"true\">\n  <span class=\"lua\"></span>\n  <span class=\"serra s1\"></span>\n  <span class=\"serra s2\"></span>\n  <span class=\"bruma\"></span>\n</div>\n<main class=\"totem\">\n  <p class=\"letreiro\">Totem do Distrito</p>\n  <div class=\"visor\">\n    <p class=\"placar\">Cliques: <strong id=\"valor\">0</strong></p>\n  </div>\n  <button id=\"mais\" class=\"botao\" type=\"button\">+1</button>\n  <p class=\"nota\">Cada aperto da tecla deveria registrar um visitante.</p>\n</main>",
+      "web_css": "/* Cena \"neon bruma\": totem de contagem ao anoitecer. O bug mora no js. */\n[data-reduz=\"1\"] *{animation:none!important;transition:none!important}\n*{box-sizing:border-box}\nbody{margin:0;min-height:100vh;padding:28px 16px;font-family:system-ui,sans-serif;color:#efe9ff;\n  background:linear-gradient(180deg,#100d26 0%,#221a49 55%,#43264e 82%,#5c3350 100%);\n  display:flex;align-items:center;justify-content:center}\n.ceu{position:fixed;inset:0;z-index:0;pointer-events:none}\n.lua{position:absolute;top:10%;left:12%;width:72px;height:72px;border-radius:50%;\n  background:radial-gradient(circle at 40% 35%,#fff4e0 0 44%,rgba(255,214,160,.55) 58%,transparent 72%);\n  box-shadow:0 0 70px 24px rgba(255,190,120,.18)}\n.serra{position:absolute;bottom:0;left:-15%;width:130%;height:26vh;\n  background:linear-gradient(180deg,rgba(52,32,84,.9),rgba(24,16,46,.96));\n  clip-path:polygon(0 70%,12% 38%,22% 62%,34% 22%,46% 58%,60% 30%,72% 66%,84% 40%,100% 74%,100% 100%,0 100%)}\n.serra.s2{height:17vh;opacity:.55;\n  clip-path:polygon(0 82%,10% 56%,26% 78%,40% 48%,57% 76%,70% 52%,86% 80%,100% 62%,100% 100%,0 100%)}\n.bruma{position:absolute;left:0;right:0;bottom:6vh;height:18vh;\n  background:radial-gradient(60% 100% at 50% 100%,rgba(255,214,240,.15),transparent 70%);\n  animation:respirar 9s ease-in-out infinite alternate}\n@keyframes respirar{from{opacity:.5;transform:translateX(-2%)}to{opacity:1;transform:translateX(2%)}}\n.totem{position:relative;z-index:1;text-align:center;width:min(92vw,340px);\n  padding:24px 28px 28px;border-radius:16px;\n  background:linear-gradient(165deg,rgba(38,28,74,.93),rgba(21,14,43,.93));\n  border:1px solid rgba(125,237,187,.3)}\n.totem::before{content:\"\";position:absolute;inset:-52px;z-index:-1;border-radius:50%;\n  background:radial-gradient(closest-side,rgba(100,230,180,.16),transparent 72%)}\n.letreiro{margin:0 0 14px;font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:#9ff0cd}\n.visor{padding:14px 16px 18px;border-radius:12px;background:#0b081c;\n  border:1px solid rgba(159,240,205,.35);box-shadow:inset 0 0 26px rgba(100,230,180,.12)}\n.placar{margin:0;font-size:17px;color:#cfc6ef}\n#valor{display:block;margin-top:2px;font-size:54px;line-height:1.05;color:#fff4e0;\n  text-shadow:0 0 16px rgba(125,237,187,.55),0 0 44px rgba(125,237,187,.25)}\n.botao{margin-top:20px;font-size:22px;font-weight:700;padding:13px 44px;border-radius:12px;border:0;cursor:pointer;\n  color:#06281a;background:linear-gradient(180deg,#7dedbb,#49c08d);\n  box-shadow:0 6px 0 #2c7a58,0 12px 28px rgba(100,230,180,.35);\n  transition:transform .08s ease,box-shadow .08s ease;\n  animation:chamado 3.2s ease-in-out infinite}\n@keyframes chamado{0%,100%{box-shadow:0 6px 0 #2c7a58,0 12px 28px rgba(100,230,180,.3)}\n  50%{box-shadow:0 6px 0 #2c7a58,0 12px 40px rgba(100,230,180,.55)}}\n.botao:active{animation:none;transform:translateY(4px);box-shadow:0 2px 0 #2c7a58,0 6px 14px rgba(100,230,180,.3)}\n.botao:focus-visible{outline:2px solid #fff4e0;outline-offset:3px}\n.nota{margin:16px 0 0;font-size:13px;color:#b9addc}",
+      "web_js": "let cliques = 0;\ndocument.getElementById(\"mais\").addEventListener(\"click\", function () {\n  cliques = cliques;            // BUG: não soma nada\n  document.getElementById(\"valor\").textContent = cliques;\n});",
+      "solucao_js": "let cliques = 0;\ndocument.getElementById(\"mais\").addEventListener(\"click\", function () {\n  cliques = cliques + 1;        // soma 1 a cada clique\n  document.getElementById(\"valor\").textContent = cliques;\n});",
+      "testes_web": [
+        {
+          "nome": "um clique mostra 1",
+          "codigo": "_clicar(\"#mais\"); _verificar(_texto(\"#valor\"), \"1\");"
+        },
+        {
+          "nome": "três cliques mostram 3",
+          "codigo": "_clicar(\"#mais\"); _clicar(\"#mais\"); _clicar(\"#mais\"); _verificar(_texto(\"#valor\"), \"3\");"
+        }
+      ],
+      "dicas": [
+        "Somar 1 a uma variável é `x = x + 1` (ou `x++`). A linha atual só copia o valor nele mesmo.",
+        "Troque `cliques = cliques;` por algo que aumente o valor em 1 antes de mostrar na tela.",
+        "`cliques = cliques + 1;`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-css-01",
+      "nivel": "css",
+      "categoria": "conserte-front",
+      "titulo": "O botão fantasma",
+      "conceitos": [
+        "css",
+        "visibilidade"
+      ],
+      "explicacao_md": "O **CSS** controla a aparência. Propriedades como `visibility`, `display` e `opacity` decidem se um elemento aparece.\n\n- `visibility: hidden` → ocupa espaço mas fica invisível\n- `visibility: visible` → aparece\n\nBugs de CSS somem com elementos que existem no HTML. São os piores de caçar: o HTML jura que está tudo lá. Desconfie do estilo antes de desconfiar da estrutura.",
+      "enunciado_md": "O cliente reclama: o botão **Comprar** existe no HTML, mas ninguém consegue ver.\n\nNo `css`, a regra `.comprar` está deixando o botão invisível. Ajuste-a para o botão **aparecer**.\n\nVeja o botão surgir no preview.",
+      "editaveis": [
+        "css"
+      ],
+      "web_html": "<!-- Cena: vitrine da lojinha (estilos inline: o campo css e todo do aluno) -->\n<div style=\"min-height:96vh;padding:30px 16px;box-sizing:border-box;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#110e28 0%,#261b4b 55%,#4c2a50 100%)\">\n  <div style=\"position:relative;width:min(92vw,300px);padding:22px 22px 24px;text-align:center;border-radius:16px;background:linear-gradient(165deg,rgba(42,30,78,.95),rgba(21,14,42,.95));border:1px solid rgba(199,139,255,.35);box-shadow:0 0 70px rgba(169,155,230,.22)\">\n    <p style=\"margin:0 0 14px;font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:#cbb7f5\">Vitrine do Dojo</p>\n    <div aria-hidden=\"true\" style=\"width:150px;height:110px;margin:0 auto 14px;background:linear-gradient(165deg,#c78bff,#7a5bd6);clip-path:polygon(25% 0,40% 7%,60% 7%,75% 0,100% 20%,86% 34%,77% 25%,77% 100%,23% 100%,23% 25%,14% 34%,0 20%);filter:drop-shadow(0 0 18px rgba(199,139,255,.45))\"></div>\n    <h2 style=\"margin:0;font-size:22px;color:#f4eeff\">Camiseta do Dojo</h2>\n    <p style=\"margin:6px 0 16px;font-size:13.5px;color:#bcb0de\">Malha noturna, estampa que brilha na bruma.</p>\n    <div style=\"padding:10px;border:1px dashed rgba(199,139,255,.5);border-radius:12px\">\n      <button class=\"comprar\">Comprar — R$ 79</button>\n    </div>\n    <p style=\"margin:12px 0 0;font-size:12px;color:#bcb0de\">Espaço reservado ao botão de compra — o cliente jura que ele existe.</p>\n  </div>\n</div>",
+      "web_css": ".comprar{\n  visibility: hidden;   /* BUG: o botão some */\n  font-size:18px;padding:12px 22px;border-radius:10px;border:0;\n  background:#a99be6;color:#241a3d;cursor:pointer;\n}",
+      "web_js": "",
+      "solucao_css": ".comprar{\n  visibility: visible;\n  font-size:18px;padding:12px 22px;border-radius:10px;border:0;\n  background:#a99be6;color:#241a3d;cursor:pointer;\n}",
+      "testes_web": [
+        {
+          "nome": "o botão fica visível",
+          "codigo": "_verificar(win.getComputedStyle(doc.querySelector(\".comprar\")).visibility, \"visible\");"
+        },
+        {
+          "nome": "o botão continua no HTML",
+          "codigo": "_verificar(!!doc.querySelector(\".comprar\"), true);"
+        }
+      ],
+      "dicas": [
+        "O oposto de `hidden` na propriedade `visibility` é uma palavra só.",
+        "Troque o valor de `visibility` de `hidden` para `visible`.",
+        "`visibility: visible;`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-dom-01",
+      "nivel": "dom",
+      "categoria": "construa-front",
+      "titulo": "Construa a lista",
+      "conceitos": [
+        "dom",
+        "html"
+      ],
+      "explicacao_md": "Muitas telas são preenchidas por JavaScript que procura um elemento pelo `id` e injeta conteúdo nele.\n\nSe o elemento-alvo **não existe** no HTML, o JS não tem onde escrever — e a tela fica vazia.\n\nSeu trabalho às vezes é só **criar o esqueleto** certo para o back-end preencher. Metade dos \"o JS não funciona\" de produção é isto: o alvo não existia quando ele procurou.",
+      "enunciado_md": "O JavaScript (fixo, não editável) percorre `window.tarefas` e insere um `<li>` para cada tarefa dentro de um `<ul id=\"lista\">`.\n\nMas o `<ul id=\"lista\">` **não existe** no HTML. Adicione-o (vazio) no `html`, abaixo do título, para a lista aparecer.",
+      "editaveis": [
+        "html"
+      ],
+      "web_html": "<h2>Minhas tarefas</h2>\n<!-- adicione aqui o <ul id=\"lista\"></ul> -->",
+      "web_css": "/* Cena \"neon bruma\": quadro de missoes do dojo. O aluno cria a <ul id=\"lista\">; o js fixo a preenche. */\n[data-reduz=\"1\"] *{animation:none!important;transition:none!important}\n*{box-sizing:border-box}\nbody{margin:0;min-height:100vh;padding:34px 18px;font-family:system-ui,sans-serif;color:#efe9ff;\n  display:flex;flex-direction:column;align-items:center;\n  background:\n    radial-gradient(56% 30% at 80% 0%,rgba(255,190,120,.14),transparent 70%),\n    linear-gradient(180deg,#110e28 0%,#231a4a 58%,#472a4e 100%)}\nbody::before{content:\"\";position:fixed;left:0;right:0;bottom:0;height:20vh;pointer-events:none;\n  background:radial-gradient(70% 100% at 50% 100%,rgba(224,205,255,.12),transparent 72%);\n  animation:respirar 9s ease-in-out infinite alternate}\n@keyframes respirar{from{opacity:.55}to{opacity:1}}\nh2{margin:0;font-size:21px;letter-spacing:.22em;text-transform:uppercase;color:#c9f5df;text-align:center}\nh2::after{content:\"\";display:block;width:72%;height:2px;margin:10px auto 0;border-radius:2px;\n  background:linear-gradient(90deg,transparent,#64e6b4,transparent);\n  box-shadow:0 0 14px rgba(100,230,180,.8)}\n#lista{list-style:none;margin:20px 0 0;padding:14px 16px;width:min(92vw,340px);position:relative;border-radius:14px;\n  background:linear-gradient(165deg,rgba(38,28,74,.93),rgba(21,14,43,.93));\n  border:1px solid rgba(100,230,180,.3)}\n#lista::before{content:\"\";position:absolute;inset:-48px;z-index:-1;border-radius:50%;\n  background:radial-gradient(closest-side,rgba(100,230,180,.14),transparent 72%)}\nli{position:relative;padding:11px 8px 11px 32px;font-size:16px;color:#e9e2ff;\n  border-bottom:1px solid rgba(159,240,205,.14)}\nli:last-child{border-bottom:0}\nli::before{content:\"\";position:absolute;left:9px;top:50%;width:9px;height:9px;border-radius:2px;\n  transform:translateY(-50%) rotate(45deg);background:#7dedbb;\n  box-shadow:0 0 10px rgba(125,237,187,.9),0 0 24px rgba(125,237,187,.4)}\nli:nth-child(2)::before{background:#ffcf7d;box-shadow:0 0 10px rgba(255,207,125,.9),0 0 24px rgba(255,207,125,.4)}\nli:nth-child(3)::before{background:#c78bff;box-shadow:0 0 10px rgba(199,139,255,.9),0 0 24px rgba(199,139,255,.4)}\n/* Enquanto a <ul id=\"lista\"> nao existe, o quadro exibe um aviso apagado */\nbody::after{content:\"o quadro aguarda a lista de tarefas...\";margin-top:22px;padding:16px 20px;\n  border:1px dashed rgba(196,179,230,.4);border-radius:12px;font-size:13px;color:#b9addc}\nbody:has(#lista)::after{content:none}",
+      "web_js": "window.tarefas = [\"Estudar Python\", \"Revisar PRs\", \"Fazer deploy\"];\nwindow.addEventListener(\"DOMContentLoaded\", function () {\n  var ul = document.getElementById(\"lista\");\n  if (!ul) return;\n  window.tarefas.forEach(function (t) {\n    var li = document.createElement(\"li\");\n    li.textContent = t;\n    ul.appendChild(li);\n  });\n});",
+      "solucao_html": "<h2>Minhas tarefas</h2>\n<ul id=\"lista\"></ul>",
+      "testes_web": [
+        {
+          "nome": "existe uma <ul id=lista>",
+          "codigo": "_verificar(!!doc.querySelector(\"ul#lista\"), true);"
+        },
+        {
+          "nome": "a lista tem 3 itens",
+          "codigo": "_verificar(doc.querySelectorAll(\"#lista li\").length, 3);"
+        },
+        {
+          "nome": "o primeiro item está certo",
+          "codigo": "_verificar(_texto(\"#lista li:first-child\"), \"Estudar Python\");"
+        }
+      ],
+      "dicas": [
+        "O JS procura por `document.getElementById(\"lista\")` num `<ul>`. Crie exatamente esse elemento.",
+        "Adicione `<ul id=\"lista\"></ul>` (vazio — o JS preenche) logo abaixo do `<h2>`.",
+        "Logo abaixo do `<h2>Minhas tarefas</h2>`, adicione numa nova linha: `<ul id=\"lista\"></ul>`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-eventos-02",
+      "nivel": "eventos",
+      "categoria": "ligue",
+      "titulo": "Ligue a calculadora",
+      "conceitos": [
+        "dom",
+        "eventos",
+        "formularios"
+      ],
+      "explicacao_md": "Um back-end (a lógica) só é útil quando o front (a tela) o **chama**. Ligar os dois é ler os campos, chamar a função e mostrar o resultado:\n\n```js\nbotao.addEventListener(\"click\", function () {\n  var a = Number(campoA.value);\n  resultado.textContent = minhaFuncao(a);\n});\n```",
+      "enunciado_md": "A função `somar(a, b)` já existe e funciona. A tela tem dois campos (`#a`, `#b`), um botão `#calc` e um `#saida` — mas o botão **não faz nada**.\n\nNo `js`, ligue o clique do botão: leia os dois campos como número, chame `somar` e escreva o resultado em `#saida`.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Cena: calculadora de mesa do distrito dourado, esperando ser ligada -->\n<div class=\"ceu\" aria-hidden=\"true\">\n  <span class=\"sol\"></span>\n  <span class=\"bruma\"></span>\n</div>\n<main class=\"chassi\">\n  <p class=\"marca\">Dojo Calc</p>\n  <div class=\"visor\">\n    <div class=\"conta\">\n      <label class=\"celula\"><span class=\"rotulo\">valor A</span><input id=\"a\" type=\"number\" value=\"0\"></label>\n      <span class=\"op\" aria-hidden=\"true\">+</span>\n      <label class=\"celula\"><span class=\"rotulo\">valor B</span><input id=\"b\" type=\"number\" value=\"0\"></label>\n    </div>\n    <p class=\"resultado\">Resultado: <strong id=\"saida\">—</strong></p>\n  </div>\n  <div class=\"teclado\" aria-hidden=\"true\">\n    <span>7</span><span>8</span><span>9</span><span>÷</span>\n    <span>4</span><span>5</span><span>6</span><span>×</span>\n    <span>1</span><span>2</span><span>3</span><span>−</span>\n    <span>0</span><span>,</span><span class=\"larga\">=</span>\n  </div>\n  <button id=\"calc\" type=\"button\">Somar</button>\n  <p class=\"nota\">O teclado esta apagado: so a tecla Somar acorda quando o js a ligar.</p>\n</main>",
+      "web_css": "/* Cena \"neon bruma\": calculadora do distrito dourado. Ligar o botao e tarefa do js do aluno. */\n[data-reduz=\"1\"] *{animation:none!important;transition:none!important}\n*{box-sizing:border-box}\nbody{margin:0;min-height:100vh;padding:26px 16px;font-family:system-ui,sans-serif;color:#f4edff;\n  background:linear-gradient(180deg,#120e2a 0%,#28194a 52%,#57284a 84%,#7a3a4a 100%);\n  display:flex;align-items:center;justify-content:center}\n.ceu{position:fixed;inset:0;z-index:0;pointer-events:none}\n.sol{position:absolute;top:14%;right:14%;width:86px;height:86px;border-radius:50%;\n  background:radial-gradient(circle at 45% 40%,#fff4e0 0 40%,rgba(255,207,125,.6) 58%,transparent 72%);\n  box-shadow:0 0 80px 30px rgba(255,190,110,.2);animation:pulso 7s ease-in-out infinite alternate}\n@keyframes pulso{from{transform:scale(1)}to{transform:scale(1.06)}}\n.bruma{position:absolute;left:0;right:0;bottom:0;height:22vh;\n  background:radial-gradient(70% 100% at 50% 100%,rgba(255,220,180,.14),transparent 72%)}\n.chassi{position:relative;z-index:1;width:min(92vw,320px);padding:20px 20px 24px;border-radius:18px;\n  background:linear-gradient(165deg,rgba(52,36,74,.95),rgba(26,17,45,.95));\n  border:1px solid rgba(255,207,125,.32)}\n.chassi::before{content:\"\";position:absolute;inset:-56px;z-index:-1;border-radius:50%;\n  background:radial-gradient(closest-side,rgba(255,190,110,.15),transparent 72%)}\n.marca{margin:0 0 12px;font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:#ffd9a1}\n.visor{padding:14px;border-radius:12px;background:#0d0a1e;border:1px solid rgba(255,207,125,.35);\n  box-shadow:inset 0 0 26px rgba(255,190,110,.1)}\n.conta{display:flex;align-items:flex-end;gap:10px;justify-content:center}\n.celula{display:flex;flex-direction:column;gap:4px;text-align:left}\n.rotulo{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#b9addc}\ninput{width:84px;font-size:20px;padding:7px 8px;text-align:center;border-radius:8px;\n  color:#fff4e0;background:#191233;border:1px solid rgba(255,207,125,.4);caret-color:#ffcf7d}\ninput:focus-visible{outline:2px solid #ffcf7d;outline-offset:2px}\n.op{font-size:26px;padding-bottom:6px;color:#ffcf7d;text-shadow:0 0 14px rgba(255,207,125,.8)}\n.resultado{margin:12px 0 2px;text-align:center;font-size:16px;color:#cfc6ef}\n#saida{font-size:26px;color:#fff4e0;text-shadow:0 0 14px rgba(255,207,125,.55),0 0 36px rgba(255,207,125,.25)}\n.teclado{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0 0}\n.teclado span{padding:9px 0;text-align:center;font-size:15px;border-radius:9px;color:#8f82b8;\n  background:linear-gradient(180deg,#241a45,#1a1233);border:1px solid rgba(196,179,230,.14);\n  box-shadow:0 3px 0 #120c26}\n.larga{grid-column:span 2}\n#calc{width:100%;margin-top:14px;font-size:19px;font-weight:700;padding:13px 0;border-radius:12px;border:0;cursor:pointer;\n  color:#3a2405;background:linear-gradient(180deg,#ffdf9e,#f0b45a);\n  box-shadow:0 6px 0 #9a6a25,0 12px 26px rgba(255,190,110,.35);\n  transition:transform .08s ease,box-shadow .08s ease}\n#calc:active{transform:translateY(4px);box-shadow:0 2px 0 #9a6a25,0 6px 14px rgba(255,190,110,.3)}\n#calc:focus-visible{outline:2px solid #fff4e0;outline-offset:3px}\n.nota{margin:14px 0 0;text-align:center;font-size:12.5px;color:#b9addc}\n\n/* visor TRINCADO: a queda que desligou a tecla tambem rachou o vidro (so estetica,\n   os numeros continuam legiveis). Fissuras finas + estrela de impacto, CSS puro. */\n.visor{position:relative;overflow:hidden}\n.visor::after{content:\"\";position:absolute;inset:0;pointer-events:none;opacity:.5;\n  background:\n    linear-gradient(104deg,transparent 46.6%,rgba(255,255,255,.75) 46.9%,rgba(180,220,255,.28) 47.15%,transparent 47.5%),\n    linear-gradient(23deg,transparent 62.2%,rgba(255,255,255,.6) 62.5%,transparent 62.9%),\n    linear-gradient(158deg,transparent 30.1%,rgba(255,255,255,.5) 30.35%,transparent 30.7%),\n    linear-gradient(76deg,transparent 71.3%,rgba(220,240,255,.45) 71.5%,transparent 71.8%),\n    radial-gradient(closest-side at 68% 34%,rgba(255,255,255,.55),rgba(200,230,255,.2) 18%,transparent 32%),\n    conic-gradient(from 15deg at 68% 34%,transparent 0 9%,rgba(255,255,255,.5) 9.6% 10.2%,transparent 10.8% 24%,rgba(255,255,255,.4) 24.5% 25%,transparent 25.5% 47%,rgba(255,255,255,.45) 47.4% 48%,transparent 48.6% 71%,rgba(255,255,255,.38) 71.4% 72%,transparent 72.6% 100%)}\n",
+      "web_js": "function somar(a, b) {\n  return a + b;\n}\n\n// Ligue o botão #calc aqui: leia #a e #b, chame somar, escreva em #saida.\n",
+      "solucao_js": "function somar(a, b) {\n  return a + b;\n}\n\ndocument.getElementById(\"calc\").addEventListener(\"click\", function () {\n  var a = Number(document.getElementById(\"a\").value);\n  var b = Number(document.getElementById(\"b\").value);\n  document.getElementById(\"saida\").textContent = somar(a, b);\n});",
+      "testes_web": [
+        {
+          "nome": "7 + 5 = 12",
+          "codigo": "doc.getElementById(\"a\").value = \"7\"; doc.getElementById(\"b\").value = \"5\"; _clicar(\"#calc\"); _verificar(_texto(\"#saida\"), \"12\");"
+        },
+        {
+          "nome": "outra soma",
+          "codigo": "doc.getElementById(\"a\").value = \"20\"; doc.getElementById(\"b\").value = \"3\"; _clicar(\"#calc\"); _verificar(_texto(\"#saida\"), \"23\");"
+        }
+      ],
+      "dicas": [
+        "Você precisa de um `addEventListener(\"click\", ...)` no botão `#calc`. Dentro dele, leia os campos com `.value` e converta com `Number(...)`.",
+        "Leia `Number(document.getElementById(\"a\").value)` e `...(\"b\")`, chame `somar(a, b)` e ponha em `document.getElementById(\"saida\").textContent`.",
+        "`document.getElementById(\"calc\").addEventListener(\"click\", function(){ var a=Number(document.getElementById(\"a\").value); var b=Number(document.getElementById(\"b\").value); document.getElementById(\"saida\").textContent = somar(a,b); });`"
+      ],
+      "xp": 25
+    },
+    {
+      "id": "web-js-01",
+      "nivel": "js",
+      "categoria": "conserte-back",
+      "titulo": "Preço bagunçado",
+      "conceitos": [
+        "js",
+        "numeros",
+        "strings"
+      ],
+      "explicacao_md": "Formatar números para o usuário é rotina. No Brasil, dinheiro leva 2 casas e vírgula decimal.\n\n- `n.toFixed(2)` → string com 2 casas (`\"1234.50\"`)\n- `.replace(\".\", \",\")` → troca o ponto por vírgula\n\nParece detalhe — até o cliente ver 1234.5 numa fatura. Formato é confiança. O preview mostra o preço formatado.",
+      "enunciado_md": "A função `formatarMoeda(n)` está devolvendo o preço cru (`R$ 1234.5`), feio e sem padrão.\n\nConserte-a no `js` para devolver **duas casas** e **vírgula** decimal: `formatarMoeda(1234.5)` deve dar `\"R$ 1234,50\"`.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Cena: balcao da lojinha do dojo; o painel exibe o preco do jeito que o js devolver -->\n<div class=\"ceu\" aria-hidden=\"true\">\n  <span class=\"lua\"></span>\n  <span class=\"varal\"></span>\n  <span class=\"bruma\"></span>\n</div>\n<main class=\"banca\">\n  <div class=\"toldo\" aria-hidden=\"true\"></div>\n  <h2>Carrinho</h2>\n  <ul class=\"cupom\">\n    <li><span>Camiseta do Dojo</span><i></i><span>1un</span></li>\n    <li><span>Adesivo holografico</span><i></i><span>2un</span></li>\n    <li><span>Caneca radial</span><i></i><span>1un</span></li>\n  </ul>\n  <div class=\"painel\">\n    <p class=\"total\">Total: <strong id=\"preco\">—</strong></p>\n  </div>\n  <p class=\"nota\">O painel do balcao mostra o preco exatamente como o js formatar.</p>\n</main>",
+      "web_css": "/* Cena \"neon bruma\": balcao da lojinha do dojo. O bug de formatacao mora no js. */\n[data-reduz=\"1\"] *{animation:none!important;transition:none!important}\n*{box-sizing:border-box}\nbody{margin:0;min-height:100vh;padding:30px 16px;font-family:system-ui,sans-serif;color:#f4edff;\n  background:linear-gradient(180deg,#140f2b 0%,#2b1a47 55%,#5c2c47 88%,#7a3a45 100%);\n  display:flex;align-items:center;justify-content:center}\n.ceu{position:fixed;inset:0;z-index:0;pointer-events:none}\n.lua{position:absolute;top:9%;right:12%;width:64px;height:64px;border-radius:50%;\n  background:radial-gradient(circle at 42% 36%,#fff4e0 0 44%,rgba(255,196,150,.5) 60%,transparent 72%);\n  box-shadow:0 0 60px 22px rgba(255,170,110,.2)}\n.varal{position:absolute;top:17%;left:-4%;right:-4%;height:26px;transform:rotate(-2deg);\n  background:\n    radial-gradient(6px 6px at 24px 15px,rgba(255,154,110,.95) 30%,rgba(255,154,110,.25) 62%,transparent 72%) 0 0/72px 26px repeat-x,\n    linear-gradient(180deg,transparent 9px,rgba(255,214,180,.22) 10px,transparent 11px);\n  animation:piscar 4s ease-in-out infinite alternate}\n@keyframes piscar{from{opacity:.65}to{opacity:1}}\n.bruma{position:absolute;left:0;right:0;bottom:0;height:20vh;\n  background:radial-gradient(70% 100% at 50% 100%,rgba(255,210,190,.14),transparent 72%)}\n.banca{position:relative;z-index:1;width:min(92vw,330px);padding:20px 20px 22px;border-radius:16px;\n  background:linear-gradient(165deg,rgba(56,32,66,.95),rgba(26,16,42,.95));\n  border:1px solid rgba(255,154,110,.3)}\n.banca::before{content:\"\";position:absolute;inset:-54px;z-index:-1;border-radius:50%;\n  background:radial-gradient(closest-side,rgba(255,154,110,.15),transparent 72%)}\n.toldo{height:30px;margin:-20px -20px 16px;border-radius:16px 16px 10px 10px;\n  background:repeating-linear-gradient(90deg,rgba(255,154,110,.85) 0 26px,rgba(96,44,66,.95) 26px 52px);\n  box-shadow:0 10px 24px rgba(255,154,110,.18)}\nh2{margin:0 0 12px;font-size:20px;letter-spacing:.18em;text-transform:uppercase;color:#ffd0b8;text-align:center}\n.cupom{list-style:none;margin:0 0 14px;padding:12px 14px;border-radius:10px;background:#120c22;\n  border:1px solid rgba(255,154,110,.2)}\n.cupom li{display:flex;align-items:baseline;gap:8px;padding:6px 0;font-size:14px;color:#d8cdef}\n.cupom i{flex:1;border-bottom:1px dotted rgba(216,205,239,.35);transform:translateY(-3px)}\n.painel{padding:12px 14px;border-radius:12px;background:#0d0a1e;text-align:center;\n  border:1px solid rgba(255,154,110,.4);box-shadow:inset 0 0 24px rgba(255,154,110,.1)}\n.total{margin:0;font-size:18px;color:#cfc6ef}\n#preco{display:block;margin-top:2px;font-size:30px;color:#fff4e0;\n  text-shadow:0 0 14px rgba(255,154,110,.6),0 0 38px rgba(255,154,110,.28)}\n.nota{margin:14px 0 0;text-align:center;font-size:12.5px;color:#b9addc}",
+      "web_js": "function formatarMoeda(n) {\n  return \"R$ \" + n;          // BUG: sem 2 casas, sem vírgula\n}\nwindow.formatarMoeda = formatarMoeda;\ndocument.getElementById(\"preco\").textContent = formatarMoeda(1234.5);",
+      "solucao_js": "function formatarMoeda(n) {\n  return \"R$ \" + n.toFixed(2).replace(\".\", \",\");\n}\nwindow.formatarMoeda = formatarMoeda;\ndocument.getElementById(\"preco\").textContent = formatarMoeda(1234.5);",
+      "testes_web": [
+        {
+          "nome": "1234.5 vira R$ 1234,50",
+          "codigo": "_verificar(win.formatarMoeda(1234.5), \"R$ 1234,50\");"
+        },
+        {
+          "nome": "9 vira R$ 9,00",
+          "codigo": "_verificar(win.formatarMoeda(9), \"R$ 9,00\");"
+        },
+        {
+          "nome": "a tela mostra o valor formatado",
+          "codigo": "_verificar(_texto(\"#preco\"), \"R$ 1234,50\");"
+        }
+      ],
+      "dicas": [
+        "Duas transformações encadeadas: primeiro garanta 2 casas decimais, depois troque o ponto pela vírgula.",
+        "`n.toFixed(2)` devolve a string com 2 casas; encadeie `.replace(\".\", \",\")` nela.",
+        "`return \"R$ \" + n.toFixed(2).replace(\".\", \",\");`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-css-02",
+      "nivel": "css",
+      "categoria": "construa-front",
+      "titulo": "Barra de progresso",
+      "conceitos": [
+        "html",
+        "css",
+        "dom"
+      ],
+      "explicacao_md": "Uma barra de progresso é só duas caixas: um **trilho** (fundo) e um **preenchimento** por cima cuja **largura** representa a porcentagem.\n\nO back-end costuma ajustar só a largura: `elemento.style.width = pct + \"%\"`. O front precisa existir para isso funcionar.",
+      "enunciado_md": "O JS (fixo) chama `setProgresso(40)` ao carregar, e isso ajusta a largura de um elemento `#preenchido` que deve viver dentro de `#barra`.\n\nMonte a estrutura no `html` (um `<div id=\"barra\">` com um `<div id=\"preenchido\">` dentro) e, no `css`, dê ao `#barra` uma largura e fundo, e ao `#preenchido` altura total e uma cor. Veja a barra encher até 40%.",
+      "editaveis": [
+        "html",
+        "css"
+      ],
+      "web_html": "<h3>Progresso do treino</h3>\n<!-- monte aqui: <div id=\"barra\"><div id=\"preenchido\"></div></div> -->",
+      "web_css": "/* estilize #barra (trilho) e #preenchido (o que enche) */\n",
+      "web_js": "window.setProgresso = function (pct) {\n  var p = document.getElementById(\"preenchido\");\n  if (p) p.style.width = pct + \"%\";\n};\nwindow.addEventListener(\"DOMContentLoaded\", function () {\n  window.setProgresso(40);\n});",
+      "solucao_html": "<h3>Progresso do treino</h3>\n<div id=\"barra\"><div id=\"preenchido\"></div></div>",
+      "solucao_css": "#barra{width:240px;height:22px;background:#eee;border-radius:11px;overflow:hidden}\n#preenchido{height:100%;background:#57c99b;width:0}",
+      "testes_web": [
+        {
+          "nome": "existe #barra e #preenchido dentro",
+          "codigo": "_verificar(!!doc.querySelector(\"#barra #preenchido\"), true);"
+        },
+        {
+          "nome": "o preenchimento foi para 40%",
+          "codigo": "_verificar(doc.getElementById(\"preenchido\").style.width, \"40%\");"
+        },
+        {
+          "nome": "o trilho tem fundo (não transparente)",
+          "codigo": "var bg = win.getComputedStyle(doc.getElementById(\"barra\")).backgroundColor; _verificar(bg !== \"rgba(0, 0, 0, 0)\" && bg !== \"transparent\", true);"
+        }
+      ],
+      "dicas": [
+        "Precisa de dois divs aninhados: o de fora é o trilho (`#barra`), o de dentro é o que enche (`#preenchido`). O JS mexe só na largura do de dentro.",
+        "HTML: `<div id=\"barra\"><div id=\"preenchido\"></div></div>`. CSS: dê largura/altura/fundo ao `#barra` e `height:100%` + uma cor ao `#preenchido`.",
+        "CSS: `#barra{width:240px;height:22px;background:#eee;border-radius:11px;overflow:hidden} #preenchido{height:100%;background:#57c99b}`"
+      ],
+      "xp": 25
+    },
+    {
+      "id": "web-dados-01",
+      "nivel": "dados",
+      "categoria": "conserte-back",
+      "titulo": "Só o último cartão aparece",
+      "conceitos": [
+        "dom"
+      ],
+      "explicacao_md": "Renderizar dados é transformar uma lista em tela. O padrão é: percorrer o array, montar um pedaço de HTML para cada item e **juntar tudo** antes de escrever no DOM.\n\n```js\nvar html = \"\";\nprodutos.forEach(function (p) {\n  html += \"<li>\" + p.nome + \"</li>\";\n});\nlista.innerHTML = html;   // escreve UMA vez, no fim\n```\n\nO erro clássico é usar `=` dentro do laço (`lista.innerHTML = ...`): a cada volta você **apaga** o que já tinha e só sobra o último item. Use `+=` para acumular, ou monte a string e escreva depois. O preview à direita atualiza sozinho.",
+      "enunciado_md": "A vitrine deveria listar **três** produtos, mas só o **último** aparece.\n\nO problema está na função `renderizar` no `js`: dentro do laço, o `innerHTML` é **substituído** a cada volta. Conserte para que os três cartões apareçam (dica: acumule o HTML e escreva uma vez só).\n\nO preview atualiza ao vivo; depois **Rodar testes**.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Cena: vitrine de uma lojinha ao entardecer dourado (Neon Bruma) -->\n<div class=\"cena-vitrine\">\n  <div class=\"ceu\" aria-hidden=\"true\"><span class=\"sol\"></span></div>\n  <section class=\"loja\">\n    <header class=\"letreiro\">\n      <h2>Vitrine</h2>\n      <span class=\"letreiro-sub\">aberta até o anoitecer</span>\n    </header>\n    <div class=\"toldo\" aria-hidden=\"true\"></div>\n    <div class=\"vidro\">\n      <div id=\"lista\" class=\"grade\"></div>\n      <p class=\"etiqueta-prateleira\" aria-hidden=\"true\">prateleira 01 — eletrônicos</p>\n    </div>\n    <div class=\"balcao\" aria-hidden=\"true\"></div>\n  </section>\n</div>",
+      "web_css": "/* Vitrine ao entardecer — céu pêssego, sol difuso, loja com toldo, vidro e balcão */\nbody{margin:0;min-height:100vh;box-sizing:border-box;padding:18px 14px 30px;\n  background:linear-gradient(180deg,#ffdcbb 0%,#ffc79b 45%,#f5aa7e 75%,#e9946f 100%)}\n.cena-vitrine{position:relative;max-width:420px;margin:0 auto}\n.ceu{position:absolute;top:-18px;left:-14px;right:-14px;height:170px;pointer-events:none}\n.sol{position:absolute;top:0;right:6px;width:150px;height:150px;border-radius:50%;\n  background:radial-gradient(circle,#fff4e0 0%,rgba(255,216,150,.8) 22%,rgba(255,170,110,.3) 52%,rgba(255,170,110,0) 72%)}\n.loja{position:relative}\n.letreiro{text-align:center;margin-bottom:8px}\n.letreiro h2{margin:0;font-size:26px;letter-spacing:.14em;text-transform:uppercase;color:#7a2f18;\n  text-shadow:0 0 14px rgba(255,190,120,.9),0 0 36px rgba(255,150,90,.5)}\n.letreiro-sub{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#96502f}\n.toldo{height:16px;margin:10px 2px 0;border-radius:10px 10px 0 0;\n  background:repeating-linear-gradient(90deg,#e8694b 0 26px,#fff2df 26px 52px);\n  box-shadow:0 8px 18px rgba(160,70,40,.28)}\n.vidro{padding:16px 14px 10px;border-radius:0 0 16px 16px;\n  background:linear-gradient(160deg,rgba(255,252,246,.85),rgba(255,238,220,.6));\n  border:1px solid rgba(255,255,255,.75);border-top:0;\n  box-shadow:inset 0 0 28px rgba(255,205,150,.35),0 16px 32px rgba(150,70,40,.18)}\n.grade{display:flex;flex-direction:column;gap:10px;max-width:320px;margin:0 auto}\n.cartao{padding:11px 14px;display:flex;justify-content:space-between;align-items:center;border-radius:12px;\n  background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(255,243,228,.88));\n  border:1px solid rgba(232,120,70,.35);\n  box-shadow:inset 0 0 0 1px rgba(255,255,255,.5),0 4px 14px rgba(190,90,50,.14),0 0 18px rgba(255,170,100,.22);\n  transition:transform .18s ease,box-shadow .18s ease}\n.cartao:hover{transform:translateY(-2px);\n  box-shadow:inset 0 0 0 1px rgba(255,255,255,.6),0 8px 20px rgba(190,90,50,.2),0 0 28px rgba(255,170,100,.42)}\n.cartao .nome{font-weight:600;color:#54301f}\n.cartao .preco{color:#0f7a56;font-weight:700;text-shadow:0 0 10px rgba(87,201,155,.55)}\n.etiqueta-prateleira{margin:12px 4px 0;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#94572f;text-align:right}\n.balcao{height:20px;margin:0 10px;border-radius:0 0 14px 14px;\n  background:linear-gradient(180deg,#c46a45,#9c4c31);\n  transform:perspective(320px) rotateX(26deg);transform-origin:top;\n  box-shadow:0 18px 28px rgba(120,50,30,.3)}",
+      "web_js": "window.produtos = [\n  { nome: \"Teclado\", preco: \"R$ 120,00\" },\n  { nome: \"Mouse\", preco: \"R$ 80,00\" },\n  { nome: \"Monitor\", preco: \"R$ 950,00\" }\n];\n\nfunction renderizar(lista) {\n  var alvo = document.getElementById(\"lista\");\n  lista.forEach(function (p) {\n    alvo.innerHTML = \"<div class='cartao'><span class='nome'>\" + p.nome +\n      \"</span><span class='preco'>\" + p.preco + \"</span></div>\";  // BUG: substitui\n  });\n}\n\nrenderizar(window.produtos);",
+      "solucao_js": "window.produtos = [\n  { nome: \"Teclado\", preco: \"R$ 120,00\" },\n  { nome: \"Mouse\", preco: \"R$ 80,00\" },\n  { nome: \"Monitor\", preco: \"R$ 950,00\" }\n];\n\nfunction renderizar(lista) {\n  var alvo = document.getElementById(\"lista\");\n  var html = \"\";\n  lista.forEach(function (p) {\n    html += \"<div class='cartao'><span class='nome'>\" + p.nome +\n      \"</span><span class='preco'>\" + p.preco + \"</span></div>\";\n  });\n  alvo.innerHTML = html;\n}\n\nrenderizar(window.produtos);",
+      "testes_web": [
+        {
+          "nome": "os três cartões aparecem",
+          "codigo": "_verificar(doc.querySelectorAll(\"#lista .cartao\").length, 3);"
+        },
+        {
+          "nome": "o primeiro cartão é o Teclado",
+          "codigo": "_verificar(_texto(\"#lista .cartao:first-child .nome\"), \"Teclado\");"
+        },
+        {
+          "nome": "o preço do primeiro cartão bate",
+          "codigo": "_verificar(_texto(\"#lista .cartao:first-child .preco\"), \"R$ 120,00\");"
+        }
+      ],
+      "dicas": [
+        "Dentro do laço você usa `=`, que substitui todo o conteúdo a cada volta — por isso só sobra o último item.",
+        "Acumule o HTML numa variável com `+=` durante o `forEach` e escreva no `innerHTML` só uma vez, depois do laço.",
+        "`var html = \"\"; lista.forEach(function(p){ html += \"<div class='cartao'>...</div>\"; }); alvo.innerHTML = html;`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-dados-02",
+      "nivel": "dados",
+      "categoria": "construa-front",
+      "titulo": "Monte o corpo da tabela",
+      "conceitos": [
+        "html",
+        "dom"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "O JavaScript (fixo) percorre `window.itens` e insere uma `<tr>` por item dentro de um `<tbody id=\"corpo\">`. Mas esse `<tbody>` **não existe** no HTML, então a tabela fica vazia.\n\nNo `html`, monte uma `<table>` contendo um `<tbody id=\"corpo\"></tbody>` (vazio — o JS preenche). Um `<thead>` com os títulos das colunas é bem-vindo.\n\nO preview atualiza ao vivo.",
+      "editaveis": [
+        "html"
+      ],
+      "web_html": "<h2>Estoque</h2>\n<!-- monte aqui a tabela: uma <table> com <tbody id=\"corpo\"></tbody> -->",
+      "web_css": "/* Terminal do almoxarifado ao anoitecer — painel neon verde-aurora */\nbody{margin:0;min-height:100vh;box-sizing:border-box;padding:24px 16px 36px;color:#e8ecff;\n  background:\n    radial-gradient(120% 55% at 50% 112%,rgba(255,166,98,.3) 0%,rgba(255,120,90,.12) 40%,rgba(255,120,90,0) 66%),\n    linear-gradient(180deg,#141433 0%,#1c1c4a 55%,#332452 100%)}\nh2{max-width:400px;margin:0 auto 12px;padding:10px 16px;box-sizing:border-box;font-size:16px;\n  letter-spacing:.18em;text-transform:uppercase;color:#c9ffe6;\n  border:1px solid rgba(126,255,196,.35);border-radius:12px;\n  background:linear-gradient(180deg,rgba(30,60,58,.85),rgba(18,34,44,.9));\n  text-shadow:0 0 12px rgba(126,255,196,.7);\n  box-shadow:0 0 26px rgba(90,230,170,.16),inset 0 0 18px rgba(90,230,170,.08)}\nh2::before{content:\"\";display:inline-block;width:9px;height:9px;margin-right:10px;border-radius:50%;\n  background:radial-gradient(circle,#fff4e0,#7dffc4 65%);box-shadow:0 0 10px rgba(125,255,196,.9)}\ntable{border-collapse:separate;border-spacing:0;width:100%;max-width:400px;margin:0 auto;\n  border:1px solid rgba(126,255,196,.28);border-radius:14px;overflow:hidden;\n  background:linear-gradient(170deg,rgba(22,32,58,.94),rgba(16,22,44,.94));\n  box-shadow:0 16px 40px rgba(5,8,24,.5),0 0 30px rgba(90,230,170,.12)}\nth,td{padding:10px 14px;text-align:left}\nthead th{background:linear-gradient(180deg,rgba(46,84,74,.92),rgba(28,52,54,.92));color:#aef7d6;\n  font-size:12px;letter-spacing:.14em;text-transform:uppercase;\n  text-shadow:0 0 8px rgba(126,255,196,.5);border-bottom:1px solid rgba(126,255,196,.3)}\ntbody td{color:#dff3ff;border-bottom:1px solid rgba(126,196,255,.14);font-variant-numeric:tabular-nums}\ntbody tr:last-child td{border-bottom:0}\ntbody tr:nth-child(even) td{background:rgba(126,255,196,.05)}\ntbody tr:hover td{background:rgba(126,255,196,.1)}\ntbody td:last-child{color:#ffd9a0;text-shadow:0 0 8px rgba(255,190,110,.4)}\n#__dojo_erro{max-width:400px;margin:12px auto 0;padding:10px 12px;border-radius:10px;background:rgba(255,240,234,.95)}",
+      "web_js": "window.itens = [\n  { produto: \"Café\", qtd: 12 },\n  { produto: \"Açúcar\", qtd: 5 },\n  { produto: \"Filtro\", qtd: 30 }\n];\n\nwindow.addEventListener(\"DOMContentLoaded\", function () {\n  var corpo = document.getElementById(\"corpo\");\n  if (!corpo) return;\n  window.itens.forEach(function (it) {\n    var tr = document.createElement(\"tr\");\n    var td1 = document.createElement(\"td\");\n    td1.textContent = it.produto;\n    var td2 = document.createElement(\"td\");\n    td2.textContent = it.qtd;\n    tr.appendChild(td1);\n    tr.appendChild(td2);\n    corpo.appendChild(tr);\n  });\n});",
+      "solucao_html": "<h2>Estoque</h2>\n<table>\n  <thead>\n    <tr><th>Produto</th><th>Quantidade</th></tr>\n  </thead>\n  <tbody id=\"corpo\"></tbody>\n</table>",
+      "testes_web": [
+        {
+          "nome": "existe um <tbody id=corpo>",
+          "codigo": "_verificar(!!doc.querySelector(\"tbody#corpo\"), true);"
+        },
+        {
+          "nome": "a tabela tem 3 linhas",
+          "codigo": "_verificar(doc.querySelectorAll(\"#corpo tr\").length, 3);"
+        },
+        {
+          "nome": "a primeira linha tem 2 células",
+          "codigo": "_verificar(doc.querySelectorAll(\"#corpo tr:first-child td\").length, 2);"
+        },
+        {
+          "nome": "a primeira linha mostra o produto",
+          "codigo": "_verificar(_texto(\"#corpo tr:first-child td:first-child\"), \"Café\");"
+        }
+      ],
+      "dicas": [
+        "O JS procura `document.getElementById(\"corpo\")` e adiciona uma `<tr>` por item. Sem esse alvo no HTML, nada aparece.",
+        "Crie uma `<table>` e, dentro dela, um `<tbody id=\"corpo\"></tbody>` vazio (o JS preenche). Um `<thead>` com os títulos é um bônus.",
+        "`<table><thead><tr><th>Produto</th><th>Quantidade</th></tr></thead><tbody id=\"corpo\"></tbody></table>`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-dados-03",
+      "nivel": "dados",
+      "categoria": "conserte-back",
+      "titulo": "Conserte a porcentagem",
+      "conceitos": [
+        "js",
+        "numeros"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "A função `formatarPorcentagem(n)` recebe uma fração (ex.: `0.25`) e deveria devolver `\"25%\"` — número **inteiro**, sem casas decimais. Hoje ela devolve `\"0.25%\"`.\n\nConserte-a no `js`: multiplique por 100 e arredonde. `formatarPorcentagem(0.4)` deve dar `\"40%\"`.\n\nO preview mostra a lista de taxas formatada ao vivo.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Cena: painel de telemetria de uma torre de sinal, anoitecer coral (Neon Bruma) -->\n<div class=\"cena-torre\">\n  <div class=\"ceu\" aria-hidden=\"true\">\n    <span class=\"horizonte\"></span>\n    <span class=\"torre\"><i class=\"pulso\"></i></span>\n  </div>\n  <section class=\"painel\">\n    <header class=\"painel-topo\">\n      <h2>Taxa de conversão</h2>\n      <span class=\"painel-sub\">telemetria por canal</span>\n    </header>\n    <ul id=\"lista\"></ul>\n    <p class=\"painel-base\" aria-hidden=\"true\">leituras ao vivo da torre</p>\n  </section>\n</div>",
+      "web_css": "/* Torre de sinal ao anoitecer — céu coral, mastro com farol, painel de leituras */\nbody{margin:0;min-height:100vh;box-sizing:border-box;padding:14px 16px 30px;color:#ffe9df;\n  background:linear-gradient(180deg,#1b1030 0%,#31164a 48%,#6b2547 78%,#a34a3c 100%)}\n.cena-torre{position:relative;max-width:420px;margin:0 auto}\n.ceu{position:absolute;top:0;left:0;right:0;height:150px;pointer-events:none}\n.horizonte{position:absolute;left:-40px;right:-40px;top:40px;height:110px;\n  background:radial-gradient(90% 100% at 50% 100%,rgba(255,140,90,.3),rgba(255,140,90,0) 70%)}\n.torre{position:absolute;top:6px;right:34px;width:2px;height:92px;\n  background:linear-gradient(180deg,rgba(255,220,190,.9),rgba(255,150,110,.12))}\n.torre::before{content:\"\";position:absolute;top:-7px;left:50%;transform:translateX(-50%);\n  width:10px;height:10px;border-radius:50%;\n  background:radial-gradient(circle,#fff4e0 0%,#ff9b6a 55%,rgba(255,155,106,0) 78%)}\n.pulso{position:absolute;top:-27px;left:50%;transform:translateX(-50%);width:50px;height:50px;border-radius:50%;\n  background:radial-gradient(circle,rgba(255,180,130,.4) 0%,rgba(255,180,130,0) 65%)}\n.painel{position:relative;margin-top:56px;border-radius:16px;padding:14px 16px 12px;\n  background:linear-gradient(165deg,rgba(46,22,52,.93),rgba(28,14,40,.95));\n  border:1px solid rgba(255,150,110,.35);\n  box-shadow:0 0 34px rgba(255,130,90,.16),0 18px 40px rgba(10,4,20,.5),inset 0 0 24px rgba(255,140,100,.06)}\n.painel-topo h2{margin:0;font-size:19px;letter-spacing:.05em;color:#ffd9c4;\n  text-shadow:0 0 14px rgba(255,150,100,.65)}\n.painel-sub{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#e0a58e}\nul{list-style:none;padding:0;margin:14px 0 4px}\n#lista li{display:flex;justify-content:space-between;align-items:center;gap:10px;\n  padding:10px 10px 10px 26px;position:relative;border-bottom:1px solid rgba(255,160,120,.14);color:#ffe9df}\n#lista li::before{content:\"\";position:absolute;left:6px;top:50%;transform:translateY(-50%);\n  width:8px;height:8px;border-radius:50%;\n  background:radial-gradient(circle,#fff4e0 0%,#ff9b6a 60%);box-shadow:0 0 10px rgba(255,155,106,.8)}\n#lista li:last-child{border-bottom:0}\n.valor{font-weight:700;font-variant-numeric:tabular-nums;color:#ffd9a8;padding:2px 10px;border-radius:999px;\n  background:rgba(255,170,110,.12);border:1px solid rgba(255,190,130,.35);\n  text-shadow:0 0 10px rgba(255,190,130,.6)}\n.painel-base{margin:8px 2px 0;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#e0a58e;text-align:right}\n#__dojo_erro{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:rgba(255,240,234,.95)}",
+      "web_js": "window.canais = [\n  { nome: \"Busca\", taxa: 0.25 },\n  { nome: \"E-mail\", taxa: 0.4 },\n  { nome: \"Social\", taxa: 0.6 }\n];\n\nfunction formatarPorcentagem(n) {\n  return n + \"%\";          // BUG: 0.25 vira \"0.25%\"\n}\nwindow.formatarPorcentagem = formatarPorcentagem;\n\nvar lista = document.getElementById(\"lista\");\nlista.innerHTML = window.canais.map(function (c) {\n  return \"<li><span>\" + c.nome + \"</span><span class='valor'>\" +\n    formatarPorcentagem(c.taxa) + \"</span></li>\";\n}).join(\"\");",
+      "solucao_js": "window.canais = [\n  { nome: \"Busca\", taxa: 0.25 },\n  { nome: \"E-mail\", taxa: 0.4 },\n  { nome: \"Social\", taxa: 0.6 }\n];\n\nfunction formatarPorcentagem(n) {\n  return Math.round(n * 100) + \"%\";\n}\nwindow.formatarPorcentagem = formatarPorcentagem;\n\nvar lista = document.getElementById(\"lista\");\nlista.innerHTML = window.canais.map(function (c) {\n  return \"<li><span>\" + c.nome + \"</span><span class='valor'>\" +\n    formatarPorcentagem(c.taxa) + \"</span></li>\";\n}).join(\"\");",
+      "testes_web": [
+        {
+          "nome": "0.25 vira 25%",
+          "codigo": "_verificar(win.formatarPorcentagem(0.25), \"25%\");"
+        },
+        {
+          "nome": "0.4 vira 40%",
+          "codigo": "_verificar(win.formatarPorcentagem(0.4), \"40%\");"
+        },
+        {
+          "nome": "0.128 arredonda para 13%",
+          "codigo": "_verificar(win.formatarPorcentagem(0.128), \"13%\");"
+        },
+        {
+          "nome": "a tela mostra 25% no primeiro item",
+          "codigo": "_verificar(_texto(\"#lista li:first-child .valor\"), \"25%\");"
+        }
+      ],
+      "dicas": [
+        "Porcentagem na tela é a fração ×100. `0.25` precisa virar `25`, não `0.25`.",
+        "Multiplique `n` por 100 e arredonde com `Math.round(...)` antes de juntar o `\"%\"`.",
+        "`return Math.round(n * 100) + \"%\";`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-dados-04",
+      "nivel": "dados",
+      "categoria": "ligue",
+      "titulo": "Ligue o filtro dos cards",
+      "conceitos": [
+        "dom",
+        "eventos"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "A tela lista produtos e tem um campo de busca `#busca`. As funções `filtrarPorNome(lista, termo)` e `renderizar(lista)` já funcionam, mas digitar no campo **não faz nada**.\n\nNo `js`, ligue o evento `input` do `#busca`: a cada tecla, filtre `window.produtos` pelo texto digitado e re-renderize. Quando nada casar, o aviso \"Nenhum resultado\" aparece sozinho.\n\nO preview atualiza ao vivo.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Cena: fichário de arquivo ao anoitecer violeta (Neon Bruma) -->\n<div class=\"cena-arquivo\">\n  <section class=\"fichario\">\n    <header class=\"rotulo\">\n      <h2>Produtos</h2>\n      <span class=\"rotulo-sub\">arquivo de fichas — gaveta P</span>\n    </header>\n    <div class=\"placa-busca\">\n      <label class=\"placa-titulo\" for=\"busca\">Consulta</label>\n      <input id=\"busca\" type=\"text\" placeholder=\"Buscar por nome...\">\n    </div>\n    <div class=\"gaveta\">\n      <div id=\"lista\"></div>\n      <p id=\"vazio\" hidden>Nenhum resultado.</p>\n    </div>\n    <div class=\"trilho\" aria-hidden=\"true\"></div>\n  </section>\n</div>",
+      "web_css": "/* Fichário ao anoitecer — gabinete violeta, fichas com aba, placa de consulta */\nbody{margin:0;min-height:100vh;box-sizing:border-box;padding:20px 16px 32px;color:#efe6ff;\n  background:linear-gradient(180deg,#191233 0%,#2a1a4d 52%,#4a2560 80%,#7c3a5e 100%)}\n.cena-arquivo{max-width:420px;margin:0 auto}\n.fichario{position:relative;border-radius:18px;padding:16px 16px 18px;\n  background:linear-gradient(170deg,rgba(43,29,74,.94),rgba(26,17,48,.96));\n  border:1px solid rgba(206,140,255,.32);\n  box-shadow:0 0 36px rgba(190,120,255,.16),0 20px 44px rgba(8,4,22,.55),inset 0 0 26px rgba(190,120,255,.05)}\n.rotulo{display:flex;flex-direction:column;gap:2px;margin-bottom:12px}\n.rotulo h2{margin:0;font-size:20px;letter-spacing:.05em;color:#f0dcff;text-shadow:0 0 14px rgba(206,140,255,.6)}\n.rotulo-sub{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#cda6ea}\n.placa-busca{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}\n.placa-titulo{font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:#cda6ea}\ninput{font-size:16px;padding:9px 12px;width:100%;max-width:260px;box-sizing:border-box;border-radius:10px;\n  color:#f4ecff;background:rgba(16,10,34,.7);border:1px solid rgba(206,140,255,.4);\n  box-shadow:inset 0 0 12px rgba(190,120,255,.08);transition:border-color .15s ease,box-shadow .15s ease}\ninput::placeholder{color:#a488c4}\ninput:focus{outline:2px solid rgba(227,184,255,.6);outline-offset:2px;border-color:#e3b8ff;\n  box-shadow:0 0 0 2px rgba(206,140,255,.2),0 0 18px rgba(206,140,255,.35)}\n.gaveta{padding:12px 12px 14px;border-radius:12px;\n  background:linear-gradient(180deg,rgba(15,9,30,.6),rgba(15,9,30,.85));\n  border:1px solid rgba(206,140,255,.18)}\n#lista{display:flex;flex-direction:column;gap:8px}\n.item{position:relative;padding:9px 12px 9px 18px;border-radius:4px 10px 10px 4px;color:#f4ecff;\n  background:linear-gradient(135deg,rgba(58,38,96,.9),rgba(40,26,70,.9));\n  border:1px solid rgba(206,140,255,.28);border-left:3px solid rgba(230,180,255,.75);\n  box-shadow:0 3px 10px rgba(8,4,22,.4),0 0 14px rgba(190,120,255,.12);\n  transition:transform .15s ease,box-shadow .15s ease}\n.item:hover{transform:translateX(3px);box-shadow:0 5px 14px rgba(8,4,22,.5),0 0 20px rgba(190,120,255,.3)}\n#vazio{margin:8px 2px 0;color:#ffb9c8;font-size:14px;text-shadow:0 0 10px rgba(255,120,150,.4)}\n.trilho{height:10px;margin:14px 6px 0;border-radius:999px;\n  background:linear-gradient(180deg,rgba(206,140,255,.25),rgba(206,140,255,.05));\n  box-shadow:0 6px 16px rgba(190,120,255,.15)}\n#__dojo_erro{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:rgba(255,240,234,.95)}",
+      "web_js": "window.produtos = [\n  { nome: \"Notebook\" },\n  { nome: \"Mouse\" },\n  { nome: \"Monitor\" },\n  { nome: \"Cadeira\" }\n];\n\nfunction filtrarPorNome(lista, termo) {\n  var t = termo.trim().toLowerCase();\n  return lista.filter(function (p) {\n    return p.nome.toLowerCase().indexOf(t) !== -1;\n  });\n}\n\nfunction renderizar(lista) {\n  var alvo = document.getElementById(\"lista\");\n  alvo.innerHTML = lista.map(function (p) {\n    return \"<div class='item'>\" + p.nome + \"</div>\";\n  }).join(\"\");\n  document.getElementById(\"vazio\").hidden = lista.length !== 0;\n}\n\nrenderizar(window.produtos);\n\n// Ligue o campo #busca: a cada digitação (evento \"input\"), filtre\n// window.produtos pelo texto digitado e re-renderize. Escreva abaixo.\n",
+      "solucao_js": "window.produtos = [\n  { nome: \"Notebook\" },\n  { nome: \"Mouse\" },\n  { nome: \"Monitor\" },\n  { nome: \"Cadeira\" }\n];\n\nfunction filtrarPorNome(lista, termo) {\n  var t = termo.trim().toLowerCase();\n  return lista.filter(function (p) {\n    return p.nome.toLowerCase().indexOf(t) !== -1;\n  });\n}\n\nfunction renderizar(lista) {\n  var alvo = document.getElementById(\"lista\");\n  alvo.innerHTML = lista.map(function (p) {\n    return \"<div class='item'>\" + p.nome + \"</div>\";\n  }).join(\"\");\n  document.getElementById(\"vazio\").hidden = lista.length !== 0;\n}\n\nrenderizar(window.produtos);\n\ndocument.getElementById(\"busca\").addEventListener(\"input\", function () {\n  var termo = document.getElementById(\"busca\").value;\n  renderizar(filtrarPorNome(window.produtos, termo));\n});\n",
+      "testes_web": [
+        {
+          "nome": "sem filtro, mostra os 4 produtos",
+          "codigo": "_verificar(doc.querySelectorAll(\"#lista .item\").length, 4);"
+        },
+        {
+          "nome": "digitar 'mo' filtra para 2",
+          "codigo": "var i = doc.getElementById(\"busca\"); i.value = \"mo\"; i.dispatchEvent(new win.Event(\"input\", { bubbles: true })); await _esperar(); _verificar(doc.querySelectorAll(\"#lista .item\").length, 2);"
+        },
+        {
+          "nome": "busca sem resultado mostra o aviso de vazio",
+          "codigo": "var i = doc.getElementById(\"busca\"); i.value = \"xyz\"; i.dispatchEvent(new win.Event(\"input\", { bubbles: true })); await _esperar(); _verificar(doc.querySelectorAll(\"#lista .item\").length, 0); _verificar(doc.getElementById(\"vazio\").hidden, false);"
+        }
+      ],
+      "dicas": [
+        "O campo `#busca` já existe e as funções `filtrarPorNome` e `renderizar` já funcionam. Falta reagir à digitação.",
+        "Adicione um `addEventListener(\"input\", ...)` no `#busca`; dentro, chame `renderizar(filtrarPorNome(window.produtos, valorDigitado))`.",
+        "`document.getElementById(\"busca\").addEventListener(\"input\", function(){ renderizar(filtrarPorNome(window.produtos, document.getElementById(\"busca\").value)); });`"
+      ],
+      "xp": 25
+    },
+    {
+      "id": "web-dados-05",
+      "nivel": "dados",
+      "categoria": "ligue",
+      "titulo": "Ligue o ordenar por preço",
+      "conceitos": [
+        "dom",
+        "eventos"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "O cardápio já aparece, e a função `ordenarPorPreco(lista)` devolve os pratos do mais barato ao mais caro. Mas o botão **Ordenar por preço** (`#ordenar`) não reage.\n\nNo `js`, ligue o clique do `#ordenar`: ao clicar, re-renderize os pratos ordenados por preço.\n\nO preview atualiza ao vivo; depois **Rodar testes**.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Cena: lousa de bistrô noturno com letreiro neon (Neon Bruma) -->\n<div class=\"cena-bistro\">\n  <section class=\"lousa\">\n    <header class=\"letreiro\">\n      <h2>Cardápio</h2>\n      <span class=\"letreiro-sub\">bistrô da esquina — serviço da noite</span>\n    </header>\n    <button id=\"ordenar\">Ordenar por preço</button>\n    <ul id=\"lista\"></ul>\n    <p class=\"rodape-lousa\" aria-hidden=\"true\">preços em reais</p>\n  </section>\n</div>",
+      "web_css": "/* Bistrô noturno — lousa de vidro, letreiro neon verde, preços em âmbar */\nbody{margin:0;min-height:100vh;box-sizing:border-box;padding:20px 16px 32px;color:#eafff4;\n  background:linear-gradient(180deg,#0f1f26 0%,#14303a 55%,#1d4a44 85%,#2a5f4c 100%)}\n.cena-bistro{max-width:420px;margin:0 auto}\n.lousa{position:relative;border-radius:16px;padding:16px 18px 14px;\n  background:\n    radial-gradient(120% 80% at 50% 0%,rgba(87,201,155,.1),rgba(87,201,155,0) 60%),\n    linear-gradient(170deg,#152b2b,#0e1e20);\n  border:1px solid rgba(120,240,190,.3);\n  box-shadow:0 0 38px rgba(87,201,155,.16),0 18px 42px rgba(3,10,10,.55),inset 0 0 30px rgba(87,201,155,.05)}\n.letreiro{text-align:center;margin-bottom:12px}\n.letreiro h2{margin:0;font-size:24px;letter-spacing:.12em;text-transform:uppercase;color:#c8ffe6;\n  text-shadow:0 0 6px rgba(255,255,255,.35),0 0 18px rgba(87,201,155,.85),0 0 40px rgba(87,201,155,.4)}\n.letreiro-sub{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#8ed8b4}\n#ordenar{display:block;margin:0 auto;font-size:15px;padding:9px 18px;cursor:pointer;border-radius:999px;\n  color:#06281c;font-weight:700;\n  background:linear-gradient(180deg,#8af0c2,#57c99b);border:1px solid rgba(230,255,244,.6);\n  box-shadow:0 0 18px rgba(87,201,155,.45),0 4px 12px rgba(3,10,10,.4);\n  transition:transform .12s ease,box-shadow .15s ease}\n#ordenar:hover{box-shadow:0 0 26px rgba(87,201,155,.7),0 5px 14px rgba(3,10,10,.45)}\n#ordenar:active{transform:translateY(1px) scale(.99)}\n#ordenar:focus-visible{outline:2px solid #c8ffe6;outline-offset:3px}\nul{list-style:none;padding:0;margin:16px 2px 4px}\n#lista li{display:flex;justify-content:space-between;align-items:baseline;gap:12px;\n  padding:10px 4px;border-bottom:1px dashed rgba(140,220,180,.25);color:#eafff4}\n#lista li:last-child{border-bottom:0}\n#lista li span:first-child{font-weight:600}\n.preco{color:#ffe2a0;font-weight:700;font-variant-numeric:tabular-nums;\n  text-shadow:0 0 10px rgba(255,210,130,.5)}\n.rodape-lousa{margin:10px 2px 0;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#84c7a3;text-align:center}\n#__dojo_erro{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:rgba(255,240,234,.95)}",
+      "web_js": "window.pratos = [\n  { nome: \"Salada\", preco: 18 },\n  { nome: \"Risoto\", preco: 42 },\n  { nome: \"Sopa\", preco: 12 }\n];\n\nfunction ordenarPorPreco(lista) {\n  return lista.slice().sort(function (a, b) {\n    return a.preco - b.preco;\n  });\n}\n\nfunction renderizar(lista) {\n  var alvo = document.getElementById(\"lista\");\n  alvo.innerHTML = lista.map(function (p) {\n    return \"<li><span>\" + p.nome + \"</span><span class='preco'>R$ \" +\n      p.preco + \"</span></li>\";\n  }).join(\"\");\n}\n\nrenderizar(window.pratos);\n\n// Ligue o botão #ordenar: ao clicar, re-renderize os pratos ordenados\n// por preço (use ordenarPorPreco). Escreva o addEventListener abaixo.\n",
+      "solucao_js": "window.pratos = [\n  { nome: \"Salada\", preco: 18 },\n  { nome: \"Risoto\", preco: 42 },\n  { nome: \"Sopa\", preco: 12 }\n];\n\nfunction ordenarPorPreco(lista) {\n  return lista.slice().sort(function (a, b) {\n    return a.preco - b.preco;\n  });\n}\n\nfunction renderizar(lista) {\n  var alvo = document.getElementById(\"lista\");\n  alvo.innerHTML = lista.map(function (p) {\n    return \"<li><span>\" + p.nome + \"</span><span class='preco'>R$ \" +\n      p.preco + \"</span></li>\";\n  }).join(\"\");\n}\n\nrenderizar(window.pratos);\n\ndocument.getElementById(\"ordenar\").addEventListener(\"click\", function () {\n  renderizar(ordenarPorPreco(window.pratos));\n});\n",
+      "testes_web": [
+        {
+          "nome": "antes de ordenar, o primeiro é Salada",
+          "codigo": "_verificar(_texto(\"#lista li:first-child span\"), \"Salada\");"
+        },
+        {
+          "nome": "ao clicar, o mais barato (Sopa) vem primeiro",
+          "codigo": "_clicar(\"#ordenar\"); _verificar(_texto(\"#lista li:first-child span\"), \"Sopa\");"
+        },
+        {
+          "nome": "ao clicar, o mais caro (Risoto) vai para o fim",
+          "codigo": "_clicar(\"#ordenar\"); _verificar(_texto(\"#lista li:last-child span\"), \"Risoto\");"
+        }
+      ],
+      "dicas": [
+        "O botão `#ordenar` não tem reação. A função `ordenarPorPreco` já devolve a lista ordenada — falta chamá-la no clique.",
+        "Adicione um `addEventListener(\"click\", ...)` no `#ordenar` e, dentro, `renderizar(ordenarPorPreco(window.pratos))`.",
+        "`document.getElementById(\"ordenar\").addEventListener(\"click\", function(){ renderizar(ordenarPorPreco(window.pratos)); });`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-dados-06",
+      "nivel": "dados",
+      "categoria": "conserte-front",
+      "titulo": "Cabeçalho trocado",
+      "conceitos": [
+        "html",
+        "dom"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "Os dados da tabela chegam na ordem **Nome**, depois **Preço**, e o JavaScript (fixo) preenche as células nessa ordem. Mas o **cabeçalho** está com as colunas invertidas: mostra `Preço | Nome`.\n\nNo `html`, conserte o `<thead>` para os títulos baterem com os dados: primeiro `Nome`, depois `Preço`.\n\nO preview atualiza ao vivo.",
+      "editaveis": [
+        "html"
+      ],
+      "web_html": "<h2>Preços</h2>\n<!-- Repare na ORDEM das colunas do cabeçalho antes de montar as linhas -->\n<table>\n  <thead>\n    <tr><th>Preço</th><th>Nome</th></tr>\n  </thead>\n  <tbody id=\"corpo\"></tbody>\n</table>",
+      "web_css": "/* Balcão de papelaria ao entardecer — quadro de preços com etiqueta dourada */\nbody{margin:0;min-height:100vh;box-sizing:border-box;padding:24px 16px 36px;color:#43302a;\n  background:\n    radial-gradient(60% 34% at 78% 6%,rgba(255,240,210,.9) 0%,rgba(255,205,150,.4) 45%,rgba(255,205,150,0) 70%),\n    linear-gradient(180deg,#ffe3c2 0%,#ffcf9e 48%,#f5ab7c 80%,#e79268 100%)}\nh2{max-width:360px;margin:0 auto 12px;font-size:22px;letter-spacing:.1em;text-transform:uppercase;color:#8a3c1e;\n  text-shadow:0 0 12px rgba(255,200,140,.9),0 0 30px rgba(255,160,100,.45)}\nh2::after{content:\"\";display:block;width:64px;height:3px;margin-top:6px;border-radius:999px;\n  background:linear-gradient(90deg,#ff9c5c,rgba(255,156,92,0))}\ntable{border-collapse:separate;border-spacing:0;width:100%;max-width:360px;margin:0 auto;\n  border-radius:14px;overflow:hidden;\n  background:linear-gradient(165deg,rgba(255,253,248,.95),rgba(255,240,224,.92));\n  border:1px solid rgba(220,120,70,.35);\n  box-shadow:0 14px 34px rgba(160,80,40,.22),0 0 26px rgba(255,170,100,.28)}\nth,td{padding:10px 14px;text-align:left}\nthead th{background:linear-gradient(180deg,#ffd9ad,#ffc48d);color:#7a3417;\n  font-size:12px;letter-spacing:.16em;text-transform:uppercase;\n  border-bottom:1px solid rgba(220,120,70,.4);text-shadow:0 1px 0 rgba(255,255,255,.5)}\ntbody td{color:#4c3226;border-bottom:1px solid rgba(220,140,90,.18)}\ntbody tr:last-child td{border-bottom:0}\ntbody tr:nth-child(even) td{background:rgba(255,190,130,.12)}\ntbody tr:hover td{background:rgba(255,170,100,.2)}\ntbody td:last-child{color:#0f7a56;font-weight:700;font-variant-numeric:tabular-nums;text-shadow:0 0 8px rgba(87,201,155,.35)}",
+      "web_js": "window.produtos = [\n  { nome: \"Caneta\", preco: \"R$ 3,50\" },\n  { nome: \"Caderno\", preco: \"R$ 18,00\" }\n];\n\nwindow.addEventListener(\"DOMContentLoaded\", function () {\n  var corpo = document.getElementById(\"corpo\");\n  if (!corpo) return;\n  window.produtos.forEach(function (p) {\n    var tr = document.createElement(\"tr\");\n    var tdNome = document.createElement(\"td\");\n    tdNome.textContent = p.nome;\n    var tdPreco = document.createElement(\"td\");\n    tdPreco.textContent = p.preco;\n    tr.appendChild(tdNome);\n    tr.appendChild(tdPreco);\n    corpo.appendChild(tr);\n  });\n});",
+      "solucao_html": "<h2>Preços</h2>\n<table>\n  <thead>\n    <tr><th>Nome</th><th>Preço</th></tr>\n  </thead>\n  <tbody id=\"corpo\"></tbody>\n</table>",
+      "testes_web": [
+        {
+          "nome": "o 1º cabeçalho é Nome",
+          "codigo": "_verificar(_texto(\"thead th:first-child\"), \"Nome\");"
+        },
+        {
+          "nome": "o 2º cabeçalho é Preço",
+          "codigo": "_verificar(_texto(\"thead th:nth-child(2)\"), \"Preço\");"
+        },
+        {
+          "nome": "o cabeçalho bate com a primeira célula de dados",
+          "codigo": "_verificar(_texto(\"thead th:first-child\"), \"Nome\"); _verificar(_texto(\"#corpo tr:first-child td:first-child\"), \"Caneta\");"
+        }
+      ],
+      "dicas": [
+        "Os dados chegam na ordem Nome, depois Preço. O cabeçalho da tabela está anunciando o contrário.",
+        "No `<thead>`, inverta a ordem dos dois `<th>` para que o primeiro seja `Nome` e o segundo `Preço`.",
+        "`<tr><th>Nome</th><th>Preço</th></tr>`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-dom-02",
+      "nivel": "dom",
+      "categoria": "conserte-back",
+      "titulo": "O tema não alterna",
+      "conceitos": [
+        "dom",
+        "eventos",
+        "css"
+      ],
+      "explicacao_md": "Toda tag HTML tem uma lista de **classes** CSS, e o JavaScript mexe nela pelo `elemento.classList`:\n\n- `classList.add(\"x\")` — adiciona a classe (se já tiver, não muda nada)\n- `classList.remove(\"x\")` — remove a classe\n- `classList.toggle(\"x\")` — **liga se estiver desligada, desliga se estiver ligada**\n- `classList.contains(\"x\")` — devolve `true`/`false`\n\nO `toggle` é o atalho ideal para botões liga/desliga (tema claro/escuro, menu aberto/fechado):\n\n```js\nbotao.addEventListener(\"click\", function () {\n  document.body.classList.toggle(\"escuro\");\n});\n```\n\nUm clique aplica o tema; o próximo o desfaz — sem precisar de `if`. O preview à direita reflete a mudança na hora.",
+      "enunciado_md": "O cartão tem um botão **Alternar tema**. Ele **deveria** ligar o tema escuro no primeiro clique e voltar ao claro no segundo — mas, uma vez escuro, nunca mais volta.\n\nO problema está no `js`: a linha usa `classList.add`, que só sabe **adicionar**. Troque para o método que **liga e desliga** a classe `escuro` a cada clique.\n\nClique no botão no preview (que atualiza ao vivo) e depois **Rodar testes**.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<div id=\"cartao\" class=\"cartao\">\n  <div class=\"janela\" aria-hidden=\"true\">\n    <span class=\"astro\"></span>\n    <span class=\"nuvem n1\"></span>\n    <span class=\"nuvem n2\"></span>\n    <span class=\"horizonte\"></span>\n  </div>\n  <div class=\"quarto\" aria-hidden=\"true\">\n    <span class=\"abajur\"></span>\n    <span class=\"cama\"></span>\n  </div>\n  <h2>Meu quarto</h2>\n  <p>Toque no botão para trocar o tema.</p>\n  <button id=\"alternar\">Alternar tema</button>\n</div>",
+      "web_css": "/* Cena: quarto dia/noite — entardecer dourado que a classe .escuro leva ao anoitecer neon */\n.cartao{position:relative;max-width:320px;padding:16px;border-radius:18px;overflow:hidden;\n  font-family:system-ui,\"Segoe UI\",sans-serif;\n  background:linear-gradient(180deg,#fff3df,#ffe4c4 55%,#ffd6ae);color:#4a3320;\n  border:1px solid rgba(255,196,130,.6);\n  box-shadow:0 16px 34px rgba(205,130,70,.28),0 0 24px rgba(255,190,120,.18);\n  transition:background .5s,color .5s,border-color .5s,box-shadow .5s}\n.cartao h2{margin:12px 2px 2px;font-size:19px;letter-spacing:.02em}\n.cartao p{margin:4px 2px 10px;font-size:14px;opacity:.82}\n/* Janela: céu vivo do quarto */\n.janela{position:relative;height:112px;border-radius:12px;overflow:hidden;\n  background:linear-gradient(180deg,#ffdca8 0%,#ffbe8d 55%,#f89b78 100%);\n  border:1px solid rgba(255,226,180,.8);transition:background .5s,border-color .5s}\n.janela::before{content:\"\";position:absolute;inset:0;opacity:0;transition:opacity .5s;\n  background:radial-gradient(1.6px 1.6px at 18% 26%,#fff 60%,transparent 61%),\n    radial-gradient(1.2px 1.2px at 64% 18%,#fff 60%,transparent 61%),\n    radial-gradient(1.4px 1.4px at 42% 48%,#fff 60%,transparent 61%),\n    radial-gradient(1px 1px at 86% 38%,#fff 60%,transparent 61%)}\n.astro{position:absolute;top:20px;left:24px;width:34px;height:34px;border-radius:50%;\n  background:radial-gradient(circle at 40% 36%,#fff7e2 0 40%,#ffd98a 64%,rgba(255,190,110,0) 74%);\n  box-shadow:0 0 26px 10px rgba(255,198,120,.55);\n  transition:transform .5s,background .5s,box-shadow .5s}\n.nuvem{position:absolute;height:9px;border-radius:99px;background:rgba(255,246,228,.8);\n  box-shadow:0 0 14px 4px rgba(255,246,228,.35);transition:background .5s,box-shadow .5s}\n.n1{top:32px;right:30px;width:62px}\n.n2{top:56px;right:66px;width:38px;opacity:.75}\n.horizonte{position:absolute;left:0;right:0;bottom:0;height:30px;\n  background:linear-gradient(180deg,rgba(96,52,84,0),rgba(96,52,84,.5))}\n/* Cantinho do quarto: abajur e cama em silhueta suave */\n.quarto{position:relative;height:36px;margin-top:10px}\n.abajur{position:absolute;left:10px;bottom:14px;width:26px;height:14px;\n  background:linear-gradient(180deg,#e7a75f,#cf8a48);\n  clip-path:polygon(18% 0,82% 0,100% 100%,0 100%);transition:filter .5s}\n.abajur::after{content:\"\";position:absolute;left:11px;top:14px;width:4px;height:14px;\n  border-radius:2px;background:#b97f45}\n.abajur::before{content:\"\";position:absolute;left:-17px;top:-18px;width:60px;height:48px;\n  border-radius:50%;opacity:0;transition:opacity .5s;\n  background:radial-gradient(closest-side,rgba(255,214,140,.55),rgba(255,214,140,0))}\n.cama{position:absolute;right:8px;bottom:0;width:96px;height:18px;border-radius:8px 8px 3px 3px;\n  background:linear-gradient(180deg,#e9b98a,#d69a63);transition:background .5s}\n.cama::before{content:\"\";position:absolute;left:8px;top:-6px;width:26px;height:10px;\n  border-radius:6px;background:#fff2dc;transition:background .5s}\n/* Interruptor do tema */\n#alternar{margin-top:2px;font-size:16px;padding:9px 18px;border-radius:10px;border:0;cursor:pointer;\n  background:linear-gradient(180deg,#6e5ce6,#584ad0);color:#fff;\n  box-shadow:0 6px 16px rgba(90,70,210,.35),0 0 18px rgba(124,108,240,.3);\n  transition:transform .15s,box-shadow .3s}\n#alternar:hover{transform:translateY(-1px)}\n#alternar:focus-visible{outline:2px solid #ffd98a;outline-offset:3px}\n/* Anoitecer neon */\n.cartao.escuro{background:linear-gradient(180deg,#171334,#211b48 55%,#2c2158);color:#f2ecff;\n  border-color:rgba(150,124,255,.45);\n  box-shadow:0 16px 38px rgba(16,10,50,.6),0 0 28px rgba(124,108,240,.28)}\n.cartao.escuro .janela{background:linear-gradient(180deg,#0f0c28 0%,#1b1442 55%,#45254f 100%);\n  border-color:rgba(140,120,220,.4)}\n.cartao.escuro .janela::before{opacity:.9}\n.cartao.escuro .astro{transform:translateX(150px);\n  background:radial-gradient(circle at 40% 36%,#ffffff 0 40%,#ccd4ff 64%,rgba(180,190,255,0) 74%);\n  box-shadow:0 0 22px 8px rgba(196,204,255,.5)}\n.cartao.escuro .nuvem{background:rgba(130,120,210,.3);box-shadow:none}\n.cartao.escuro .abajur{filter:brightness(1.15)}\n.cartao.escuro .abajur::before{opacity:1}\n.cartao.escuro .cama{background:linear-gradient(180deg,#4a3d7e,#372c62)}\n.cartao.escuro .cama::before{background:#cfc6ff}",
+      "web_js": "var cartao = document.getElementById(\"cartao\");\ndocument.getElementById(\"alternar\").addEventListener(\"click\", function () {\n  cartao.classList.add(\"escuro\");   // BUG: só adiciona, nunca remove\n});",
+      "solucao_js": "var cartao = document.getElementById(\"cartao\");\ndocument.getElementById(\"alternar\").addEventListener(\"click\", function () {\n  cartao.classList.toggle(\"escuro\");   // liga e desliga a cada clique\n});",
+      "testes_web": [
+        {
+          "nome": "um clique liga o tema escuro",
+          "codigo": "_clicar(\"#alternar\"); _verificar(doc.getElementById(\"cartao\").classList.contains(\"escuro\"), true);"
+        },
+        {
+          "nome": "dois cliques voltam ao claro",
+          "codigo": "_clicar(\"#alternar\"); _clicar(\"#alternar\"); _verificar(doc.getElementById(\"cartao\").classList.contains(\"escuro\"), false);"
+        }
+      ],
+      "dicas": [
+        "Existe um método do `classList` que sozinho decide adicionar OU remover a classe, dependendo se ela já está aplicada.",
+        "Troque `cartao.classList.add(\"escuro\")` por `cartao.classList.toggle(\"escuro\")`.",
+        "`cartao.classList.toggle(\"escuro\");`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-dom-03",
+      "nivel": "dom",
+      "categoria": "ligue",
+      "titulo": "Ligue a busca",
+      "conceitos": [
+        "dom",
+        "eventos"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "A função `aplicarFiltro(termo)` já existe: ela mostra só os itens da lista que contêm o texto buscado e esconde o resto. Mas o campo `#busca` **não está ligado** a ela — digitar não filtra nada.\n\nNo `js`, ligue o evento `input` do campo `#busca`: a cada tecla digitada, chame `aplicarFiltro` passando o valor atual do campo.\n\nDigite no campo do preview e veja a lista filtrar ao vivo.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<div class=\"arquivo\">\n  <div class=\"topo\" aria-hidden=\"true\">\n    <span class=\"plaqueta\">FICHÁRIO · FRUTAS</span>\n    <span class=\"puxador\"></span>\n  </div>\n  <input id=\"busca\" placeholder=\"Buscar fruta...\">\n  <ul id=\"lista\">\n    <li>Banana</li>\n    <li>Maçã</li>\n    <li>Manga</li>\n    <li>Uva</li>\n  </ul>\n</div>",
+      "web_css": "/* Cena: gaveta de fichário ao anoitecer — plaqueta dourada neon sobre índigo profundo */\n.arquivo{max-width:300px;padding:16px 16px 20px;border-radius:16px;\n  font-family:system-ui,\"Segoe UI\",sans-serif;\n  background:linear-gradient(180deg,#1b1640,#251d4e 55%,#332457);\n  border:1px solid rgba(255,206,130,.35);\n  box-shadow:0 18px 40px rgba(18,12,50,.5),0 0 30px rgba(255,190,110,.14)}\n.topo{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}\n.plaqueta{font-size:11px;letter-spacing:.28em;color:#ffdf9e;padding:5px 10px;border-radius:6px;\n  background:rgba(255,206,130,.1);border:1px solid rgba(255,206,130,.45);\n  text-shadow:0 0 10px rgba(255,206,130,.6)}\n.puxador{width:40px;height:9px;border-radius:99px;\n  background:linear-gradient(180deg,#f0c583,#c99a55);\n  box-shadow:0 0 12px rgba(255,200,120,.45)}\n/* Campo de consulta da gaveta */\n#busca{width:100%;box-sizing:border-box;font-size:16px;padding:10px 12px;border-radius:10px;\n  border:1px solid rgba(255,206,130,.4);background:rgba(12,9,34,.6);color:#f7eeda;\n  transition:box-shadow .25s,border-color .25s}\n#busca::placeholder{color:rgba(247,238,218,.5)}\n#busca:focus{outline:none;border-color:#ffce82;\n  box-shadow:0 0 0 2px rgba(255,206,130,.25),0 0 22px rgba(255,198,110,.35)}\n/* Fichas de papel dentro da gaveta */\n#lista{list-style:none;padding:0;margin:14px 0 0}\n#lista li{position:relative;margin:0 0 9px;padding:10px 12px 10px 30px;border-radius:8px;\n  background:linear-gradient(180deg,#fdf6e6,#f4e6cb);color:#3c2e1b;font-size:15px;\n  border:1px solid rgba(255,220,170,.85);\n  box-shadow:0 5px 14px rgba(14,9,40,.4)}\n#lista li::before{content:\"\";position:absolute;left:11px;top:50%;width:8px;height:8px;\n  margin-top:-4px;border-radius:50%;\n  background:radial-gradient(circle at 38% 34%,#fff4dd 0 35%,#f0b45e 70%);\n  box-shadow:0 0 8px rgba(240,180,94,.7)}\n#lista li:nth-child(odd){transform:rotate(-.4deg)}\n#lista li:nth-child(even){transform:rotate(.5deg)}",
+      "web_js": "function aplicarFiltro(termo) {\n  var itens = document.querySelectorAll(\"#lista li\");\n  termo = termo.toLowerCase();\n  itens.forEach(function (li) {\n    var casa = li.textContent.toLowerCase().indexOf(termo) !== -1;\n    li.style.display = casa ? \"\" : \"none\";\n  });\n}\n\n// Ligue o campo #busca aqui: no evento \"input\", chame aplicarFiltro com o valor do campo.",
+      "solucao_js": "function aplicarFiltro(termo) {\n  var itens = document.querySelectorAll(\"#lista li\");\n  termo = termo.toLowerCase();\n  itens.forEach(function (li) {\n    var casa = li.textContent.toLowerCase().indexOf(termo) !== -1;\n    li.style.display = casa ? \"\" : \"none\";\n  });\n}\n\ndocument.getElementById(\"busca\").addEventListener(\"input\", function () {\n  aplicarFiltro(this.value);\n});",
+      "testes_web": [
+        {
+          "nome": "buscar 'man' deixa só 1 item visível",
+          "codigo": "var b = doc.getElementById(\"busca\"); b.value = \"man\"; b.dispatchEvent(new win.Event(\"input\", { bubbles: true }));\nvar vis = Array.prototype.filter.call(doc.querySelectorAll(\"#lista li\"), function (li) { return win.getComputedStyle(li).display !== \"none\"; }).length;\n_verificar(vis, 1);"
+        },
+        {
+          "nome": "apagar a busca mostra os 4 de novo",
+          "codigo": "var b = doc.getElementById(\"busca\"); b.value = \"man\"; b.dispatchEvent(new win.Event(\"input\", { bubbles: true }));\nb.value = \"\"; b.dispatchEvent(new win.Event(\"input\", { bubbles: true }));\nvar vis = Array.prototype.filter.call(doc.querySelectorAll(\"#lista li\"), function (li) { return win.getComputedStyle(li).display !== \"none\"; }).length;\n_verificar(vis, 4);"
+        }
+      ],
+      "dicas": [
+        "Filtrar enquanto se digita usa o evento `input` (dispara a cada tecla), diferente do `click`.",
+        "No `#busca`, chame `addEventListener(\"input\", ...)` e, dentro, passe o valor do campo para `aplicarFiltro`.",
+        "`document.getElementById(\"busca\").addEventListener(\"input\", function(){ aplicarFiltro(this.value); });`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-dom-04",
+      "nivel": "dom",
+      "categoria": "conserte-back",
+      "titulo": "Remover não remove o item",
+      "conceitos": [
+        "dom",
+        "eventos"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "Cada item da lista de compras tem um botão **x** para removê-lo. O clique é tratado por **delegação** — um único listener na `<ul>` cuida de todos os botões. Mas está errado: some só o **botão**, e o item continua na lista.\n\nNo `js`, conserte para remover o `<li>` inteiro: a partir do botão clicado (`e.target`), suba até o `<li>` que o contém e remova esse elemento.\n\nClique nos **x** do preview e veja os itens sumirem.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<div class=\"lojinha\">\n  <div class=\"toldo\" aria-hidden=\"true\"></div>\n  <span class=\"letreiro\" aria-hidden=\"true\">ABERTO</span>\n  <h2>Lista de compras</h2>\n  <ul id=\"compras\">\n    <li>Arroz <button class=\"rem\">x</button></li>\n    <li>Feijão <button class=\"rem\">x</button></li>\n    <li>Café <button class=\"rem\">x</button></li>\n  </ul>\n  <div class=\"balcao\" aria-hidden=\"true\"></div>\n</div>",
+      "web_css": "/* Cena: balcão de mercadinho ao entardecer — toldo listrado, letreiro coral e bloquinho de compras */\n.lojinha{position:relative;max-width:280px;padding:0 18px 14px;border-radius:16px;overflow:hidden;\n  font-family:system-ui,\"Segoe UI\",sans-serif;\n  background:linear-gradient(180deg,#241b4e,#33255c 60%,#472c60);\n  border:1px solid rgba(255,150,120,.3);\n  box-shadow:0 18px 40px rgba(18,12,50,.5),0 0 30px rgba(255,138,112,.14)}\n.toldo{height:22px;margin:0 -18px;\n  background:repeating-linear-gradient(90deg,#ff8a70 0 26px,#ffe9d8 26px 52px);\n  border-bottom:1px solid rgba(255,255,255,.35);\n  box-shadow:0 6px 16px rgba(255,138,112,.25)}\n.letreiro{display:block;text-align:center;margin:12px 0 0;font-size:13px;letter-spacing:.5em;\n  color:#ffb9a4;text-shadow:0 0 6px rgba(255,138,112,.9),0 0 22px rgba(255,138,112,.5)}\n.lojinha h2{margin:8px 0 12px;text-align:center;font-size:18px;letter-spacing:.04em;color:#ffe9d8}\n/* Bloquinho de papel sobre o balcão */\n#compras{list-style:none;margin:0;padding:12px 12px 14px;border-radius:8px 8px 0 0;position:relative;\n  background:linear-gradient(180deg,#fdf8ee,#f7ecd8);\n  box-shadow:0 8px 20px rgba(14,9,40,.45)}\n#compras::after{content:\"\";position:absolute;left:0;right:0;bottom:-8px;height:8px;\n  background-image:linear-gradient(45deg,#f7ecd8 50%,transparent 50%),\n    linear-gradient(-45deg,#f7ecd8 50%,transparent 50%);\n  background-size:14px 8px;background-position:0 0,7px 0;background-repeat:repeat-x}\n#compras li{display:flex;justify-content:space-between;align-items:center;gap:8px;\n  padding:8px 2px;color:#46352a;font-size:15px;border-bottom:1px dashed rgba(70,53,42,.3)}\n#compras li:last-child{border-bottom:0}\n/* Botão de riscar item */\n.rem{border:0;width:26px;height:26px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;\n  background:linear-gradient(180deg,#ff9a80,#f07a5e);color:#4a1408;\n  box-shadow:0 0 10px rgba(255,138,112,.45);transition:transform .12s,box-shadow .2s}\n.rem:hover{transform:scale(1.06);box-shadow:0 0 16px rgba(255,138,112,.7)}\n.rem:focus-visible{outline:2px solid #ffd9c9;outline-offset:2px}\n.balcao{height:12px;margin:16px -18px -14px;\n  background:linear-gradient(180deg,#8a5a34,#6c4426);\n  box-shadow:0 -4px 12px rgba(0,0,0,.25)}",
+      "web_js": "document.getElementById(\"compras\").addEventListener(\"click\", function (e) {\n  if (e.target.classList.contains(\"rem\")) {\n    e.target.remove();          // BUG: tira só o botão, o item continua\n  }\n});",
+      "solucao_js": "document.getElementById(\"compras\").addEventListener(\"click\", function (e) {\n  if (e.target.classList.contains(\"rem\")) {\n    e.target.closest(\"li\").remove();   // remove o item inteiro\n  }\n});",
+      "testes_web": [
+        {
+          "nome": "remover um item deixa 2 na lista",
+          "codigo": "_clicar(\"#compras .rem\"); _verificar(doc.querySelectorAll(\"#compras li\").length, 2);"
+        },
+        {
+          "nome": "sai o item certo (o primeiro)",
+          "codigo": "_clicar(\"#compras li:first-child .rem\"); _verificar(doc.querySelector(\"#compras li\").textContent.indexOf(\"Feijão\") !== -1, true);"
+        }
+      ],
+      "dicas": [
+        "`e.target` é o botão clicado. Você precisa remover o `<li>` que está em volta dele, não o botão em si.",
+        "De um elemento, `.closest(\"li\")` sobe até o `<li>` ancestral mais próximo. Chame `.remove()` nele.",
+        "`e.target.closest(\"li\").remove();`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-dom-05",
+      "nivel": "dom",
+      "categoria": "construa-front",
+      "titulo": "Monte a vitrine",
+      "conceitos": [
+        "dom",
+        "html"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "O `js` (fixo) percorre `window.produtos` e, para cada um, cria um `<div class=\"card\">` dentro de um elemento `#galeria`. Só que o `#galeria` **não existe** no HTML, então o JS para logo no começo (`if (!g) return`) e nada aparece.\n\nNo `html`, crie o contêiner vazio `<div id=\"galeria\"></div>` abaixo do título. O JavaScript preenche o resto.\n\nAo salvar, os cards surgem no preview ao vivo.",
+      "editaveis": [
+        "html"
+      ],
+      "web_html": "<h2>Vitrine</h2>\n<!-- crie aqui o contêiner vazio: <div id=\"galeria\"></div> -->",
+      "web_css": "/* Cena: vitrine de loja ao anoitecer — letreiro neon dourado e prateleira de vidro\n   (o aluno cria o #galeria; o entorno já espera por ele) */\nbody{margin:0;min-height:100vh;box-sizing:border-box;padding:26px 20px 44px;\n  font-family:system-ui,\"Segoe UI\",sans-serif;\n  background:linear-gradient(180deg,#151132 0%,#241b4e 55%,#4d2c62 82%,#6e3f63 100%)}\nh2{margin:0 0 6px;text-align:center;font-size:24px;letter-spacing:.34em;color:#ffe9c4;\n  text-shadow:0 0 8px rgba(255,210,140,.85),0 0 30px rgba(255,180,110,.45)}\nh2::after{content:\"\";display:block;width:150px;height:3px;margin:10px auto 0;border-radius:99px;\n  background:radial-gradient(closest-side,#ffd98a,rgba(255,217,138,0));\n  box-shadow:0 0 14px rgba(255,198,120,.7)}\n/* Prateleira de vidro da vitrine */\n#galeria{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;\n  margin:22px auto 0;max-width:420px;padding:20px 16px 26px;border-radius:16px;position:relative;\n  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02) 70%,rgba(255,190,120,.06));\n  border:1px solid rgba(255,214,150,.35);\n  box-shadow:0 18px 44px rgba(14,9,40,.5),inset 0 0 30px rgba(255,190,120,.08)}\n#galeria::after{content:\"\";position:absolute;left:10%;right:10%;bottom:8px;height:10px;border-radius:50%;\n  background:radial-gradient(closest-side,rgba(255,198,130,.35),rgba(255,198,130,0))}\n/* Pedestais de produto */\n.card{position:relative;min-width:110px;padding:14px 16px 12px;border-radius:12px;text-align:center;\n  background:linear-gradient(180deg,#fdf8ee,#f4e8d2);color:#3e2f20;\n  border:1px solid rgba(255,224,180,.9);\n  box-shadow:0 10px 22px rgba(20,12,50,.4),0 0 16px rgba(255,190,120,.22);\n  transition:transform .18s,box-shadow .25s}\n.card:hover{transform:translateY(-3px);\n  box-shadow:0 14px 26px rgba(20,12,50,.5),0 0 24px rgba(255,198,130,.4)}\n.card h3{margin:0 0 6px;font-size:15px;letter-spacing:.02em}\n.card .preco{display:inline-block;padding:3px 12px;border-radius:99px;font-weight:700;font-size:13px;\n  color:#0e5c3c;background:rgba(87,201,155,.22);border:1px solid rgba(87,201,155,.6);\n  box-shadow:0 0 12px rgba(87,201,155,.35)}",
+      "web_js": "window.produtos = [\n  { nome: \"Caderno\", preco: \"R$ 18\" },\n  { nome: \"Caneta\", preco: \"R$ 5\" },\n  { nome: \"Mochila\", preco: \"R$ 90\" }\n];\nwindow.addEventListener(\"DOMContentLoaded\", function () {\n  var g = document.getElementById(\"galeria\");\n  if (!g) return;\n  window.produtos.forEach(function (p) {\n    var card = document.createElement(\"div\");\n    card.className = \"card\";\n    var h = document.createElement(\"h3\");\n    h.textContent = p.nome;\n    var s = document.createElement(\"span\");\n    s.className = \"preco\";\n    s.textContent = p.preco;\n    card.appendChild(h);\n    card.appendChild(s);\n    g.appendChild(card);\n  });\n});",
+      "solucao_html": "<h2>Vitrine</h2>\n<div id=\"galeria\"></div>",
+      "testes_web": [
+        {
+          "nome": "existe o contêiner #galeria",
+          "codigo": "_verificar(!!doc.querySelector(\"#galeria\"), true);"
+        },
+        {
+          "nome": "o JS criou 3 cards",
+          "codigo": "_verificar(doc.querySelectorAll(\"#galeria .card\").length, 3);"
+        },
+        {
+          "nome": "o primeiro card mostra o nome certo",
+          "codigo": "_verificar(_texto(\"#galeria .card:first-child h3\"), \"Caderno\");"
+        }
+      ],
+      "dicas": [
+        "O JS chama `document.getElementById(\"galeria\")`. Sem um elemento com esse `id`, ele desiste (`if (!g) return`).",
+        "Adicione um `<div>` vazio com `id=\"galeria\"` logo abaixo do `<h2>` — o JS insere os cards dentro dele.",
+        "`<div id=\"galeria\"></div>` logo após o `<h2>Vitrine</h2>`."
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-dom-06",
+      "nivel": "dom",
+      "categoria": "conserte-front",
+      "titulo": "A resposta não abre",
+      "conceitos": [
+        "css",
+        "dom"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "É um FAQ: clicar na pergunta deve abrir a resposta. O `js` (fixo) já faz o certo — ele **alterna a classe `aberta`** na resposta a cada clique. Mesmo assim a resposta nunca aparece.\n\nO bug está no `css`: a regra que mostra a resposta usa um **nome de classe errado** (`ativa`), diferente do que o JS aplica (`aberta`). Os dois precisam bater — corrija o seletor no `css`.\n\nClique na pergunta no preview para conferir.",
+      "editaveis": [
+        "css"
+      ],
+      "web_html": "<!-- Cena fixa: balcão de dúvidas do saguão. O css do exercício estiliza só o miolo (.faq). -->\n<div style=\"max-width:420px;padding:24px 20px 28px;border-radius:18px;font-family:system-ui,'Segoe UI',sans-serif;background:linear-gradient(175deg,#1b1640,#251d4e 55%,#3a2a5c);box-shadow:0 18px 40px rgba(18,12,50,.5)\">\n  <div style=\"text-align:center;font-size:11px;letter-spacing:.4em;color:#ffe9c4;text-shadow:0 0 10px rgba(255,210,140,.7)\">BALCÃO DE DÚVIDAS</div>\n  <div style=\"width:130px;height:3px;margin:10px auto 18px;border-radius:99px;background:radial-gradient(closest-side,#ffd98a,rgba(255,217,138,0));box-shadow:0 0 12px rgba(255,198,120,.6)\" aria-hidden=\"true\"></div>\n  <div style=\"padding:14px;border-radius:14px;background:#fdf9f0;border:1px solid rgba(255,214,150,.65);box-shadow:0 0 30px rgba(255,190,120,.22)\">\n    <div class=\"faq\">\n      <button id=\"pergunta\">O que é o Dojo? ▾</button>\n      <p id=\"resposta\" class=\"resposta\">Um jogo para aprender Python praticando.</p>\n    </div>\n  </div>\n</div>",
+      "web_css": ".faq{max-width:340px}\nbutton{width:100%;text-align:left;font-size:16px;padding:10px;border:0;background:#eef;border-radius:8px;cursor:pointer}\n.resposta{display:none;padding:10px;color:#333}\n.resposta.ativa{display:block}   /* BUG: o JS aplica a classe \"aberta\", não \"ativa\" */",
+      "web_js": "document.getElementById(\"pergunta\").addEventListener(\"click\", function () {\n  document.getElementById(\"resposta\").classList.toggle(\"aberta\");\n});",
+      "solucao_css": ".faq{max-width:340px}\nbutton{width:100%;text-align:left;font-size:16px;padding:10px;border:0;background:#eef;border-radius:8px;cursor:pointer}\n.resposta{display:none;padding:10px;color:#333}\n.resposta.aberta{display:block}",
+      "testes_web": [
+        {
+          "nome": "começa escondida",
+          "codigo": "_verificar(win.getComputedStyle(doc.getElementById(\"resposta\")).display, \"none\");"
+        },
+        {
+          "nome": "abre ao clicar na pergunta",
+          "codigo": "_clicar(\"#pergunta\"); _verificar(win.getComputedStyle(doc.getElementById(\"resposta\")).display, \"block\");"
+        }
+      ],
+      "dicas": [
+        "O JS aplica a classe `aberta`, mas o CSS só estiliza `.resposta.ativa`. Os nomes têm que ser idênticos.",
+        "No seletor `.resposta.ativa`, troque `ativa` por `aberta`.",
+        "`.resposta.aberta{display:block}`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-dom-07",
+      "nivel": "dom",
+      "categoria": "ligue",
+      "titulo": "Ligue o adicionar",
+      "conceitos": [
+        "dom",
+        "eventos",
+        "formularios"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "A função `adicionarTarefa(texto)` já cria um `<li>` com o texto e o coloca na lista `#tarefas` (ignora texto vazio). Falta ligar o botão **Adicionar**.\n\nNo `js`, no clique do botão `#add`: leia o valor do campo `#nova`, passe-o para `adicionarTarefa` e, em seguida, **limpe** o campo (deixe `value` vazio).\n\nDigite algo no preview, clique em Adicionar e veja o item entrar na lista ao vivo.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<div class=\"quadro\">\n  <h2>Tarefas de hoje</h2>\n  <div class=\"entrada\">\n    <input id=\"nova\" placeholder=\"Nova tarefa\">\n    <button id=\"add\">Adicionar</button>\n  </div>\n  <ul id=\"tarefas\"></ul>\n</div>",
+      "web_css": "/* Cena: quadro de missões sob aurora verde — plaquinhas acendem ao entrar */\n.quadro{max-width:320px;padding:18px 18px 20px;border-radius:16px;position:relative;overflow:hidden;\n  font-family:system-ui,\"Segoe UI\",sans-serif;\n  background:linear-gradient(180deg,#0e2030,#12283a 55%,#173648);\n  border:1px solid rgba(87,201,155,.35);\n  box-shadow:0 18px 40px rgba(6,16,26,.55),0 0 30px rgba(87,201,155,.15)}\n.quadro::before{content:\"\";position:absolute;left:-20px;right:-20px;top:-40px;height:90px;opacity:.5;\n  pointer-events:none;\n  background:radial-gradient(60% 100% at 30% 100%,rgba(87,201,155,.5),transparent 70%),\n    radial-gradient(50% 90% at 70% 100%,rgba(120,230,190,.35),transparent 70%)}\n.quadro h2{position:relative;margin:0 0 14px;font-size:18px;letter-spacing:.06em;color:#eafff4;\n  text-shadow:0 0 12px rgba(87,201,155,.5)}\n.entrada{position:relative;display:flex;gap:8px}\n#nova{flex:1;min-width:0;font-size:16px;padding:9px 12px;border-radius:10px;\n  border:1px solid rgba(87,201,155,.4);background:rgba(6,18,26,.6);color:#eafff4;\n  transition:border-color .2s,box-shadow .25s}\n#nova::placeholder{color:rgba(234,255,244,.45)}\n#nova:focus{outline:none;border-color:#57c99b;\n  box-shadow:0 0 0 2px rgba(87,201,155,.25),0 0 18px rgba(87,201,155,.35)}\n#add{font-size:15px;padding:9px 14px;border:0;border-radius:10px;cursor:pointer;font-weight:600;\n  background:linear-gradient(180deg,#6cdcae,#45b586);color:#06281b;\n  box-shadow:0 6px 14px rgba(20,60,45,.45),0 0 16px rgba(87,201,155,.35);\n  transition:transform .12s,box-shadow .2s}\n#add:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(20,60,45,.5),0 0 22px rgba(87,201,155,.5)}\n#add:focus-visible{outline:2px solid #b8ffde;outline-offset:2px}\n/* Plaquinhas de missão */\n#tarefas{list-style:none;margin:14px 0 0;padding:0}\n#tarefas li{position:relative;margin-bottom:8px;padding:9px 12px 9px 30px;border-radius:9px;\n  color:#eafff4;font-size:15px;\n  background:linear-gradient(180deg,rgba(87,201,155,.14),rgba(87,201,155,.06));\n  border:1px solid rgba(87,201,155,.35);animation:entrar .3s ease-out}\n#tarefas li::before{content:\"\";position:absolute;left:11px;top:50%;width:8px;height:8px;margin-top:-4px;\n  border-radius:50%;background:radial-gradient(circle at 38% 34%,#eafff4 0 30%,#57c99b 70%);\n  box-shadow:0 0 10px rgba(87,201,155,.8)}\n#tarefas:empty{border:1px dashed rgba(87,201,155,.35);border-radius:10px;padding:14px}\n#tarefas:empty::after{content:\"Quadro vazio — adicione a primeira tarefa.\";display:block;\n  font-size:13px;color:rgba(234,255,244,.6)}\n@keyframes entrar{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}",
+      "web_js": "function adicionarTarefa(texto) {\n  if (!texto) return;\n  var li = document.createElement(\"li\");\n  li.textContent = texto;\n  document.getElementById(\"tarefas\").appendChild(li);\n}\n\n// Ligue o botão #add aqui: leia #nova, chame adicionarTarefa e depois limpe o campo.",
+      "solucao_js": "function adicionarTarefa(texto) {\n  if (!texto) return;\n  var li = document.createElement(\"li\");\n  li.textContent = texto;\n  document.getElementById(\"tarefas\").appendChild(li);\n}\n\ndocument.getElementById(\"add\").addEventListener(\"click\", function () {\n  var campo = document.getElementById(\"nova\");\n  adicionarTarefa(campo.value);\n  campo.value = \"\";\n});",
+      "testes_web": [
+        {
+          "nome": "adiciona o item digitado",
+          "codigo": "doc.getElementById(\"nova\").value = \"Estudar\"; _clicar(\"#add\"); _verificar(_texto(\"#tarefas li:last-child\"), \"Estudar\");"
+        },
+        {
+          "nome": "adiciona dois itens em sequência",
+          "codigo": "doc.getElementById(\"nova\").value = \"Ler\"; _clicar(\"#add\"); doc.getElementById(\"nova\").value = \"Correr\"; _clicar(\"#add\"); _verificar(doc.querySelectorAll(\"#tarefas li\").length, 2);"
+        },
+        {
+          "nome": "o campo fica vazio após adicionar",
+          "codigo": "doc.getElementById(\"nova\").value = \"Beber água\"; _clicar(\"#add\"); _verificar(doc.getElementById(\"nova\").value, \"\");"
+        }
+      ],
+      "dicas": [
+        "O botão precisa de um `addEventListener(\"click\", ...)`. O texto digitado está em `document.getElementById(\"nova\").value`.",
+        "Chame `adicionarTarefa(campo.value)` e depois faça `campo.value = \"\"` para limpar o campo.",
+        "`document.getElementById(\"add\").addEventListener(\"click\", function(){ var c=document.getElementById(\"nova\"); adicionarTarefa(c.value); c.value=\"\"; });`"
+      ],
+      "xp": 25
+    },
+    {
+      "id": "web-forms-01",
+      "nivel": "forms",
+      "categoria": "conserte-back",
+      "titulo": "A validação deixa o vazio passar",
+      "conceitos": [
+        "formularios",
+        "validacao",
+        "eventos"
+      ],
+      "explicacao_md": "Formulários são a porta de entrada dos dados do usuário. Você lê o que foi digitado com `.value` (campos de texto) e `.checked` (checkbox), e **valida** antes de aceitar. Ao enviar, o navegador tenta recarregar a página — `e.preventDefault()` impede isso para o seu JavaScript assumir o controle.\n\n```js\nform.addEventListener(\"submit\", function (e) {\n  e.preventDefault();\n  var nome = campo.value;\n  if (nome.trim() === \"\") {\n    mensagem.textContent = \"Preencha o nome!\";\n  } else {\n    mensagem.textContent = \"Olá, \" + nome;\n  }\n});\n```\n\nRepare no `.trim()`: ele remove os espaços das pontas, então um campo com **só espaços** também conta como vazio. Sem validação, dado furado entra no sistema.",
+      "enunciado_md": "Este cadastro **deveria** recusar um nome vazio, mas está deixando passar: enviar o formulário em branco mostra `Bem-vindo, !` em vez de cobrar o preenchimento.\n\nNo `js`, a condição do `if` está errada e nunca detecta o campo vazio. Conserte-a para que:\n\n- nome vazio (ou só com espaços) → `#mensagem` mostra `Preencha o nome!`\n- nome preenchido → `#mensagem` mostra `Bem-vindo, NOME!`\n\nO preview atualiza ao vivo: digite (ou não) e clique **Enviar**.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Cenário fixo: Portaria do Distrito (o conserto deste exercício é no JS) -->\n<div class=\"ceu\" aria-hidden=\"true\">\n  <i class=\"sol\"></i>\n  <i class=\"portal portal-a\"></i><i class=\"portal portal-b\"></i>\n  <i class=\"serra\"></i>\n  <i class=\"bruma\"></i>\n</div>\n<main class=\"guiche\">\n  <header class=\"topo\">\n    <span class=\"pino\"></span>\n    <h1>Portaria do Distrito</h1>\n    <span class=\"pino\"></span>\n  </header>\n  <p class=\"lema\">O guardião não deixa passar quem chega sem nome no livro.</p>\n  <form id=\"form\">\n    <input id=\"nome\" type=\"text\" placeholder=\"Seu nome\">\n    <button id=\"enviar\" type=\"submit\">Enviar</button>\n  </form>\n  <div class=\"letreiro\">\n    <p id=\"mensagem\">—</p>\n  </div>\n</main>",
+      "web_css": "/* Portaria do Distrito — anoitecer neon (cores locais: o iframe não vê os tokens do app) */\n*{box-sizing:border-box}\nbody{margin:0;min-height:100vh;font-family:system-ui,sans-serif;color:#f6ead8;\n  background:linear-gradient(180deg,#10142e 0%,#2b2148 46%,#6e3a52 72%,#d97e4e 100%);\n  display:grid;place-items:center;padding:28px 16px;overflow-x:hidden}\n/* --- céu e horizonte (decorativos, atrás de tudo) --- */\n.ceu{position:fixed;inset:0;pointer-events:none;overflow:hidden}\n.ceu i{position:absolute}\n.sol{left:50%;bottom:16%;width:120px;height:120px;margin-left:-60px;border-radius:50%;\n  background:radial-gradient(circle,#fff4e0 0%,#ffd9a0 34%,rgba(255,178,110,.35) 60%,transparent 74%);\n  animation:respira 7s ease-in-out infinite}\n/* portais dimétricos: monolitos esguios, rim light fino no lugar de contorno */\n.portal{bottom:24%;width:26px;height:150px;\n  background:linear-gradient(180deg,rgba(59,42,84,.9),rgba(30,24,56,.95));\n  box-shadow:inset 1px 0 0 rgba(255,214,160,.55),inset -1px 0 0 rgba(120,90,160,.35)}\n.portal-a{left:calc(50% - 122px);clip-path:polygon(0 8%,100% 0,100% 100%,0 100%)}\n.portal-b{left:calc(50% + 96px);height:120px;clip-path:polygon(0 0,100% 8%,100% 100%,0 100%)}\n.portal::after{content:\"\";position:absolute;inset:-40px -60px;\n  background:radial-gradient(closest-side,rgba(255,190,120,.22),transparent 70%)}\n/* serra: silhuetas em camadas no eixo 2:1 (26.57°) */\n.serra{left:0;right:0;bottom:18%;height:90px;opacity:.85;\n  background:\n    linear-gradient(26.57deg,transparent 46%,rgba(38,28,66,.85) 46.3%) left bottom/220px 90px repeat-x,\n    linear-gradient(-26.57deg,transparent 52%,rgba(52,36,80,.7) 52.3%) 60px bottom/260px 70px repeat-x}\n.bruma{left:-10%;right:-10%;bottom:10%;height:26%;\n  background:linear-gradient(180deg,transparent,rgba(255,218,178,.2) 45%,rgba(255,228,196,.1))}\n/* --- o guichê (núcleo interativo) --- */\n.guiche{position:relative;z-index:1;width:min(430px,100%);padding:22px 24px 26px;\n  background:linear-gradient(165deg,rgba(26,20,50,.92),rgba(40,26,64,.88));\n  border:1px solid rgba(255,205,150,.35);border-radius:14px;\n  box-shadow:0 24px 60px -20px rgba(10,6,26,.8),0 0 80px rgba(255,170,100,.12)}\n.guiche::before{content:\"\";position:absolute;left:12%;right:12%;bottom:-26px;height:30px;border-radius:50%;\n  background:radial-gradient(closest-side,rgba(30,16,50,.55),transparent 70%);z-index:-1}\n.topo{display:flex;align-items:center;gap:12px}\n.topo h1{flex:1;margin:0;font-size:19px;letter-spacing:.06em;text-transform:uppercase;\n  color:#ffe9c8;text-shadow:0 0 18px rgba(255,190,120,.45)}\n.pino{width:8px;height:8px;border-radius:50%;background:#ffd9a0;\n  box-shadow:0 0 10px 2px rgba(255,200,130,.6);animation:respira 3.4s ease-in-out infinite}\n.lema{margin:8px 0 18px;font-size:13.5px;color:#cdbfe0}\nform{display:flex;gap:10px}\ninput{flex:1;min-width:0;font-size:16px;padding:10px 12px;border-radius:9px;\n  border:1px solid rgba(255,205,150,.35);background:#fff8ec;color:#33241a}\ninput::placeholder{color:#9a8a76}\ninput:focus{outline:2px solid #ffc984;outline-offset:2px}\nbutton{font-size:15px;font-weight:700;padding:10px 18px;border:0;border-radius:9px;cursor:pointer;\n  color:#2a1606;background:linear-gradient(160deg,#ffd9a0,#f2a45c);\n  box-shadow:0 0 18px rgba(255,180,100,.35);transition:transform .12s,box-shadow .12s}\nbutton:hover{box-shadow:0 0 26px rgba(255,190,110,.55)}\nbutton:active{transform:translateY(1px)}\nbutton:focus-visible{outline:2px solid #fff4e0;outline-offset:2px}\n/* letreiro da portaria: onde a resposta acende em azul-frio */\n.letreiro{margin-top:18px;padding:4px 14px;border-radius:10px;\n  border:1px solid rgba(150,200,255,.28);\n  background:radial-gradient(120% 140% at 50% 0,rgba(90,120,220,.18),rgba(16,14,38,.6))}\n#mensagem{margin:9px 0;font-size:17px;text-align:center;color:#eaf2ff;\n  text-shadow:0 0 14px rgba(140,180,255,.5);min-height:1.4em}\n@keyframes respira{0%,100%{opacity:.75}50%{opacity:1}}\n@media (max-width:420px){form{flex-direction:column}}",
+      "web_js": "document.getElementById(\"form\").addEventListener(\"submit\", function (e) {\n  e.preventDefault();\n  var nome = document.getElementById(\"nome\").value;\n  if (nome === \" \") {            // BUG: só pega um espaço, nunca o campo vazio\n    document.getElementById(\"mensagem\").textContent = \"Preencha o nome!\";\n  } else {\n    document.getElementById(\"mensagem\").textContent = \"Bem-vindo, \" + nome + \"!\";\n  }\n});",
+      "solucao_js": "document.getElementById(\"form\").addEventListener(\"submit\", function (e) {\n  e.preventDefault();\n  var nome = document.getElementById(\"nome\").value;\n  if (nome.trim() === \"\") {       // vazio ou só espaços conta como vazio\n    document.getElementById(\"mensagem\").textContent = \"Preencha o nome!\";\n  } else {\n    document.getElementById(\"mensagem\").textContent = \"Bem-vindo, \" + nome + \"!\";\n  }\n});",
+      "testes_web": [
+        {
+          "nome": "campo vazio é recusado",
+          "codigo": "doc.getElementById(\"nome\").value = \"\"; _clicar(\"#enviar\"); _verificar(_texto(\"#mensagem\"), \"Preencha o nome!\");"
+        },
+        {
+          "nome": "nome preenchido é aceito",
+          "codigo": "doc.getElementById(\"nome\").value = \"Ana\"; _clicar(\"#enviar\"); _verificar(_texto(\"#mensagem\"), \"Bem-vindo, Ana!\");"
+        },
+        {
+          "nome": "só espaços também é vazio",
+          "codigo": "doc.getElementById(\"nome\").value = \"   \"; _clicar(\"#enviar\"); _verificar(_texto(\"#mensagem\"), \"Preencha o nome!\");"
+        }
+      ],
+      "dicas": [
+        "Um campo de texto vazio vale a string vazia `\"\"`, não `\" \"`. E espaços das pontas devem ser ignorados.",
+        "Use `nome.trim() === \"\"` para pegar tanto o vazio quanto o campo só com espaços.",
+        "Troque a condição por `if (nome.trim() === \"\") {`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-forms-02",
+      "nivel": "forms",
+      "categoria": "ligue",
+      "titulo": "Ligue o cadastro ao resumo",
+      "conceitos": [
+        "formularios",
+        "eventos",
+        "estado"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "A função `montarResumo(dados)` já existe e devolve uma linha pronta a partir de um objeto `{ nome, email, newsletter }`. A tela tem os campos `#nome`, `#email`, o checkbox `#news`, o botão `#enviar` e o parágrafo `#resumo` — mas o formulário **não faz nada** ao enviar.\n\nNo `js`, ligue o `submit` do `#form`: use `e.preventDefault()`, leia os três campos (o checkbox com `.checked`), monte o objeto `dados` e escreva `montarResumo(dados)` em `#resumo`.\n\nO preview atualiza ao vivo: preencha e clique **Cadastrar**.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Cenário fixo: Salão dos Sócios (o trabalho deste exercício é no JS) -->\n<div class=\"ceu\" aria-hidden=\"true\">\n  <i class=\"sol\"></i>\n  <i class=\"pilone p1\"></i><i class=\"pilone p2\"></i><i class=\"pilone p3\"></i>\n  <i class=\"bruma\"></i>\n</div>\n<main class=\"balcao\">\n  <header class=\"marquise\">\n    <h1>Salão dos Sócios</h1>\n    <p>Preencha a ficha no balcão e receba seu registro carimbado.</p>\n  </header>\n  <form id=\"form\">\n    <input id=\"nome\" type=\"text\" placeholder=\"Nome\">\n    <input id=\"email\" type=\"text\" placeholder=\"E-mail\">\n    <label><input id=\"news\" type=\"checkbox\"> Quero a newsletter</label>\n    <button id=\"enviar\" type=\"submit\">Cadastrar</button>\n  </form>\n  <div class=\"ficha\">\n    <span class=\"ficha-selo\">REGISTRO</span>\n    <p id=\"resumo\">—</p>\n  </div>\n</main>",
+      "web_css": "/* Salão dos Sócios — entardecer dourado (cores locais: o iframe não vê os tokens do app) */\n*{box-sizing:border-box}\nbody{margin:0;min-height:100vh;font-family:system-ui,sans-serif;color:#f7ecd9;\n  background:linear-gradient(180deg,#171436 0%,#3a2a50 44%,#8a4d52 72%,#e79a58 100%);\n  display:grid;place-items:center;padding:28px 16px;overflow-x:hidden}\n.ceu{position:fixed;inset:0;pointer-events:none;overflow:hidden}\n.ceu i{position:absolute}\n.sol{left:16%;bottom:20%;width:110px;height:110px;border-radius:50%;\n  background:radial-gradient(circle,#fff4e0,#ffe0a6 38%,rgba(255,196,120,.32) 62%,transparent 74%);\n  animation:respira 8s ease-in-out infinite}\n/* pilones do salão: lajes esguias com rim light dourado (sem contorno) */\n.pilone{bottom:16%;width:22px;background:linear-gradient(180deg,rgba(66,46,92,.92),rgba(28,22,52,.95));\n  box-shadow:inset 1px 0 0 rgba(255,222,160,.6),inset -1px 0 0 rgba(140,100,170,.3)}\n.p1{left:12%;height:150px;clip-path:polygon(0 6%,100% 0,100% 100%,0 100%)}\n.p2{left:calc(12% + 34px);height:190px;clip-path:polygon(0 0,100% 6%,100% 100%,0 100%)}\n.p3{right:10%;height:130px;clip-path:polygon(0 6%,100% 0,100% 100%,0 100%)}\n.pilone::after{content:\"\";position:absolute;inset:-30px -50px;\n  background:radial-gradient(closest-side,rgba(255,210,130,.22),transparent 70%)}\n.bruma{left:0;right:0;bottom:8%;height:24%;\n  background:linear-gradient(180deg,transparent,rgba(255,224,180,.22) 50%,rgba(255,232,200,.1))}\n/* --- balcão (núcleo interativo) --- */\n.balcao{position:relative;z-index:1;width:min(400px,100%);padding:20px 22px 24px;\n  background:linear-gradient(165deg,rgba(27,21,50,.93),rgba(44,29,60,.9));\n  border:1px solid rgba(255,214,150,.4);border-radius:14px;\n  box-shadow:0 24px 60px -22px rgba(10,6,26,.85),0 0 80px rgba(255,190,110,.14)}\n.balcao::before{content:\"\";position:absolute;left:10%;right:10%;bottom:-26px;height:30px;border-radius:50%;\n  background:radial-gradient(closest-side,rgba(30,16,50,.5),transparent 70%);z-index:-1}\n.marquise h1{margin:0;font-size:19px;letter-spacing:.07em;text-transform:uppercase;color:#ffe9c2;\n  text-shadow:0 0 18px rgba(255,200,120,.5)}\n.marquise p{margin:6px 0 16px;font-size:13.5px;color:#d5c8e2}\nform{display:flex;flex-direction:column;gap:10px}\ninput[type=text]{font-size:16px;padding:10px 12px;border-radius:9px;\n  border:1px solid rgba(255,214,150,.4);background:#fff8ec;color:#33241a}\ninput[type=text]::placeholder{color:#9a8a76}\ninput[type=text]:focus{outline:2px solid #ffd489;outline-offset:2px}\nlabel{display:flex;align-items:center;gap:8px;font-size:14.5px;color:#ecdfc8;cursor:pointer}\ninput[type=checkbox]{width:17px;height:17px;accent-color:#f2b25c;cursor:pointer}\ninput[type=checkbox]:focus-visible{outline:2px solid #ffd489;outline-offset:2px}\nbutton{font-size:15px;font-weight:700;padding:11px 16px;border:0;border-radius:9px;cursor:pointer;\n  color:#2a1606;background:linear-gradient(160deg,#ffe0a6,#f2a45c);\n  box-shadow:0 0 18px rgba(255,190,110,.35);transition:transform .12s,box-shadow .12s}\nbutton:hover{box-shadow:0 0 28px rgba(255,200,120,.55)}\nbutton:active{transform:translateY(1px)}\nbutton:focus-visible{outline:2px solid #fff4e0;outline-offset:2px}\n/* a ficha registrada: recibo claro com borda picotada e selo inclinado */\n.ficha{margin-top:18px;padding:12px 14px 10px;border-radius:0 0 10px 10px;position:relative;\n  background:linear-gradient(180deg,#fff8ec,#ffeed2);color:#4a3520;\n  box-shadow:0 8px 24px -10px rgba(20,10,40,.6)}\n.ficha::before{content:\"\";position:absolute;left:0;right:0;top:-6px;height:6px;\n  background:repeating-linear-gradient(90deg,#fff8ec 0 10px,transparent 10px 16px)}\n.ficha-selo{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.18em;color:#b06c28;\n  border:1px solid #d9a45c;border-radius:4px;padding:2px 6px;transform:rotate(-2deg)}\n#resumo{margin:8px 0 2px;font-size:14.5px;line-height:1.45;color:#3a2a18;overflow-wrap:anywhere}\n@keyframes respira{0%,100%{opacity:.75}50%{opacity:1}}",
+      "web_js": "function montarResumo(dados) {\n  var linha = \"Nome: \" + dados.nome + \" | E-mail: \" + dados.email;\n  linha += \" | Newsletter: \" + (dados.newsletter ? \"sim\" : \"não\");\n  return linha;\n}\n\n// Ligue o submit do #form aqui: preventDefault, leia #nome, #email e #news (.checked),\n// monte { nome, email, newsletter } e escreva montarResumo(dados) em #resumo.\n",
+      "solucao_js": "function montarResumo(dados) {\n  var linha = \"Nome: \" + dados.nome + \" | E-mail: \" + dados.email;\n  linha += \" | Newsletter: \" + (dados.newsletter ? \"sim\" : \"não\");\n  return linha;\n}\n\ndocument.getElementById(\"form\").addEventListener(\"submit\", function (e) {\n  e.preventDefault();\n  var dados = {\n    nome: document.getElementById(\"nome\").value,\n    email: document.getElementById(\"email\").value,\n    newsletter: document.getElementById(\"news\").checked\n  };\n  document.getElementById(\"resumo\").textContent = montarResumo(dados);\n});",
+      "testes_web": [
+        {
+          "nome": "resumo com newsletter marcada",
+          "codigo": "doc.getElementById(\"nome\").value = \"Ana\"; doc.getElementById(\"email\").value = \"ana@dojo.com\"; doc.getElementById(\"news\").checked = true; _clicar(\"#enviar\"); _verificar(_texto(\"#resumo\"), \"Nome: Ana | E-mail: ana@dojo.com | Newsletter: sim\");"
+        },
+        {
+          "nome": "resumo sem newsletter",
+          "codigo": "doc.getElementById(\"nome\").value = \"Bia\"; doc.getElementById(\"email\").value = \"bia@dojo.com\"; doc.getElementById(\"news\").checked = false; _clicar(\"#enviar\"); _verificar(_texto(\"#resumo\"), \"Nome: Bia | E-mail: bia@dojo.com | Newsletter: não\");"
+        }
+      ],
+      "dicas": [
+        "Você precisa de um `addEventListener(\"submit\", ...)` no `#form`, com `e.preventDefault()` para a página não recarregar.",
+        "Leia os textos com `.value` e o checkbox com `document.getElementById(\"news\").checked`; junte tudo num objeto `dados` e passe para `montarResumo`.",
+        "`document.getElementById(\"form\").addEventListener(\"submit\", function(e){ e.preventDefault(); var dados={nome:document.getElementById(\"nome\").value, email:document.getElementById(\"email\").value, newsletter:document.getElementById(\"news\").checked}; document.getElementById(\"resumo\").textContent = montarResumo(dados); });`"
+      ],
+      "xp": 25
+    },
+    {
+      "id": "web-forms-03",
+      "nivel": "forms",
+      "categoria": "conserte-front",
+      "titulo": "O campo inválido não acende",
+      "conceitos": [
+        "css",
+        "validacao",
+        "formularios"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "O JavaScript (fixo) já valida a idade: quando é menor que 18, ele adiciona a classe `invalido` no campo `#idade`. Mas o campo **não muda de cor** — o destaque de erro não aparece.\n\nO bug está no `css`: a regra que deveria pintar o campo inválido usa um **nome de classe errado**, então nunca casa com o que o JS aplica. Conserte o seletor para que o campo inválido fique com borda vermelha (`#e53935`) e fundo claro (`#fff0f0`).\n\nO preview atualiza ao vivo: digite `15` e clique **Verificar**.",
+      "editaveis": [
+        "css"
+      ],
+      "web_html": "<!-- Cenário fixo do Posto de Checagem — o conserto deste exercício é no arquivo CSS! -->\n<style>\n/* estilos do CENÁRIO (fixos, classes cx3-*): não mexem no input, no botão nem na .invalido */\n.cx3-ceu{position:fixed;inset:0;pointer-events:none;overflow:hidden;\n  background:linear-gradient(180deg,#141833 0%,#33254c 52%,#84445a 78%,#df8355 100%)}\n.cx3-ceu i{position:absolute}\n.cx3-lua{left:70%;top:14%;width:90px;height:90px;border-radius:50%;\n  background:radial-gradient(circle,#fff4e0,#ffd9a0 40%,rgba(255,180,110,.3) 62%,transparent 74%)}\n.cx3-halo{left:50%;bottom:18%;width:340px;height:200px;margin-left:-170px;\n  background:radial-gradient(closest-side,rgba(255,140,120,.25),transparent 70%)}\n.cx3-arco{left:50%;bottom:26%;width:190px;height:120px;margin-left:-95px;\n  clip-path:polygon(0 100%,0 22%,12% 0,88% 0,100% 22%,100% 100%,86% 100%,86% 30%,14% 30%,14% 100%);\n  background:linear-gradient(180deg,rgba(64,40,92,.95),rgba(30,22,54,.95));\n  box-shadow:inset 0 1px 0 rgba(255,205,150,.5)}\n.cx3-bruma{left:0;right:0;bottom:8%;height:24%;\n  background:linear-gradient(180deg,transparent,rgba(255,218,178,.2) 50%,rgba(255,228,196,.08))}\n.cx3-posto{position:relative;z-index:1;width:min(430px,92vw);margin:11vh auto 0;padding:20px 22px 24px;\n  border-radius:14px;border:1px solid rgba(255,160,140,.35);color:#f6ead8;\n  background:linear-gradient(165deg,rgba(28,20,50,.93),rgba(46,26,60,.9));\n  box-shadow:0 24px 60px -22px rgba(10,6,26,.85),0 0 70px rgba(255,140,110,.12)}\n.cx3-posto h1{margin:0 0 4px;font-size:18px;letter-spacing:.06em;text-transform:uppercase;\n  color:#ffdfc4;text-shadow:0 0 16px rgba(255,160,120,.45)}\n.cx3-posto .cx3-lema{margin:0 0 16px;font-size:13.5px;color:#d8c6da}\n.cx3-posto label{color:#f6ead8}\n.cx3-posto :focus-visible{outline:2px solid #ffc984;outline-offset:2px}\n</style>\n<div class=\"cx3-ceu\" aria-hidden=\"true\"><i class=\"cx3-lua\"></i><i class=\"cx3-halo\"></i><i class=\"cx3-arco\"></i><i class=\"cx3-bruma\"></i></div>\n<main class=\"cx3-posto\">\n  <h1>Posto de Checagem</h1>\n  <p class=\"cx3-lema\">O salão além do arco é 18+. O sensor do porteiro marca o campo inválido — mas a luz de alerta queimou.</p>\n  <form id=\"form\">\n    <label>Sua idade:\n      <input id=\"idade\" type=\"number\" placeholder=\"ex.: 20\">\n    </label>\n    <button id=\"enviar\" type=\"submit\">Verificar</button>\n  </form>\n</main>",
+      "web_css": "body{font-family:sans-serif}\ninput{border:2px solid #ccc;padding:8px;border-radius:6px;font-size:16px}\nbutton{margin-left:8px;padding:8px 14px;border:0;border-radius:6px;background:#57c99b;color:#0a2a1f;cursor:pointer}\n.invalida{                 /* BUG: o JS aplica a classe .invalido, não .invalida */\n  border-color:#e53935;\n  background:#fff0f0;\n}",
+      "web_js": "document.getElementById(\"form\").addEventListener(\"submit\", function (e) {\n  e.preventDefault();\n  var campo = document.getElementById(\"idade\");\n  if (Number(campo.value) < 18) {\n    campo.classList.add(\"invalido\");\n  } else {\n    campo.classList.remove(\"invalido\");\n  }\n});",
+      "solucao_css": "body{font-family:sans-serif}\ninput{border:2px solid #ccc;padding:8px;border-radius:6px;font-size:16px}\nbutton{margin-left:8px;padding:8px 14px;border:0;border-radius:6px;background:#57c99b;color:#0a2a1f;cursor:pointer}\n.invalido{\n  border-color:#e53935;\n  background:#fff0f0;\n}",
+      "testes_web": [
+        {
+          "nome": "campo inválido ganha borda vermelha",
+          "codigo": "doc.getElementById(\"idade\").value = \"15\"; _clicar(\"#enviar\"); _verificar(win.getComputedStyle(doc.getElementById(\"idade\")).borderTopColor, \"rgb(229, 57, 53)\");"
+        },
+        {
+          "nome": "campo inválido ganha fundo claro",
+          "codigo": "doc.getElementById(\"idade\").value = \"15\"; _clicar(\"#enviar\"); _verificar(win.getComputedStyle(doc.getElementById(\"idade\")).backgroundColor, \"rgb(255, 240, 240)\");"
+        }
+      ],
+      "dicas": [
+        "Compare o nome da classe que o JS usa (`classList.add(\"invalido\")`) com o nome da classe na sua regra CSS.",
+        "A regra está escrita `.invalida`, mas o JS aplica `.invalido`. Corrija o seletor para bater exatamente.",
+        "Troque `.invalida{` por `.invalido{`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-forms-04",
+      "nivel": "forms",
+      "categoria": "construa-front",
+      "titulo": "Construa a mensagem de erro",
+      "conceitos": [
+        "html",
+        "css",
+        "validacao"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "O JavaScript (fixo) valida a senha no envio e, quando ela tem menos de 6 caracteres, escreve o aviso dentro de um elemento `#erro`. Só que esse elemento **não existe** no HTML — o JS não tem onde escrever e a tela fica muda.\n\n1. No `html`, crie a mensagem que o JS espera: um `<p id=\"erro\" class=\"erro\"></p>` dentro do `#form` (o `id` precisa ser exatamente `erro`).\n2. No `css`, estilize `.erro` com **cor vermelha** (sugestão: `#e53935`).\n\nO preview atualiza ao vivo: digite uma senha curta (ex.: `123`) e clique **Cadastrar**.",
+      "editaveis": [
+        "html",
+        "css"
+      ],
+      "web_html": "<form id=\"form\">\n  <input id=\"senha\" type=\"password\" placeholder=\"Crie uma senha\">\n  <button id=\"enviar\" type=\"submit\">Cadastrar</button>\n  <!-- falta a mensagem que o JS preenche: <p id=\"erro\" class=\"erro\"></p> -->\n</form>",
+      "web_css": "body{font-family:sans-serif}\ninput,button{font-size:16px;padding:8px 12px;border-radius:8px;border:1px solid #ddd}\nbutton{background:#57c99b;border:0;color:#0a2a1f;cursor:pointer;margin-left:6px}\n/* estilize aqui a mensagem .erro com cor vermelha */\n",
+      "web_js": "document.getElementById(\"form\").addEventListener(\"submit\", function (e) {\n  e.preventDefault();\n  var senha = document.getElementById(\"senha\").value;\n  var erro = document.getElementById(\"erro\");\n  if (!erro) return;\n  if (senha.length < 6) {\n    erro.textContent = \"A senha precisa de ao menos 6 caracteres.\";\n  } else {\n    erro.textContent = \"Senha criada com sucesso!\";\n  }\n});",
+      "solucao_html": "<form id=\"form\">\n  <input id=\"senha\" type=\"password\" placeholder=\"Crie uma senha\">\n  <button id=\"enviar\" type=\"submit\">Cadastrar</button>\n  <p id=\"erro\" class=\"erro\"></p>\n</form>",
+      "solucao_css": "body{font-family:sans-serif}\ninput,button{font-size:16px;padding:8px 12px;border-radius:8px;border:1px solid #ddd}\nbutton{background:#57c99b;border:0;color:#0a2a1f;cursor:pointer;margin-left:6px}\n.erro{color:#e53935;font-size:14px;margin-top:8px}\n",
+      "testes_web": [
+        {
+          "nome": "existe um elemento #erro",
+          "codigo": "_verificar(!!doc.querySelector(\"#erro\"), true);"
+        },
+        {
+          "nome": "senha curta preenche o aviso",
+          "codigo": "doc.getElementById(\"senha\").value = \"123\"; _clicar(\"#enviar\"); _verificar(_texto(\"#erro\"), \"A senha precisa de ao menos 6 caracteres.\");"
+        },
+        {
+          "nome": "a mensagem é vermelha",
+          "codigo": "var c = win.getComputedStyle(doc.getElementById(\"erro\")).color; var m = c.match(/\\d+/g).map(Number); _verificar(m[0] > 150 && m[1] < 120 && m[2] < 120, true);"
+        }
+      ],
+      "dicas": [
+        "O JS procura `document.getElementById(\"erro\")`. Se esse elemento não existe, ele faz `return` e nada aparece. Crie-o.",
+        "No HTML, adicione `<p id=\"erro\" class=\"erro\"></p>` dentro do `<form>`; no CSS, adicione `.erro{ color:#e53935 }`.",
+        "HTML: `<p id=\"erro\" class=\"erro\"></p>` — CSS: `.erro{color:#e53935;font-size:14px}`"
+      ],
+      "xp": 25
+    },
+    {
+      "id": "web-forms-05",
+      "nivel": "forms",
+      "categoria": "conserte-back",
+      "titulo": "E-mail sem arroba passando",
+      "conceitos": [
+        "validacao",
+        "strings",
+        "formularios"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "A função `emailValido(email)` deveria aprovar só e-mails de verdade, mas hoje ela aceita **qualquer texto** — até `banana` entra. Enviar o formulário com um texto sem arroba mostra `E-mail aceito!` por engano.\n\nNo `js`, conserte o corpo de `emailValido` para que ela só devolva `true` quando o texto tiver um `@` **e** um ponto `.`. Assim:\n\n- `ana@dojo.com` → `E-mail aceito!`\n- `banana` → `E-mail inválido.`\n\nO preview atualiza ao vivo: digite e clique **Assinar**.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Cenário fixo: Farol do Correio (o conserto deste exercício é no JS) -->\n<div class=\"ceu\" aria-hidden=\"true\">\n  <i class=\"feixe\"></i><i class=\"farol\"></i><i class=\"mar\"></i><i class=\"bruma\"></i>\n</div>\n<main class=\"posto\">\n  <h1>Farol do Correio</h1>\n  <p class=\"lema\">O boletim parte a cada anoitecer. Deixe um endereço que exista de verdade.</p>\n  <form id=\"form\">\n    <input id=\"email\" type=\"text\" placeholder=\"voce@exemplo.com\">\n    <button id=\"enviar\" type=\"submit\">Assinar</button>\n  </form>\n  <p id=\"mensagem\">—</p>\n</main>",
+      "web_css": "/* Farol do Correio — anoitecer neon coral (cores locais: o iframe não vê os tokens do app) */\n*{box-sizing:border-box}\nbody{margin:0;min-height:100vh;font-family:system-ui,sans-serif;color:#f7ecd9;\n  background:linear-gradient(180deg,#12162f 0%,#33244a 42%,#8a4056 74%,#e8895a 100%);\n  display:grid;place-items:center;padding:28px 16px;overflow-x:hidden}\n/* --- céu, farol e mar (decorativos) --- */\n.ceu{position:fixed;inset:0;pointer-events:none;overflow:hidden}\n.ceu i{position:absolute}\n.farol{left:16%;bottom:16%;width:26px;height:190px;\n  background:linear-gradient(180deg,rgba(70,44,90,.95),rgba(28,22,52,.95));\n  clip-path:polygon(20% 0,80% 0,100% 100%,0 100%);\n  box-shadow:inset 1px 0 0 rgba(255,190,160,.55),inset -1px 0 0 rgba(150,100,170,.3)}\n.farol::before{content:\"\";position:absolute;left:50%;top:-10px;width:18px;height:18px;margin-left:-9px;border-radius:50%;\n  background:radial-gradient(circle,#fff4e0,#ffc9a0 55%,transparent 78%);\n  box-shadow:0 0 26px 9px rgba(255,170,130,.55);animation:pulsa 4s ease-in-out infinite}\n.farol::after{content:\"\";position:absolute;inset:-50px -70px;\n  background:radial-gradient(closest-side,rgba(255,150,120,.2),transparent 70%)}\n.feixe{left:calc(16% + 18px);bottom:calc(16% + 178px);width:300px;height:64px;transform-origin:0 60%;\n  background:linear-gradient(90deg,rgba(255,214,170,.28),transparent 85%);\n  clip-path:polygon(0 42%,100% 0,100% 100%,0 58%);animation:varre 9s ease-in-out infinite alternate}\n.mar{left:0;right:0;bottom:0;height:14%;\n  background:linear-gradient(180deg,rgba(46,28,70,.55),rgba(18,12,38,.92)),\n    repeating-linear-gradient(26.57deg,transparent 0 26px,rgba(255,170,130,.1) 26px 27px)}\n.bruma{left:0;right:0;bottom:10%;height:24%;\n  background:linear-gradient(180deg,transparent,rgba(255,214,178,.2) 50%,rgba(255,224,196,.08))}\n/* --- posto de assinatura (núcleo interativo) --- */\n.posto{position:relative;z-index:1;width:min(430px,100%);padding:20px 22px 24px;\n  background:linear-gradient(165deg,rgba(27,19,48,.93),rgba(48,26,58,.9));\n  border:1px solid rgba(255,170,140,.4);border-radius:14px;\n  box-shadow:0 24px 60px -22px rgba(10,6,26,.85),0 0 80px rgba(255,140,110,.13)}\n.posto::before{content:\"\";position:absolute;left:10%;right:10%;bottom:-26px;height:30px;border-radius:50%;\n  background:radial-gradient(closest-side,rgba(30,14,48,.5),transparent 70%);z-index:-1}\nh1{margin:0;font-size:19px;letter-spacing:.07em;text-transform:uppercase;color:#ffdfc8;\n  text-shadow:0 0 18px rgba(255,150,110,.5)}\n.lema{margin:6px 0 16px;font-size:13.5px;color:#d9c6da}\nform{display:flex;gap:10px}\ninput{flex:1;min-width:0;font-size:16px;padding:10px 12px;border-radius:9px;\n  border:1px solid rgba(255,170,140,.4);background:#fff8ec;color:#33241a}\ninput::placeholder{color:#9a8a76}\ninput:focus{outline:2px solid #ffb08c;outline-offset:2px}\nbutton{font-size:15px;font-weight:700;padding:10px 18px;border:0;border-radius:9px;cursor:pointer;\n  color:#33130a;background:linear-gradient(160deg,#ffcf9e,#f28d5c);\n  box-shadow:0 0 18px rgba(255,150,110,.4);transition:transform .12s,box-shadow .12s}\nbutton:hover{box-shadow:0 0 28px rgba(255,160,120,.6)}\nbutton:active{transform:translateY(1px)}\nbutton:focus-visible{outline:2px solid #fff4e0;outline-offset:2px}\n/* o carimbo do correio: onde o veredito acende */\n#mensagem{margin:18px 0 0;padding:11px 14px;text-align:center;font-size:16.5px;border-radius:10px;\n  border:1px solid rgba(255,190,150,.3);color:#ffe9da;text-shadow:0 0 14px rgba(255,160,120,.45);\n  background:radial-gradient(130% 150% at 50% 0,rgba(255,140,100,.14),rgba(18,12,38,.55));min-height:1.4em}\n@keyframes pulsa{0%,100%{opacity:.7}50%{opacity:1}}\n@keyframes varre{from{transform:rotate(4deg)}to{transform:rotate(12deg)}}\n@media (max-width:420px){form{flex-direction:column}}",
+      "web_js": "function emailValido(email) {\n  return email.length > 0;        // BUG: aceita qualquer texto, sem @ nem ponto\n}\nwindow.emailValido = emailValido;\n\ndocument.getElementById(\"form\").addEventListener(\"submit\", function (e) {\n  e.preventDefault();\n  var email = document.getElementById(\"email\").value;\n  if (emailValido(email)) {\n    document.getElementById(\"mensagem\").textContent = \"E-mail aceito!\";\n  } else {\n    document.getElementById(\"mensagem\").textContent = \"E-mail inválido.\";\n  }\n});",
+      "solucao_js": "function emailValido(email) {\n  return email.includes(\"@\") && email.includes(\".\");\n}\nwindow.emailValido = emailValido;\n\ndocument.getElementById(\"form\").addEventListener(\"submit\", function (e) {\n  e.preventDefault();\n  var email = document.getElementById(\"email\").value;\n  if (emailValido(email)) {\n    document.getElementById(\"mensagem\").textContent = \"E-mail aceito!\";\n  } else {\n    document.getElementById(\"mensagem\").textContent = \"E-mail inválido.\";\n  }\n});",
+      "testes_web": [
+        {
+          "nome": "e-mail completo é válido",
+          "codigo": "_verificar(win.emailValido(\"ana@dojo.com\"), true);"
+        },
+        {
+          "nome": "texto sem @ é inválido",
+          "codigo": "_verificar(win.emailValido(\"banana\"), false);"
+        },
+        {
+          "nome": "texto sem @ recusa no envio",
+          "codigo": "doc.getElementById(\"email\").value = \"banana\"; _clicar(\"#enviar\"); _verificar(_texto(\"#mensagem\"), \"E-mail inválido.\");"
+        },
+        {
+          "nome": "e-mail bom é aceito no envio",
+          "codigo": "doc.getElementById(\"email\").value = \"ok@dojo.com\"; _clicar(\"#enviar\"); _verificar(_texto(\"#mensagem\"), \"E-mail aceito!\");"
+        }
+      ],
+      "dicas": [
+        "Uma string tem o método `.includes(\"texto\")`, que devolve `true` se aquele pedaço existe dentro dela.",
+        "Você precisa de duas condições ligadas por `&&`: uma checando `@` e outra checando `.`.",
+        "`return email.includes(\"@\") && email.includes(\".\");`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-forms-06",
+      "nivel": "forms",
+      "categoria": "ligue",
+      "titulo": "Só libera quem aceita os termos",
+      "conceitos": [
+        "eventos",
+        "formularios",
+        "estado"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "O botão `#enviar` começa desabilitado (atributo `disabled` no HTML) e a função `podeEnviar(aceito)` já existe. Falta **ligar** o checkbox `#termos` a essa lógica.\n\nNo `js`, escute o evento `change` do `#termos`. A cada mudança, calcule `ok = podeEnviar(termos.checked)` e então:\n\n- o botão `#enviar` recebe `disabled = !ok` (marcar liga o botão, desmarcar desliga)\n- `#status` recebe `Pronto para enviar` quando `ok`, ou `Marque os termos` quando não.\n\nO preview atualiza ao vivo: marque e desmarque a caixa e veja o botão acender.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Cenário fixo: Cancela do Viaduto (o trabalho deste exercício é no JS) -->\n<div class=\"ceu\" aria-hidden=\"true\">\n  <i class=\"sol\"></i>\n  <i class=\"torre t1\"></i><i class=\"torre t2\"></i><i class=\"cancela\"></i>\n  <i class=\"bruma\"></i>\n</div>\n<main class=\"posto\">\n  <h1>Cancela do Viaduto</h1>\n  <p class=\"lema\">A travessia só abre para quem carimba o aceite. A alavanca começa apagada.</p>\n  <label><input id=\"termos\" type=\"checkbox\"> Li e aceito os termos de uso</label>\n  <div><button id=\"enviar\" disabled>Continuar</button></div>\n  <p id=\"status\">—</p>\n</main>",
+      "web_css": "/* Cancela do Viaduto — anoitecer neon violeta (cores locais: o iframe não vê os tokens do app) */\n*{box-sizing:border-box}\nbody{margin:0;min-height:100vh;font-family:system-ui,sans-serif;color:#f4ecfa;\n  background:linear-gradient(180deg,#141230 0%,#332352 46%,#6e3560 74%,#d97a58 100%);\n  display:grid;place-items:center;padding:28px 16px;overflow-x:hidden}\n.ceu{position:fixed;inset:0;pointer-events:none;overflow:hidden}\n.ceu i{position:absolute}\n.sol{right:14%;bottom:22%;width:100px;height:100px;border-radius:50%;\n  background:radial-gradient(circle,#fff4e0,#ffd0a6 40%,rgba(255,170,130,.3) 62%,transparent 75%);\n  animation:respira 8s ease-in-out infinite}\n/* torres do viaduto + cancela abaixada no eixo 2:1 (-26.57°) */\n.torre{bottom:16%;width:24px;height:170px;\n  background:linear-gradient(180deg,rgba(72,44,104,.95),rgba(28,20,52,.95));\n  box-shadow:inset 1px 0 0 rgba(226,170,255,.55),inset -1px 0 0 rgba(130,90,170,.3)}\n.t1{left:14%;clip-path:polygon(0 5%,100% 0,100% 100%,0 100%)}\n.t2{left:calc(14% + 150px);clip-path:polygon(0 0,100% 5%,100% 100%,0 100%)}\n.torre::after{content:\"\";position:absolute;inset:-34px -56px;\n  background:radial-gradient(closest-side,rgba(210,140,255,.22),transparent 70%)}\n.cancela{left:calc(14% + 12px);bottom:calc(16% + 118px);width:150px;height:7px;border-radius:4px;\n  transform:rotate(-26.57deg);transform-origin:0 50%;\n  background:linear-gradient(90deg,#ffd9a0,#e08bff);\n  box-shadow:0 0 18px rgba(220,150,255,.55);animation:respira 5s ease-in-out infinite}\n.bruma{left:0;right:0;bottom:8%;height:24%;\n  background:linear-gradient(180deg,transparent,rgba(240,214,255,.16) 50%,rgba(255,228,210,.08))}\n/* --- posto da cancela (núcleo interativo) --- */\n.posto{position:relative;z-index:1;width:min(420px,100%);padding:20px 22px 24px;\n  background:linear-gradient(165deg,rgba(26,18,48,.93),rgba(46,26,66,.9));\n  border:1px solid rgba(216,160,255,.38);border-radius:14px;\n  box-shadow:0 24px 60px -22px rgba(10,6,26,.85),0 0 80px rgba(190,120,255,.13)}\n.posto::before{content:\"\";position:absolute;left:10%;right:10%;bottom:-26px;height:30px;border-radius:50%;\n  background:radial-gradient(closest-side,rgba(28,14,48,.5),transparent 70%);z-index:-1}\nh1{margin:0;font-size:19px;letter-spacing:.07em;text-transform:uppercase;color:#f0dcff;\n  text-shadow:0 0 18px rgba(210,140,255,.5)}\n.lema{margin:6px 0 16px;font-size:13.5px;color:#cfc0e6}\nlabel{display:flex;align-items:center;gap:9px;margin-bottom:14px;font-size:15px;color:#eee2f8;cursor:pointer}\ninput[type=checkbox]{width:18px;height:18px;accent-color:#c77dff;cursor:pointer}\ninput[type=checkbox]:focus-visible{outline:2px solid #e3b8ff;outline-offset:2px}\n/* a alavanca: acesa e pulsando quando habilitada, apagada quando disabled */\nbutton{font-size:15px;font-weight:700;padding:11px 22px;border:0;border-radius:9px;cursor:pointer;\n  color:#26103a;background:linear-gradient(160deg,#f0cdff,#b76ce8);\n  box-shadow:0 0 24px rgba(200,120,255,.5);transition:transform .12s;\n  animation:acesa 2.8s ease-in-out infinite}\nbutton:active{transform:translateY(1px)}\nbutton:focus-visible{outline:2px solid #f4e6ff;outline-offset:2px}\nbutton:disabled{background:#37304e;color:#a49bbd;box-shadow:none;cursor:not-allowed;animation:none}\n#status{margin:16px 0 0;padding:10px 14px;text-align:center;font-size:16px;border-radius:10px;\n  border:1px solid rgba(216,170,255,.28);color:#f2e6ff;text-shadow:0 0 12px rgba(200,140,255,.45);\n  background:radial-gradient(130% 150% at 50% 0,rgba(190,120,255,.14),rgba(16,10,36,.55));min-height:1.35em}\n@keyframes respira{0%,100%{opacity:.72}50%{opacity:1}}\n@keyframes acesa{0%,100%{box-shadow:0 0 18px rgba(200,120,255,.4)}50%{box-shadow:0 0 32px rgba(210,140,255,.65)}}\n@media (max-width:460px){.torre,.cancela{display:none}}",
+      "web_js": "function podeEnviar(aceito) {\n  return aceito === true;\n}\n\n// Ligue o checkbox #termos: escute \"change\", calcule ok = podeEnviar(termos.checked),\n// faça #enviar.disabled = !ok e escreva em #status \"Pronto para enviar\" ou \"Marque os termos\".\n",
+      "solucao_js": "function podeEnviar(aceito) {\n  return aceito === true;\n}\n\nvar termos = document.getElementById(\"termos\");\ntermos.addEventListener(\"change\", function () {\n  var ok = podeEnviar(termos.checked);\n  document.getElementById(\"enviar\").disabled = !ok;\n  document.getElementById(\"status\").textContent = ok ? \"Pronto para enviar\" : \"Marque os termos\";\n});",
+      "testes_web": [
+        {
+          "nome": "começa desabilitado",
+          "codigo": "_verificar(doc.getElementById(\"enviar\").disabled, true);"
+        },
+        {
+          "nome": "marcar habilita o botão",
+          "codigo": "_clicar(\"#termos\"); _verificar(doc.getElementById(\"enviar\").disabled, false);"
+        },
+        {
+          "nome": "marcar atualiza o status",
+          "codigo": "_clicar(\"#termos\"); _verificar(_texto(\"#status\"), \"Pronto para enviar\");"
+        },
+        {
+          "nome": "desmarcar volta a desabilitar",
+          "codigo": "_clicar(\"#termos\"); _clicar(\"#termos\"); _verificar(_texto(\"#status\"), \"Marque os termos\");"
+        }
+      ],
+      "dicas": [
+        "O evento certo para checkbox é `\"change\"`. Dentro dele, leia `termos.checked` (true/false).",
+        "Guarde `var ok = podeEnviar(termos.checked)` e use `ok` para dois lados: `enviar.disabled = !ok` (a propriedade `disabled` do botão) e o texto de `#status`.",
+        "`var termos=document.getElementById(\"termos\"); termos.addEventListener(\"change\", function(){ var ok=podeEnviar(termos.checked); document.getElementById(\"enviar\").disabled=!ok; document.getElementById(\"status\").textContent = ok ? \"Pronto para enviar\" : \"Marque os termos\"; });"
+      ],
+      "xp": 25
+    },
+    {
+      "id": "web-ui-01",
+      "nivel": "ui",
+      "categoria": "conserte-back",
+      "titulo": "O modal que não fecha",
+      "conceitos": [
+        "dom",
+        "eventos",
+        "estado"
+      ],
+      "explicacao_md": "Componentes interativos (modais, abas, menus) guardam um **estado**: aberto ou fechado, ativo ou inativo. No navegador, o jeito mais comum de representar esse estado é uma **classe CSS** no elemento. O JavaScript adiciona ou remove a classe, e o CSS decide como cada estado aparece.\n\n```js\nvar painel = document.getElementById(\"painel\");\n// mostrar:\npainel.classList.remove(\"oculto\");\n// esconder:\npainel.classList.add(\"oculto\");\n// alternar (liga/desliga):\npainel.classList.toggle(\"oculto\");\n```\n\nCom `.oculto { display: none }` no CSS, adicionar a classe esconde e removê-la mostra. Abrir e fechar viram só duas operações sobre a mesma classe. O preview à direita atualiza ao vivo — clique e veja o estado mudar.",
+      "enunciado_md": "Este modal abre ao clicar em **Abrir**, mas o botão **Fechar** não fecha nada — o modal continua aberto.\n\nNo `js`, o handler do `#fechar` está usando a operação errada sobre a classe `oculto`. Conserte-o para que clicar em `#fechar` **esconda** o `#modal` de novo (a classe `.oculto` tem `display:none`).\n\nClique no preview para testar; ele atualiza ao vivo.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Bilheteria do Teatro Bruma: a compra do ingresso acontece sob o holofote -->\n<div class=\"noite\">\n  <div class=\"letreiro\" aria-hidden=\"true\">TEATRO BRUMA</div>\n  <div class=\"palco\">\n    <div class=\"holofote\" aria-hidden=\"true\"></div>\n    <button id=\"abrir\" class=\"btn\">Abrir</button>\n  </div>\n  <p class=\"legenda\">A bilheteria só descansa quando o ingresso sai do holofote.</p>\n</div>\n<div id=\"modal\" class=\"modal oculto\" role=\"dialog\" aria-label=\"Confirmação de compra\">\n  <div class=\"ingresso\">\n    <p>Confirma a compra?</p>\n    <p class=\"detalhe\">1 ingresso — fileira C, poltrona 7</p>\n    <span class=\"corte\" aria-hidden=\"true\"></span>\n    <button id=\"fechar\" class=\"btn\">Fechar</button>\n  </div>\n</div>",
+      "web_css": "/* Cena: bilheteria de teatro sob o anoitecer neon (distrito violeta) */\nbody{margin:0;min-height:100vh;font-family:\"Segoe UI\",system-ui,sans-serif;color:#f0ecff;background:linear-gradient(180deg,#110f2a 0%,#241a3d 55%,#45284f 82%,#6e3f58 100%)}\n.noite{max-width:430px;margin:0 auto;padding:24px 16px 30px;text-align:center}\n.letreiro{display:inline-block;padding:8px 20px;font-size:13px;font-weight:700;letter-spacing:.35em;color:#fff4e0;border:1px solid rgba(255,214,170,.45);border-radius:999px;background:radial-gradient(closest-side,rgba(255,196,120,.16),rgba(255,196,120,0));text-shadow:0 0 14px rgba(255,196,120,.75);box-shadow:0 0 26px rgba(255,170,120,.22),inset 0 0 12px rgba(255,214,170,.10)}\n.palco{position:relative;margin-top:18px;padding:70px 14px 30px;border-radius:16px;border:1px solid rgba(169,155,230,.30);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,.30));overflow:hidden}\n/* ribalta: sombra eliptica tintada, nunca preto chapado */\n.palco::after{content:\"\";position:absolute;left:10%;right:10%;bottom:8px;height:14px;border-radius:50%;background:radial-gradient(closest-side,rgba(169,155,230,.35),rgba(169,155,230,0))}\n.holofote{position:absolute;left:50%;top:-30px;width:340px;height:300px;transform:translateX(-50%);pointer-events:none;background:radial-gradient(55% 70% at 50% 0%,rgba(255,236,200,.30),rgba(255,236,200,.10) 45%,rgba(255,236,200,0) 72%);animation:respirar 5s ease-in-out infinite}\n@keyframes respirar{0%,100%{opacity:.8}50%{opacity:1}}\n.btn{font-size:16px;padding:10px 22px;border:1px solid rgba(255,244,224,.5);border-radius:10px;cursor:pointer;color:#241a3d;background:linear-gradient(180deg,#e8ddff,#a99be6);box-shadow:0 0 18px rgba(169,155,230,.45),0 4px 10px rgba(0,0,0,.35)}\n.btn:hover{box-shadow:0 0 26px rgba(199,180,255,.7),0 4px 10px rgba(0,0,0,.35)}\n.btn:active{transform:translateY(1px)}\n.btn:focus-visible{outline:2px solid #ffd9a0;outline-offset:3px}\n.legenda{margin-top:14px;font-size:13px;color:#b7a8d8}\n/* o modal cobre o palco como cortina de bruma */\n.modal{position:fixed;inset:0;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,rgba(36,26,61,.55),rgba(9,7,22,.85))}\n.oculto{display:none!important}\n.modal:not(.oculto) .ingresso{animation:subir .3s ease-out}\n@keyframes subir{from{opacity:0;transform:translateY(14px) scale(.97)}}\n.ingresso{position:relative;max-width:280px;padding:26px 22px 18px;border-radius:14px;text-align:center;color:#2b2140;background:linear-gradient(165deg,#fff8ec,#f2eefc 60%,#e6dcff);border:1px solid rgba(255,214,170,.85);box-shadow:0 0 0 1px rgba(169,155,230,.35),0 0 46px rgba(255,196,140,.35),0 18px 40px rgba(0,0,0,.45)}\n.ingresso::before{content:\"ADMITE UM\";position:absolute;top:9px;left:0;right:0;font-size:10px;letter-spacing:.4em;color:#7c5a9e}\n.ingresso p{margin:12px 0 4px;font-size:17px;font-weight:600}\n.ingresso .detalhe{margin:0 0 4px;font-size:13px;font-weight:400;color:#5f4e7c}\n/* picote do ingresso */\n.corte{display:block;margin:12px -22px;border-top:1px dashed #b9a8e0}",
+      "web_js": "var modal = document.getElementById(\"modal\");\ndocument.getElementById(\"abrir\").addEventListener(\"click\", function () {\n  modal.classList.remove(\"oculto\");\n});\ndocument.getElementById(\"fechar\").addEventListener(\"click\", function () {\n  modal.classList.remove(\"oculto\");   // BUG: deveria esconder o modal\n});",
+      "solucao_js": "var modal = document.getElementById(\"modal\");\ndocument.getElementById(\"abrir\").addEventListener(\"click\", function () {\n  modal.classList.remove(\"oculto\");\n});\ndocument.getElementById(\"fechar\").addEventListener(\"click\", function () {\n  modal.classList.add(\"oculto\");\n});",
+      "testes_web": [
+        {
+          "nome": "o modal começa fechado",
+          "codigo": "_verificar(win.getComputedStyle(doc.querySelector(\"#modal\")).display, \"none\");"
+        },
+        {
+          "nome": "abrir mostra o modal",
+          "codigo": "_clicar(\"#abrir\"); _verificar(win.getComputedStyle(doc.querySelector(\"#modal\")).display !== \"none\", true);"
+        },
+        {
+          "nome": "fechar esconde o modal de novo",
+          "codigo": "_clicar(\"#abrir\"); _clicar(\"#fechar\"); _verificar(win.getComputedStyle(doc.querySelector(\"#modal\")).display, \"none\");"
+        }
+      ],
+      "dicas": [
+        "Abrir e fechar são duas operações sobre a mesma classe: uma remove `oculto`, a outra devolve `oculto`. O botão fechar está fazendo a operação errada.",
+        "No handler do `#fechar`, troque `classList.remove(\"oculto\")` por `classList.add(\"oculto\")` para esconder o modal de novo.",
+        "`document.getElementById(\"fechar\").addEventListener(\"click\", function(){ modal.classList.add(\"oculto\"); });`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-ui-02",
+      "nivel": "ui",
+      "categoria": "ligue",
+      "titulo": "Ligue as abas",
+      "conceitos": [
+        "dom",
+        "eventos",
+        "estado"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "As abas **Resumo**, **Detalhes** e **Avaliações** existem, e a função `mostrarAba(alvo)` (já pronta) troca o painel ativo. Mas clicar nas abas não faz nada.\n\nNo `js`, ligue o clique de cada botão `.aba`: no clique, chame `mostrarAba(a.dataset.alvo)`. Cada aba guarda o alvo em `data-alvo` (por exemplo `p2`).\n\nClique nas abas no preview — ele atualiza ao vivo.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Vitrine 12 do Distrito Dourado: o totem do produto com três abas no visor -->\n<div class=\"totem\">\n  <div class=\"topo\"><span class=\"lampada\" aria-hidden=\"true\"></span>Vitrine 12 — Sintetizador de Bruma</div>\n  <div class=\"abas\">\n    <button class=\"aba ativa\" data-alvo=\"p1\">Resumo</button>\n    <button class=\"aba\" data-alvo=\"p2\">Detalhes</button>\n    <button class=\"aba\" data-alvo=\"p3\">Avaliações</button>\n  </div>\n  <div id=\"p1\" class=\"painel ativo\">Visão geral do produto: gera a névoa dourada que envolve as vitrines e os palcos da cidade.</div>\n  <div id=\"p2\" class=\"painel\">Ficha técnica completa: 220 V, 3 kg, alcance de 12 m de bruma contínua.</div>\n  <div id=\"p3\" class=\"painel\">O que os clientes acharam: “a vitrine nunca mais foi a mesma”, conta Lia, do Empório Coral.</div>\n</div>\n<div class=\"pe\" aria-hidden=\"true\"></div>",
+      "web_css": "/* Cena: totem de vitrine no Distrito Dourado (anoitecer ambar) */\nbody{margin:0;min-height:100vh;font-family:\"Segoe UI\",system-ui,sans-serif;color:#f6eddc;background:linear-gradient(180deg,#191330 0%,#2c1e42 50%,#5c3a3c 85%,#96603e 100%)}\n.totem{max-width:430px;margin:26px auto 0;padding:14px 14px 16px;border-radius:18px;border:1px solid rgba(255,196,120,.35);background:linear-gradient(180deg,#241a3d,#181330);box-shadow:0 0 40px rgba(255,170,80,.16),0 18px 40px rgba(0,0,0,.4)}\n.topo{display:flex;align-items:center;gap:8px;padding:2px 4px 12px;font-size:12px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:#ffd9a0;text-shadow:0 0 10px rgba(255,196,120,.55)}\n.lampada{width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff4e0,#ffb35c 60%,rgba(255,179,92,0) 78%);box-shadow:0 0 12px rgba(255,179,92,.9);animation:piscar 3.4s infinite}\n@keyframes piscar{0%,90%,100%{opacity:1}95%{opacity:.4}}\n.abas{display:flex;gap:6px;margin-bottom:10px}\n.aba{flex:1;font-size:15px;padding:9px 8px;border:1px solid rgba(255,214,170,.18);border-radius:10px 10px 4px 4px;cursor:pointer;color:#dccfb8;background:linear-gradient(180deg,rgba(255,244,224,.08),rgba(255,244,224,.02))}\n.aba:hover{color:#fff4e0;border-color:rgba(255,214,170,.4)}\n.aba:focus-visible{outline:2px solid #ffd9a0;outline-offset:2px}\n.aba.ativa{color:#2b1a10;font-weight:600;border-color:rgba(255,244,224,.7);background:linear-gradient(180deg,#ffe9c4,#f0b35e);box-shadow:0 0 18px rgba(255,179,92,.5),0 0 40px rgba(255,179,92,.18)}\n/* o teste compara o display com \"block\": manter exatamente none/block */\n.painel{display:none;min-height:76px;padding:14px;font-size:15px;line-height:1.55;border:1px solid rgba(255,214,170,.22);border-radius:10px;color:#f6eddc;background:radial-gradient(120% 90% at 50% 0%,rgba(255,196,120,.10),rgba(255,196,120,0) 60%)}\n.painel.ativo{display:block;animation:acender .25s ease-out}\n@keyframes acender{from{opacity:0;transform:translateY(4px)}}\n/* sombra tintada do totem, nunca preto chapado */\n.pe{width:190px;height:16px;margin:2px auto 26px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,150,70,.30),rgba(255,150,70,0))}",
+      "web_js": "var abas = document.querySelectorAll(\".aba\");\nvar paineis = document.querySelectorAll(\".painel\");\n\nfunction mostrarAba(alvo) {\n  paineis.forEach(function (p) {\n    p.classList.toggle(\"ativo\", p.id === alvo);\n  });\n  abas.forEach(function (a) {\n    a.classList.toggle(\"ativa\", a.dataset.alvo === alvo);\n  });\n}\n\n// Ligue cada botão .aba: no clique, chame mostrarAba(a.dataset.alvo).\n",
+      "solucao_js": "var abas = document.querySelectorAll(\".aba\");\nvar paineis = document.querySelectorAll(\".painel\");\n\nfunction mostrarAba(alvo) {\n  paineis.forEach(function (p) {\n    p.classList.toggle(\"ativo\", p.id === alvo);\n  });\n  abas.forEach(function (a) {\n    a.classList.toggle(\"ativa\", a.dataset.alvo === alvo);\n  });\n}\n\nabas.forEach(function (a) {\n  a.addEventListener(\"click\", function () {\n    mostrarAba(a.dataset.alvo);\n  });\n});",
+      "testes_web": [
+        {
+          "nome": "clicar em Detalhes troca o painel",
+          "codigo": "_clicar('.aba[data-alvo=\"p2\"]'); _verificar(win.getComputedStyle(doc.querySelector(\"#p2\")).display, \"block\"); _verificar(win.getComputedStyle(doc.querySelector(\"#p1\")).display, \"none\");"
+        },
+        {
+          "nome": "clicar em Avaliações ativa o 3º painel",
+          "codigo": "_clicar('.aba[data-alvo=\"p3\"]'); _verificar(doc.querySelector(\"#p3\").classList.contains(\"ativo\"), true);"
+        },
+        {
+          "nome": "a aba clicada fica destacada",
+          "codigo": "_clicar('.aba[data-alvo=\"p2\"]'); _verificar(doc.querySelector('.aba[data-alvo=\"p2\"]').classList.contains(\"ativa\"), true); _verificar(doc.querySelector('.aba[data-alvo=\"p1\"]').classList.contains(\"ativa\"), false);"
+        }
+      ],
+      "dicas": [
+        "A função `mostrarAba` já troca o painel; falta chamá-la quando cada aba é clicada. Você precisa de um `addEventListener(\"click\", ...)` em cada `.aba`.",
+        "Percorra `abas` com `forEach` e, para cada `a`, adicione um clique que chama `mostrarAba(a.dataset.alvo)`.",
+        "`abas.forEach(function(a){ a.addEventListener(\"click\", function(){ mostrarAba(a.dataset.alvo); }); });`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-ui-03",
+      "nivel": "ui",
+      "categoria": "conserte-front",
+      "titulo": "O acordeão emperrado",
+      "conceitos": [
+        "css",
+        "estado"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "Este acordeão de perguntas frequentes está com **todas as respostas abertas** ao mesmo tempo. O JavaScript (fixo) já liga/desliga a classe `aberto` no `.item` a cada clique no cabeçalho — falta o CSS respeitar esse estado.\n\nNo `css`, faça `.conteudo` começar escondido (`display:none`) e aparecer só quando o item estiver aberto, com a regra `.item.aberto .conteudo`.\n\nClique nos cabeçalhos no preview; ele atualiza ao vivo.",
+      "editaveis": [
+        "css"
+      ],
+      "web_html": "<!-- Saguão do Dojo ao entardecer: o quadro de dúvidas dos visitantes -->\n<div style=\"max-width:430px;margin:18px auto;padding:20px 18px 16px;border-radius:18px;font-family:'Segoe UI',system-ui,sans-serif;color:#3a2b20;background:linear-gradient(175deg,#fff7ea 0%,#ffe9d2 60%,#ffd9b8 100%);border:1px solid #f3c98f;box-shadow:0 0 0 4px rgba(255,214,170,.25),0 14px 34px rgba(122,68,40,.18)\">\n  <div style=\"display:flex;align-items:center;gap:10px\">\n    <span aria-hidden=\"true\" style=\"width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff4e0,#ffb35c 55%,rgba(255,179,92,0) 78%);box-shadow:0 0 18px rgba(255,179,92,.75)\"></span>\n    <h2 style=\"margin:0;font-size:19px\">Perguntas frequentes</h2>\n  </div>\n  <p style=\"margin:6px 0 14px;font-size:13px;color:#7a5a3c\">Quadro do saguão — toque numa pergunta para abrir só a resposta dela.</p>\n  <div class=\"item\">\n    <div class=\"cabeca\" id=\"c1\">Como funciona o Dojo?</div>\n    <div class=\"conteudo\" id=\"t1\">Você resolve exercícios e ganha XP.</div>\n  </div>\n  <div class=\"item\">\n    <div class=\"cabeca\" id=\"c2\">Preciso instalar algo?</div>\n    <div class=\"conteudo\" id=\"t2\">Não, roda tudo no navegador.</div>\n  </div>\n  <div class=\"item\">\n    <div class=\"cabeca\" id=\"c3\">Posso errar sem medo?</div>\n    <div class=\"conteudo\" id=\"t3\">Pode: cada tentativa acende uma dica nova.</div>\n  </div>\n  <p style=\"margin:12px 0 0;font-size:12px;color:#7c5638;text-align:center\">O quadro guarda cada resposta fechada até alguém perguntar.</p>\n</div>",
+      "web_css": ".item{border:1px solid #e5e0f0;border-radius:10px;margin-bottom:8px;overflow:hidden}\n.cabeca{padding:12px;cursor:pointer;font-weight:600;background:#f7f4fe}\n.conteudo{padding:10px 12px;display:block}   /* BUG: sempre visível */",
+      "web_js": "document.querySelectorAll(\".item .cabeca\").forEach(function (c) {\n  c.addEventListener(\"click\", function () {\n    c.parentElement.classList.toggle(\"aberto\");\n  });\n});",
+      "solucao_css": ".item{border:1px solid #e5e0f0;border-radius:10px;margin-bottom:8px;overflow:hidden}\n.cabeca{padding:12px;cursor:pointer;font-weight:600;background:#f7f4fe}\n.conteudo{padding:10px 12px;display:none}\n.item.aberto .conteudo{display:block}",
+      "testes_web": [
+        {
+          "nome": "as respostas começam escondidas",
+          "codigo": "_verificar(win.getComputedStyle(doc.querySelector(\"#t1\")).display, \"none\");"
+        },
+        {
+          "nome": "clicar no cabeçalho abre a resposta",
+          "codigo": "_clicar(\"#c1\"); _verificar(win.getComputedStyle(doc.querySelector(\"#t1\")).display, \"block\");"
+        },
+        {
+          "nome": "abrir a 1ª pergunta não abre a 2ª",
+          "codigo": "_clicar(\"#c1\"); _verificar(win.getComputedStyle(doc.querySelector(\"#t2\")).display, \"none\");"
+        }
+      ],
+      "dicas": [
+        "O conteúdo de cada item deveria ficar escondido por padrão e só aparecer quando o item tem a classe `aberto` (que o JS liga/desliga no clique).",
+        "No CSS, mude `.conteudo` para `display:none` e crie a regra `.item.aberto .conteudo{ display:block }`.",
+        "`.conteudo{display:none} .item.aberto .conteudo{display:block}`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-ui-04",
+      "nivel": "ui",
+      "categoria": "construa-front",
+      "titulo": "Monte o botão de tema",
+      "conceitos": [
+        "html",
+        "css",
+        "estado"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "O JavaScript (fixo) alterna a classe `escuro` no `<body>` sempre que um botão `#tema` é clicado — mas o botão não existe e o tema escuro não tem visual.\n\nMonte no `html` o `<button id=\"tema\">` e, no `css`, defina `body.escuro` com fundo escuro e texto claro. Assim o botão passa a alternar entre claro e escuro.\n\nClique no botão no preview, que atualiza ao vivo.",
+      "editaveis": [
+        "html",
+        "css"
+      ],
+      "web_html": "<h2>Painel</h2>\n<p>Alterne o visual entre claro e escuro.</p>\n<!-- adicione aqui: <button id=\"tema\">Trocar tema</button> -->",
+      "web_css": "/* defina o tema escuro: body.escuro com fundo escuro e texto claro */\n",
+      "web_js": "window.addEventListener(\"DOMContentLoaded\", function () {\n  var btn = document.getElementById(\"tema\");\n  if (!btn) return;\n  btn.addEventListener(\"click\", function () {\n    document.body.classList.toggle(\"escuro\");\n  });\n});",
+      "solucao_html": "<h2>Painel</h2>\n<p>Alterne o visual entre claro e escuro.</p>\n<button id=\"tema\">Trocar tema</button>",
+      "solucao_css": "body.escuro{background:#241a3d;color:#f0ecff}",
+      "testes_web": [
+        {
+          "nome": "existe o botão #tema",
+          "codigo": "_verificar(!!doc.querySelector(\"#tema\"), true);"
+        },
+        {
+          "nome": "clicar liga a classe escuro no body",
+          "codigo": "_clicar(\"#tema\"); _verificar(doc.body.classList.contains(\"escuro\"), true);"
+        },
+        {
+          "nome": "o tema escuro muda o fundo",
+          "codigo": "var antes = win.getComputedStyle(doc.body).backgroundColor; _clicar(\"#tema\"); var depois = win.getComputedStyle(doc.body).backgroundColor; _verificar(antes !== depois, true);"
+        }
+      ],
+      "dicas": [
+        "O JS já alterna a classe `escuro` no `body` quando `#tema` é clicado. Falta o botão existir e o CSS dizer como fica o `body.escuro`.",
+        "No HTML, adicione `<button id=\"tema\">Trocar tema</button>`. No CSS, crie `body.escuro{ background:...; color:... }` com cores escuras.",
+        "HTML: `<button id=\"tema\">Trocar tema</button>` — CSS: `body.escuro{background:#241a3d;color:#f0ecff}`"
+      ],
+      "xp": 25
+    },
+    {
+      "id": "web-ui-05",
+      "nivel": "ui",
+      "categoria": "conserte-back",
+      "titulo": "O carrinho que não soma",
+      "conceitos": [
+        "dom",
+        "eventos",
+        "estado"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "Neste carrinho cada unidade custa **R$ 30**. O botão **+** soma certo, mas o **-** está **aumentando** a quantidade em vez de diminuir — e a quantidade não pode ficar negativa.\n\nNo `js`, conserte o handler do `#menos` para diminuir `qtd` em 1 (nunca abaixo de 0) e chamar `atualizar()`. A função `atualizar()` já recalcula `#qtd` e `#total`.\n\nO preview atualiza ao vivo — clique nos botões.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Balcão do Empório Coral: lanternas de bruma a R$ 30 a unidade -->\n<div class=\"loja\">\n  <h2 class=\"letreiro\">Carrinho — Empório Coral</h2>\n  <div class=\"balcao\">\n    <div class=\"produto\">\n      <span class=\"lanterna\" aria-hidden=\"true\"></span>\n      <div class=\"info\">\n        <strong>Lanterna de bruma</strong>\n        <span class=\"preco\">R$ 30 a unidade</span>\n      </div>\n    </div>\n    <div class=\"contador\">\n      <button id=\"menos\" class=\"btn\" aria-label=\"Tirar uma unidade\">-</button>\n      <strong id=\"qtd\">0</strong>\n      <button id=\"mais\" class=\"btn\" aria-label=\"Somar uma unidade\">+</button>\n    </div>\n    <p class=\"cupom\">Total: <strong id=\"total\">R$ 0</strong></p>\n  </div>\n  <div class=\"sombra\" aria-hidden=\"true\"></div>\n</div>",
+      "web_css": "/* Cena: balcão do Empório Coral (distrito coral, anoitecer) */\nbody{margin:0;min-height:100vh;font-family:\"Segoe UI\",system-ui,sans-serif;color:#ffe9dc;background:linear-gradient(180deg,#221331 0%,#45213e 45%,#83394a 80%,#c25f4a 100%)}\n.loja{max-width:400px;margin:22px auto;padding:0 14px;text-align:center}\n.letreiro{margin:0 0 14px;font-size:20px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#ffe3d4;text-shadow:0 0 16px rgba(255,120,90,.8),0 0 40px rgba(255,120,90,.35)}\n.balcao{padding:16px;border-radius:16px;border:1px solid rgba(255,150,110,.35);background:linear-gradient(180deg,rgba(255,244,224,.06),rgba(10,4,14,.30));box-shadow:0 0 34px rgba(255,110,80,.16)}\n.produto{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;text-align:left;border:1px solid rgba(255,214,170,.18);background:rgba(255,244,224,.05)}\n/* a lanterna: nucleo quase branco quente com halo coral difuso */\n.lanterna{flex:none;width:34px;height:44px;border-radius:8px 8px 11px 11px;border:1px solid rgba(255,228,190,.6);background:radial-gradient(circle at 50% 42%,#fff4e0 0 5px,rgba(255,179,92,.85) 45%,rgba(96,38,40,.95) 78%);box-shadow:0 0 22px rgba(255,170,110,.6);animation:brilhar 4s ease-in-out infinite}\n@keyframes brilhar{50%{box-shadow:0 0 30px rgba(255,190,130,.85)}}\n.info strong{display:block;font-size:16px;color:#fff1e6}\n.preco{font-size:13px;color:#ffc0a6}\n.contador{display:flex;align-items:center;justify-content:center;gap:14px;margin:16px 0 4px}\n/* teclas mecanicas: sombra de curso embaixo, afundam no clique */\n.btn{width:46px;height:46px;font-size:20px;border:1px solid rgba(255,214,170,.5);border-radius:12px;cursor:pointer;color:#3a1626;background:linear-gradient(180deg,#ffd9c4,#ff9a70);box-shadow:0 0 16px rgba(255,140,100,.45),0 4px 0 rgba(80,22,32,.7)}\n.btn:hover{background:linear-gradient(180deg,#ffe4d4,#ffab84)}\n.btn:active{transform:translateY(3px);box-shadow:0 0 16px rgba(255,140,100,.45),0 1px 0 rgba(80,22,32,.7)}\n.btn:focus-visible{outline:2px solid #ffe9c4;outline-offset:3px}\n/* visor do balcão */\n#qtd{display:inline-block;min-width:58px;padding:9px 6px;font-size:24px;border-radius:10px;color:#fff4e0;border:1px solid rgba(255,150,110,.4);background:rgba(18,6,16,.55);text-shadow:0 0 10px rgba(255,170,120,.7)}\n/* cupom fiscal */\n.cupom{max-width:230px;margin:16px auto 0;padding:10px 12px;font-size:17px;color:#4a2018;border-radius:4px 4px 12px 12px;background:linear-gradient(180deg,#fff7ea,#ffe9d2);box-shadow:0 6px 18px rgba(60,15,25,.35)}\n.cupom #total{color:#8a2432}\n/* sombra eliptica tintada sob o balcão */\n.sombra{width:230px;height:18px;margin:10px auto 0;border-radius:50%;background:radial-gradient(closest-side,rgba(255,120,80,.30),rgba(255,120,80,0))}",
+      "web_js": "var preco = 30;\nvar qtd = 0;\n\nfunction atualizar() {\n  document.getElementById(\"qtd\").textContent = qtd;\n  document.getElementById(\"total\").textContent = \"R$ \" + qtd * preco;\n}\n\ndocument.getElementById(\"mais\").addEventListener(\"click\", function () {\n  qtd = qtd + 1;\n  atualizar();\n});\ndocument.getElementById(\"menos\").addEventListener(\"click\", function () {\n  qtd = qtd + 1;   // BUG: deveria diminuir e nunca descer abaixo de 0\n  atualizar();\n});\n\natualizar();",
+      "solucao_js": "var preco = 30;\nvar qtd = 0;\n\nfunction atualizar() {\n  document.getElementById(\"qtd\").textContent = qtd;\n  document.getElementById(\"total\").textContent = \"R$ \" + qtd * preco;\n}\n\ndocument.getElementById(\"mais\").addEventListener(\"click\", function () {\n  qtd = qtd + 1;\n  atualizar();\n});\ndocument.getElementById(\"menos\").addEventListener(\"click\", function () {\n  if (qtd > 0) qtd = qtd - 1;\n  atualizar();\n});\n\natualizar();",
+      "testes_web": [
+        {
+          "nome": "três cliques no + somam 3 (R$ 90)",
+          "codigo": "_clicar(\"#mais\"); _clicar(\"#mais\"); _clicar(\"#mais\"); _verificar(_texto(\"#qtd\"), \"3\"); _verificar(_texto(\"#total\"), \"R$ 90\");"
+        },
+        {
+          "nome": "somar duas e tirar uma dá 1 (R$ 30)",
+          "codigo": "_clicar(\"#mais\"); _clicar(\"#mais\"); _clicar(\"#menos\"); _verificar(_texto(\"#qtd\"), \"1\"); _verificar(_texto(\"#total\"), \"R$ 30\");"
+        },
+        {
+          "nome": "o - não desce abaixo de zero",
+          "codigo": "_clicar(\"#menos\"); _verificar(_texto(\"#qtd\"), \"0\"); _verificar(_texto(\"#total\"), \"R$ 0\");"
+        }
+      ],
+      "dicas": [
+        "O botão `-` deveria diminuir a quantidade (e nunca deixá-la negativa), não aumentar. Repare no que o handler do `#menos` faz hoje.",
+        "No handler do `#menos`, use `if (qtd > 0) qtd = qtd - 1;` antes de chamar `atualizar()`.",
+        "`document.getElementById(\"menos\").addEventListener(\"click\", function(){ if (qtd > 0) qtd = qtd - 1; atualizar(); });`"
+      ],
+      "xp": 20
+    },
+    {
+      "id": "web-ui-06",
+      "nivel": "ui",
+      "categoria": "ligue",
+      "titulo": "Ligue o menu suspenso",
+      "conceitos": [
+        "dom",
+        "eventos",
+        "estado"
+      ],
+      "explicacao_md": null,
+      "enunciado_md": "Este menu suspenso tem um botão `#menuBtn` e a lista `#menu` (escondida pela classe `oculto`). As funções `abrir()` e `fechar()` já existem e também ajustam o `aria-expanded` do botão (acessibilidade).\n\nNo `js`, ligue o clique do `#menuBtn` para **alternar**: se o `#menu` estiver escondido (tem a classe `oculto`), chame `abrir()`; se estiver visível, chame `fechar()`.\n\nClique no botão no preview — ele atualiza ao vivo.",
+      "editaveis": [
+        "js"
+      ],
+      "web_html": "<!-- Passarela do Observatório Aurora: o painel de opções desce da barra -->\n<div class=\"aurora\" aria-hidden=\"true\"></div>\n<div class=\"estacao\">\n  <nav class=\"barra\">\n    <span class=\"marca\"><span class=\"pulso\" aria-hidden=\"true\"></span>Observatório Aurora</span>\n    <div class=\"suspenso\">\n      <button id=\"menuBtn\" aria-expanded=\"false\">Opções</button>\n      <ul id=\"menu\" class=\"oculto\">\n        <li>Perfil</li>\n        <li>Configurações</li>\n        <li>Sair</li>\n      </ul>\n    </div>\n  </nav>\n  <p class=\"legenda\">O painel de opções desce da barra como bruma — e volta quando o botão pede.</p>\n</div>",
+      "web_css": "/* Cena: barra do Observatório Aurora (distrito verde, noite) */\nbody{margin:0;min-height:100vh;font-family:\"Segoe UI\",system-ui,sans-serif;color:#d9ffe9;background:linear-gradient(180deg,#0d1424 0%,#12263a 45%,#1c4a42 80%,#2f6e52 100%)}\n/* aurora difusa no topo do céu, sem blur por elemento */\n.aurora{position:fixed;inset:0 0 auto 0;height:230px;pointer-events:none;background:radial-gradient(70% 130% at 28% -30%,rgba(92,230,160,.22),rgba(92,230,160,0) 65%),radial-gradient(60% 120% at 78% -35%,rgba(120,180,255,.15),rgba(120,180,255,0) 60%)}\n.estacao{max-width:440px;margin:26px auto;padding:0 14px}\n.barra{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-radius:14px;border:1px solid rgba(120,230,180,.35);background:linear-gradient(180deg,rgba(240,255,246,.07),rgba(8,18,16,.45));box-shadow:0 0 30px rgba(90,220,160,.16)}\n.marca{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#eafff3;text-shadow:0 0 12px rgba(120,230,180,.6)}\n.pulso{width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f2fff6,#5ce6a0 60%,rgba(92,230,160,0) 80%);box-shadow:0 0 14px rgba(92,230,160,.9);animation:pulsar 2.8s ease-in-out infinite}\n@keyframes pulsar{50%{transform:scale(1.35)}}\n.suspenso{position:relative}\n#menuBtn{font-size:15px;font-weight:600;padding:9px 16px;border:1px solid rgba(180,255,215,.5);border-radius:10px;cursor:pointer;color:#0d2a1e;background:linear-gradient(180deg,#d9ffe9,#7ee6ae);box-shadow:0 0 18px rgba(92,230,160,.45)}\n#menuBtn:hover{box-shadow:0 0 26px rgba(120,255,190,.65)}\n#menuBtn:active{transform:translateY(1px)}\n#menuBtn:focus-visible{outline:2px solid #eaffe0;outline-offset:3px}\n#menu{position:absolute;right:0;top:calc(100% + 10px);z-index:5;width:190px;margin:0;padding:8px;list-style:none;border-radius:12px;border:1px solid rgba(120,230,180,.4);background:linear-gradient(180deg,rgba(15,30,25,.97),rgba(9,19,16,.97));box-shadow:0 0 34px rgba(92,230,160,.25),0 16px 30px rgba(0,0,0,.5)}\n/* seta que liga o painel à barra */\n#menu::before{content:\"\";position:absolute;top:-5px;right:24px;width:8px;height:8px;transform:rotate(45deg);background:#0f1e19;border-left:1px solid rgba(120,230,180,.4);border-top:1px solid rgba(120,230,180,.4)}\n#menu li{padding:9px 10px;border-radius:8px;font-size:14px;color:#d9ffe9}\n#menu li+li{margin-top:2px}\n#menu li:hover{background:rgba(92,230,160,.14);color:#f6fff9}\n#menu:not(.oculto){animation:descer .22s ease-out}\n@keyframes descer{from{opacity:0;transform:translateY(-8px)}}\n.oculto{display:none!important}\n.legenda{margin:16px 2px 0;font-size:13px;color:#a6d8bb;text-align:center}",
+      "web_js": "var btn = document.getElementById(\"menuBtn\");\nvar menu = document.getElementById(\"menu\");\n\nfunction abrir() {\n  menu.classList.remove(\"oculto\");\n  btn.setAttribute(\"aria-expanded\", \"true\");\n}\nfunction fechar() {\n  menu.classList.add(\"oculto\");\n  btn.setAttribute(\"aria-expanded\", \"false\");\n}\n\n// Ligue o clique do #menuBtn: alterne entre abrir() e fechar()\n// conforme o #menu esteja escondido (classe \"oculto\") ou visível.\n",
+      "solucao_js": "var btn = document.getElementById(\"menuBtn\");\nvar menu = document.getElementById(\"menu\");\n\nfunction abrir() {\n  menu.classList.remove(\"oculto\");\n  btn.setAttribute(\"aria-expanded\", \"true\");\n}\nfunction fechar() {\n  menu.classList.add(\"oculto\");\n  btn.setAttribute(\"aria-expanded\", \"false\");\n}\n\nbtn.addEventListener(\"click\", function () {\n  if (menu.classList.contains(\"oculto\")) {\n    abrir();\n  } else {\n    fechar();\n  }\n});",
+      "testes_web": [
+        {
+          "nome": "o menu começa fechado",
+          "codigo": "_verificar(win.getComputedStyle(doc.querySelector(\"#menu\")).display, \"none\"); _verificar(doc.querySelector(\"#menuBtn\").getAttribute(\"aria-expanded\"), \"false\");"
+        },
+        {
+          "nome": "o primeiro clique abre o menu",
+          "codigo": "_clicar(\"#menuBtn\"); _verificar(win.getComputedStyle(doc.querySelector(\"#menu\")).display !== \"none\", true); _verificar(doc.querySelector(\"#menuBtn\").getAttribute(\"aria-expanded\"), \"true\");"
+        },
+        {
+          "nome": "o segundo clique fecha o menu",
+          "codigo": "_clicar(\"#menuBtn\"); _clicar(\"#menuBtn\"); _verificar(win.getComputedStyle(doc.querySelector(\"#menu\")).display, \"none\"); _verificar(doc.querySelector(\"#menuBtn\").getAttribute(\"aria-expanded\"), \"false\");"
+        }
+      ],
+      "dicas": [
+        "As funções `abrir()` e `fechar()` já existem. Falta ligar o clique do `#menuBtn` para escolher entre elas conforme o menu esteja escondido ou visível.",
+        "No clique do botão, verifique `menu.classList.contains(\"oculto\")`: se estiver escondido, chame `abrir()`; senão, `fechar()`.",
+        "`btn.addEventListener(\"click\", function(){ if (menu.classList.contains(\"oculto\")) abrir(); else fechar(); });`"
+      ],
+      "xp": 25
+    }
+  ]
+}

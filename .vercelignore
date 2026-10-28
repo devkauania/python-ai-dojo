@@ -1,0 +1,16 @@
+# Fontes de arte e ferramentas NÃO vão para o site (o jogo só usa os sprites
+# já fatiados em assets/). Corta ~29 MB do deploy.
+assets/src/
+audit/
+tools/
+docs/
+.venv*/
+__pycache__/
+**/__pycache__/
+*.bat
+*.md
+!index.html
+node_modules/
+package.json
+package-lock.json
+!js/vendor/THIRD-PARTY-NOTICES.md

@@ -1,0 +1,2559 @@
+{
+  "ato": "ato4",
+  "titulo": "Engenharia de IA",
+  "exercicios": [
+    {
+      "id": "ato4-chunking-t1-01",
+      "nivel": "chunking",
+      "tier": 1,
+      "conceitos": [
+        "tokens"
+      ],
+      "titulo": "O tokenímetro do Dojo",
+      "explicacao_md": "Último ato. Daqui até o fim, tudo é o que times de IA fazem em produção — a começar por contar o que os modelos leem.\n\nModelos de linguagem não leem palavras — leem **tokens**: pedaços de texto. `internacionalização` pode virar 4 tokens; `oi`, apenas 1.\n\nDuas coisas da sua conta de IA são medidas em tokens: a **janela de contexto** (quanto o modelo consegue ler de uma vez) e o **preço** (você paga por token que entra e por token que sai).\n\nTokenizadores reais (BPE e afins) são complexos, então o Dojo usa uma simplificação honesta: **1 token = 1 palavra**.\n\n```python\nfrase = \"gere um resumo curto\"\nfrase.split()        # [\"gere\", \"um\", \"resumo\", \"curto\"]\nlen(frase.split())   # 4 tokens (no Dojo)\n```\n\n`split()` sem argumentos separa por qualquer espaço em branco, ignora as pontas e devolve lista vazia para texto vazio. Nos próximos exercícios esse tokenizador já virá pronto no starter.",
+      "enunciado_md": "Todo pipeline de IA começa medindo o texto — sem contar tokens, você não sabe nem se o prompt cabe no modelo, nem quanto vai pagar.\n\nEscreva `contar_tokens(texto)` que retorna quantos tokens `texto` tem, usando a regra do Dojo: **1 token = 1 palavra**.\n\nUse `texto.split()` sem argumentos — ele já ignora espaços repetidos, espaços das pontas, e devolve lista vazia para texto vazio.\n\nExemplo: `contar_tokens(\"quanto custa este prompt\")` → `4`",
+      "starter_code": "def contar_tokens(texto):\n    # A regra do Dojo é 1 token = 1 palavra — e o split() sem argumentos já\n    # cuida das pontas, dos espaços duplos e do texto vazio. Conte o resultado.\n    ...\n",
+      "solucao_referencia": "def contar_tokens(texto):\n    return len(texto.split())\n",
+      "testes_visiveis": [
+        {
+          "nome": "prompt de quatro tokens",
+          "codigo": "_verificar(contar_tokens('quanto custa este prompt'), 4)"
+        },
+        {
+          "nome": "uma palavra, um token",
+          "codigo": "_verificar(contar_tokens('oi'), 1)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "frase diferente",
+          "codigo": "_verificar(contar_tokens('chunking bom é meio caminho para um rag bom'), 9)"
+        },
+        {
+          "nome": "texto vazio tem zero tokens",
+          "codigo": "_verificar(contar_tokens(''), 0)"
+        },
+        {
+          "nome": "espaços repetidos não criam tokens",
+          "codigo": "_verificar(contar_tokens('  ola   mundo '), 2)"
+        },
+        {
+          "nome": "retorna um inteiro",
+          "codigo": "assert isinstance(contar_tokens('um dois'), int), 'A função deve retornar um número inteiro, não ' + type(contar_tokens('um dois')).__name__"
+        }
+      ],
+      "dicas": [
+        "No Dojo, contar tokens é contar palavras — e `split()` sem argumentos já divide por qualquer espaço em branco, ignorando pontas e repetições.",
+        "São duas funções encaixadas: `len(...)` por fora, `texto.split()` por dentro.",
+        "`return len(texto.split())`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-chunking-t1-02",
+      "nivel": "chunking",
+      "tier": 1,
+      "conceitos": [
+        "tokens",
+        "custo-llm"
+      ],
+      "titulo": "A conta chega em tokens",
+      "explicacao_md": null,
+      "enunciado_md": "As APIs de LLM cobram por **milhar de tokens**: um preço como `0.5` significa $0.50 a cada 1000 tokens enviados.\n\nEscreva `estimar_custo(texto, preco_por_1k)` que retorna o custo em dólares:\n\n```\ncusto = tokens do texto / 1000 * preco_por_1k\n```\n\nO tokenizador do Dojo (`contar_tokens`) já vem pronto no starter — use-o.\n\nExemplo: `estimar_custo(\"gere um resumo deste documento\", 0.5)` → 5 tokens → `0.0025`",
+      "starter_code": "def contar_tokens(texto):\n    return len(texto.split())  # tokenizador do Dojo — já pronto\n\n\ndef estimar_custo(texto, preco_por_1k):\n    # O preço é por MILHAR de tokens — a mesma conta do gateway do Ato 1,\n    # agora medida em tokens.\n    ...\n",
+      "solucao_referencia": "def contar_tokens(texto):\n    return len(texto.split())\n\n\ndef estimar_custo(texto, preco_por_1k):\n    return contar_tokens(texto) / 1000 * preco_por_1k\n",
+      "testes_visiveis": [
+        {
+          "nome": "resumo de 5 tokens a $0.50/1k",
+          "codigo": "_verificar(estimar_custo('gere um resumo deste documento', 0.5), 0.0025)"
+        },
+        {
+          "nome": "200 tokens a $0.50/1k",
+          "codigo": "_verificar(estimar_custo('palavra ' * 200, 0.5), 0.1)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "preço por 1k diferente",
+          "codigo": "_verificar(estimar_custo('a b c d e f g h i j', 2.0), 0.02)"
+        },
+        {
+          "nome": "texto vazio custa zero",
+          "codigo": "_verificar(estimar_custo('', 3.0), 0.0)"
+        },
+        {
+          "nome": "preço zero, custo zero",
+          "codigo": "_verificar(estimar_custo('qualquer texto aqui', 0.0), 0.0)"
+        }
+      ],
+      "dicas": [
+        "O preço é por MIL tokens: primeiro descubra quantos milhares de tokens o texto tem (tokens / 1000), depois multiplique pelo preço.",
+        "Use o `contar_tokens` que já está no starter e aplique a fórmula do enunciado direto no return.",
+        "`return contar_tokens(texto) / 1000 * preco_por_1k`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-chunking-t1-03",
+      "nivel": "chunking",
+      "tier": 1,
+      "conceitos": [
+        "tokens"
+      ],
+      "titulo": "Cabe na janela?",
+      "explicacao_md": null,
+      "enunciado_md": "Antes de enviar um prompt, um gateway responsável verifica se ele cabe na **janela de contexto** do modelo — estourar a janela é erro na certa.\n\nEscreva `cabe_na_janela(texto, limite)` que retorna `True` se a contagem de tokens de `texto` for **menor ou igual** a `limite`, senão `False`. Limite exato ainda cabe.\n\nO tokenizador do Dojo já está no starter.\n\nExemplo: `cabe_na_janela(\"um prompt bem curto\", 8)` → `True`",
+      "starter_code": "def contar_tokens(texto):\n    return len(texto.split())  # tokenizador do Dojo — já pronto\n\n\ndef cabe_na_janela(texto, limite):\n    # \"Cabe\" inclui o limite exato — escolha o sinal de comparação com isso em\n    # mente. A comparação já devolve True/False pronta.\n    ...\n",
+      "solucao_referencia": "def contar_tokens(texto):\n    return len(texto.split())\n\n\ndef cabe_na_janela(texto, limite):\n    return contar_tokens(texto) <= limite\n",
+      "testes_visiveis": [
+        {
+          "nome": "prompt curto numa janela folgada",
+          "codigo": "_verificar(cabe_na_janela('um prompt bem curto', 8), True)"
+        },
+        {
+          "nome": "prompt maior que a janela",
+          "codigo": "_verificar(cabe_na_janela('este prompt tem tokens demais para a janela', 5), False)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "limite exato ainda cabe",
+          "codigo": "_verificar(cabe_na_janela('a b c', 3), True)"
+        },
+        {
+          "nome": "um token além não cabe",
+          "codigo": "_verificar(cabe_na_janela('a b c d', 3), False)"
+        },
+        {
+          "nome": "texto vazio cabe até em janela zero",
+          "codigo": "_verificar(cabe_na_janela('', 0), True)"
+        },
+        {
+          "nome": "retorna booleano de verdade",
+          "codigo": "assert cabe_na_janela('x', 5) is True and cabe_na_janela('x y z', 1) is False, 'Retorne True/False de verdade, não outra coisa'"
+        }
+      ],
+      "dicas": [
+        "Caber na janela é uma comparação: a contagem de tokens do texto contra o limite. Comparações em Python já devolvem True/False.",
+        "Conte com `contar_tokens(texto)` e compare com `<=` — o limite exato ainda cabe.",
+        "`return contar_tokens(texto) <= limite`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-chunking-t1-04",
+      "nivel": "chunking",
+      "tier": 1,
+      "conceitos": [
+        "tokens",
+        "loops"
+      ],
+      "titulo": "O histórico pesa",
+      "explicacao_md": null,
+      "enunciado_md": "Cada turno de um chat reenvia o histórico INTEIRO ao modelo — por isso conversas longas ficam caras: você paga de novo por tudo que já foi dito.\n\nEscreva `tokens_da_conversa(mensagens)` que recebe uma **lista de strings** (as mensagens) e retorna o total de tokens de todas elas somadas. Lista vazia → `0`.\n\nExemplo: `tokens_da_conversa([\"oi\", \"oi, tudo bem\"])` → `4`",
+      "starter_code": "def contar_tokens(texto):\n    return len(texto.split())  # tokenizador do Dojo — já pronto\n\n\ndef tokens_da_conversa(mensagens):\n    # O padrão acumulador de sempre: um total que cresce mensagem a mensagem.\n    ...\n",
+      "solucao_referencia": "def contar_tokens(texto):\n    return len(texto.split())\n\n\ndef tokens_da_conversa(mensagens):\n    total = 0\n    for m in mensagens:\n        total += contar_tokens(m)\n    return total\n",
+      "testes_visiveis": [
+        {
+          "nome": "duas mensagens",
+          "codigo": "_verificar(tokens_da_conversa(['oi', 'oi, tudo bem']), 4)"
+        },
+        {
+          "nome": "uma mensagem só",
+          "codigo": "_verificar(tokens_da_conversa(['qual o total da fatura']), 5)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "três mensagens",
+          "codigo": "_verificar(tokens_da_conversa(['a b', 'c', 'd e f']), 6)"
+        },
+        {
+          "nome": "conversa vazia",
+          "codigo": "_verificar(tokens_da_conversa([]), 0)"
+        },
+        {
+          "nome": "mensagem vazia no meio não soma",
+          "codigo": "_verificar(tokens_da_conversa(['a b', '', 'c']), 3)"
+        }
+      ],
+      "dicas": [
+        "É um acumulador clássico: comece do zero e some a contagem de cada mensagem, uma por vez.",
+        "`total = 0`, depois `for m in mensagens: total += contar_tokens(m)` — ou, mais curto, `sum` com uma generator expression.",
+        "`return sum(contar_tokens(m) for m in mensagens)` — o `sum` de lista vazia já é 0."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-chunking-t1-05",
+      "nivel": "chunking",
+      "tier": 1,
+      "conceitos": [
+        "tokens",
+        "custo-llm"
+      ],
+      "titulo": "A fatura do chatbot",
+      "explicacao_md": null,
+      "enunciado_md": "Fim do mês, e o financeiro pergunta: quanto custou cada conversa do chatbot?\n\nEscreva `custo_da_conversa(mensagens, preco_por_1k)`:\n\n- some os tokens de TODAS as mensagens da lista\n- aplique a fórmula `total / 1000 * preco_por_1k`\n- lista vazia → `0.0`\n\nExemplo: `custo_da_conversa([\"qual o horario de hoje\", \"abrimos as nove\"], 0.5)` → 8 tokens → `0.004`",
+      "starter_code": "def contar_tokens(texto):\n    return len(texto.split())  # tokenizador do Dojo — já pronto\n\n\ndef custo_da_conversa(mensagens, preco_por_1k):\n    # Junte as duas peças que você acabou de fazer: o total da conversa e a\n    # fórmula do preço por milhar.\n    ...\n",
+      "solucao_referencia": "def contar_tokens(texto):\n    return len(texto.split())\n\n\ndef custo_da_conversa(mensagens, preco_por_1k):\n    total = sum(contar_tokens(m) for m in mensagens)\n    return total / 1000 * preco_por_1k\n",
+      "testes_visiveis": [
+        {
+          "nome": "conversa de 8 tokens a $0.50/1k",
+          "codigo": "_verificar(custo_da_conversa(['qual o horario de hoje', 'abrimos as nove'], 0.5), 0.004)"
+        },
+        {
+          "nome": "uma mensagem só",
+          "codigo": "_verificar(custo_da_conversa(['gere o relatorio semanal completo'], 1.0), 0.005)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "preço diferente",
+          "codigo": "_verificar(custo_da_conversa(['a b c d e', 'f g h i j'], 2.0), 0.02)"
+        },
+        {
+          "nome": "conversa vazia custa zero",
+          "codigo": "_verificar(custo_da_conversa([], 1.5), 0.0)"
+        },
+        {
+          "nome": "conversa longa",
+          "codigo": "_verificar(custo_da_conversa(['tok'] * 100, 1.0), 0.1)"
+        }
+      ],
+      "dicas": [
+        "Dois passos que você já fez separados: o total de tokens da conversa inteira, depois a fórmula do preço por mil.",
+        "Some com `sum(contar_tokens(m) for m in mensagens)` e aplique `/ 1000 * preco_por_1k` no total.",
+        "`total = sum(contar_tokens(m) for m in mensagens)` e depois `return total / 1000 * preco_por_1k`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-chunking-t2-01",
+      "nivel": "chunking",
+      "tier": 2,
+      "conceitos": [
+        "chunking",
+        "overlap"
+      ],
+      "titulo": "Fatiador com costura",
+      "explicacao_md": "Documentos reais não cabem na janela do modelo — e RAG busca **pedaços**, não arquivos inteiros. Dividir o texto em pedaços é **chunking**, e a qualidade dessa divisão define a qualidade da busca: chunking ruim é a causa nº 1 de RAG ruim.\n\nO problema do corte seco: a informação que vive na fronteira entre dois chunks se perde. A solução é o **overlap** — cada chunk repete as últimas palavras do anterior:\n\n```python\n# tamanho=3, overlap=1 -> o cursor anda tamanho - overlap = 2\n# \"a b c d e\" -> [\"a b c\", \"c d e\"]\n```\n\nO cursor avança `tamanho - overlap` palavras por vez; o último chunk é o primeiro que alcança a última palavra (e pode vir menor). No Dojo, 1 token = 1 palavra — `tamanho` e `overlap` são contados em palavras.",
+      "enunciado_md": "Escreva `chunk(texto, tamanho, overlap)` que divide `texto` em chunks de até `tamanho` palavras, avançando `tamanho - overlap` palavras por vez:\n\n- cada chunk junta suas palavras com um espaço\n- pare no primeiro chunk que alcançar a última palavra (ele pode ser menor que `tamanho`)\n- garantido: `0 <= overlap < tamanho`; texto vazio → `[]`\n\nExemplo: `chunk(\"a b c d e f g\", 3, 1)` → `[\"a b c\", \"c d e\", \"e f g\"]`",
+      "starter_code": "def chunk(texto, tamanho, overlap):\n    # O cursor anda tamanho - overlap por vez, e cada chunk é uma fatia de até\n    # `tamanho` palavras rejuntada com espaço. O laço para no PRIMEIRO chunk que\n    # alcança a última palavra — cuidado para não produzir um farelo a mais.\n    # E se o farelo aparecer, não é derrota: é o break pedindo para existir.\n    ...\n",
+      "solucao_referencia": "def chunk(texto, tamanho, overlap):\n    palavras = texto.split()\n    passo = tamanho - overlap\n    chunks = []\n    i = 0\n    while i < len(palavras):\n        chunks.append(\" \".join(palavras[i:i + tamanho]))\n        if i + tamanho >= len(palavras):\n            break\n        i += passo\n    return chunks\n",
+      "testes_visiveis": [
+        {
+          "nome": "overlap de 1 costura os chunks",
+          "codigo": "_verificar(chunk('a b c d e f g', 3, 1), ['a b c', 'c d e', 'e f g'])"
+        },
+        {
+          "nome": "overlap 0 é corte seco",
+          "codigo": "_verificar(chunk('um dois tres quatro', 2, 0), ['um dois', 'tres quatro'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "último chunk pode vir menor",
+          "codigo": "_verificar(chunk('t1 t2 t3 t4 t5', 2, 0), ['t1 t2', 't3 t4', 't5'])"
+        },
+        {
+          "nome": "texto vazio",
+          "codigo": "_verificar(chunk('', 3, 1), [])"
+        },
+        {
+          "nome": "texto que cabe num chunk só",
+          "codigo": "_verificar(chunk('so tres palavras', 5, 2), ['so tres palavras'])"
+        },
+        {
+          "nome": "overlap de 2 palavras",
+          "codigo": "_verificar(chunk('a b c d e f g h', 4, 2), ['a b c d', 'c d e f', 'e f g h'])"
+        }
+      ],
+      "dicas": [
+        "Pense num cursor sobre a lista de palavras: cada chunk lê `tamanho` palavras a partir dele, e o cursor anda `tamanho - overlap`. Se andasse `tamanho`, não haveria costura.",
+        "Fatias não estouram: `palavras[i:i + tamanho]` perto do fim devolve só o que existe. O critério de parada é: este chunk alcançou a última palavra (`i + tamanho >= len(palavras)`)?",
+        "`passo = tamanho - overlap`; num `while i < len(palavras):` faça `chunks.append(\" \".join(palavras[i:i + tamanho]))`, depois `if i + tamanho >= len(palavras): break` e `i += passo`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-chunking-t2-02",
+      "nivel": "chunking",
+      "tier": 2,
+      "conceitos": [
+        "chunking",
+        "overlap",
+        "generators"
+      ],
+      "titulo": "Chunks sob demanda",
+      "explicacao_md": null,
+      "enunciado_md": "Seu corpus tem milhares de documentos. Materializar TODOS os chunks numa lista gasta memória à toa quando o consumidor (a API de embeddings) processa um lote por vez.\n\nEscreva o **generator** `chunk_lazy(texto, tamanho, overlap)` (use `yield`) que produz os mesmos chunks do exercício anterior, um de cada vez:\n\n- chunks de até `tamanho` palavras, juntadas por espaço\n- cursor avança `tamanho - overlap`; pare no primeiro chunk que alcança a última palavra\n- garantido: `0 <= overlap < tamanho`\n\nExemplo: `list(chunk_lazy(\"a b c d e f g\", 3, 1))` → `[\"a b c\", \"c d e\", \"e f g\"]`",
+      "starter_code": "def chunk_lazy(texto, tamanho, overlap):\n    # O mesmo fatiador, agora preguiçoso: troque o append por yield e nada é\n    # produzido antes de alguém pedir. A condição de parada não muda.\n    ...\n",
+      "solucao_referencia": "def chunk_lazy(texto, tamanho, overlap):\n    palavras = texto.split()\n    passo = tamanho - overlap\n    i = 0\n    while i < len(palavras):\n        yield \" \".join(palavras[i:i + tamanho])\n        if i + tamanho >= len(palavras):\n            break\n        i += passo\n",
+      "testes_visiveis": [
+        {
+          "nome": "produz os chunks certos",
+          "codigo": "_verificar(list(chunk_lazy('a b c d e f g', 3, 1)), ['a b c', 'c d e', 'e f g'])"
+        },
+        {
+          "nome": "é um generator de verdade",
+          "codigo": "g = chunk_lazy('a b c', 2, 1)\nassert hasattr(g, '__next__') and iter(g) is g, 'chunk_lazy deve ser um generator (use yield), não retornar uma lista'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "primeiro chunk sai sem consumir o resto",
+          "codigo": "g = chunk_lazy('x1 x2 x3 x4 x5 x6', 2, 0)\n_verificar(next(g), 'x1 x2')\n_verificar(next(g), 'x3 x4')"
+        },
+        {
+          "nome": "texto vazio não produz nada",
+          "codigo": "_verificar(list(chunk_lazy('', 4, 1)), [])"
+        },
+        {
+          "nome": "outro texto e overlap",
+          "codigo": "_verificar(list(chunk_lazy('rag precisa de chunks bons demais', 4, 2)), ['rag precisa de chunks', 'de chunks bons demais'])"
+        }
+      ],
+      "dicas": [
+        "Trocar `return lista` por `yield item` transforma a função num generator: cada chunk só é produzido quando alguém pede o próximo.",
+        "Mesma lógica do `chunk`: while + fatia + passo. Onde você fazia `chunks.append(x)`, faça `yield x` — e o `break` do último chunk continua igual.",
+        "`palavras = texto.split()`, `passo = tamanho - overlap`, `i = 0`; no `while i < len(palavras):` faça `yield \" \".join(palavras[i:i + tamanho])`, depois `if i + tamanho >= len(palavras): break` e `i += passo`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-chunking-t2-03",
+      "nivel": "chunking",
+      "tier": 2,
+      "conceitos": [
+        "chunking",
+        "metadados-chunk",
+        "overlap"
+      ],
+      "titulo": "Chunk com endereço",
+      "explicacao_md": null,
+      "enunciado_md": "Quando o RAG responde, o usuário pergunta: \"de onde você tirou isso?\". Sem metadados, não há resposta.\n\nEscreva `chunk_com_meta(texto, tamanho, overlap)` — mesmo chunking dos anteriores (cursor avança `tamanho - overlap`, pare no chunk que alcança a última palavra) — mas cada item da lista é um dict:\n\n- `\"texto\"`: as palavras do chunk juntadas por espaço\n- `\"inicio\"`: índice da primeira palavra (base 0)\n- `\"fim\"`: índice APÓS a última palavra (exclusivo, estilo fatia)\n- `\"indice\"`: posição do chunk na sequência (0, 1, 2...)\n\nGarantido: `0 <= overlap < tamanho`; texto vazio → `[]`.\n\nExemplo: `chunk_com_meta(\"a b c d e\", 3, 1)` → `[{\"texto\": \"a b c\", \"inicio\": 0, \"fim\": 3, \"indice\": 0}, {\"texto\": \"c d e\", \"inicio\": 2, \"fim\": 5, \"indice\": 1}]`",
+      "starter_code": "def chunk_com_meta(texto, tamanho, overlap):\n    # O chunking é o mesmo; o que muda é o formato de saída: cada chunk vira um\n    # dict com o texto e o ENDEREÇO (início, fim exclusivo, índice na sequência).\n    # O fim não pode passar do total de palavras.\n    ...\n",
+      "solucao_referencia": "def chunk_com_meta(texto, tamanho, overlap):\n    palavras = texto.split()\n    passo = tamanho - overlap\n    chunks = []\n    i = 0\n    while i < len(palavras):\n        fim = min(i + tamanho, len(palavras))\n        chunks.append({\n            \"texto\": \" \".join(palavras[i:fim]),\n            \"inicio\": i,\n            \"fim\": fim,\n            \"indice\": len(chunks),\n        })\n        if i + tamanho >= len(palavras):\n            break\n        i += passo\n    return chunks\n",
+      "testes_visiveis": [
+        {
+          "nome": "dois chunks com endereço completo",
+          "codigo": "_verificar(chunk_com_meta('a b c d e', 3, 1), [{'texto': 'a b c', 'inicio': 0, 'fim': 3, 'indice': 0}, {'texto': 'c d e', 'inicio': 2, 'fim': 5, 'indice': 1}])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "fim do último chunk não passa do texto",
+          "codigo": "_verificar(chunk_com_meta('w1 w2 w3 w4 w5', 2, 0), [{'texto': 'w1 w2', 'inicio': 0, 'fim': 2, 'indice': 0}, {'texto': 'w3 w4', 'inicio': 2, 'fim': 4, 'indice': 1}, {'texto': 'w5', 'inicio': 4, 'fim': 5, 'indice': 2}])"
+        },
+        {
+          "nome": "texto vazio",
+          "codigo": "_verificar(chunk_com_meta('', 3, 1), [])"
+        },
+        {
+          "nome": "um chunk só",
+          "codigo": "_verificar(chunk_com_meta('apenas duas', 4, 1), [{'texto': 'apenas duas', 'inicio': 0, 'fim': 2, 'indice': 0}])"
+        }
+      ],
+      "dicas": [
+        "O chunking é o mesmo; a novidade é registrar ONDE cada chunk começa e termina. O `fim` é exclusivo, como numa fatia — e no último chunk ele não pode passar do total de palavras.",
+        "Calcule `fim = min(i + tamanho, len(palavras))` e monte o dict com as 4 chaves; o `indice` pode ser `len(chunks)` na hora do append.",
+        "No while: `fim = min(i + tamanho, len(palavras))`, depois `chunks.append({\"texto\": \" \".join(palavras[i:fim]), \"inicio\": i, \"fim\": fim, \"indice\": len(chunks)})` — o resto é igual ao chunk básico."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-chunking-t2-04",
+      "nivel": "chunking",
+      "tier": 2,
+      "conceitos": [
+        "chunking",
+        "tokens"
+      ],
+      "titulo": "Frases que andam juntas",
+      "explicacao_md": null,
+      "enunciado_md": "Cortar no meio de uma frase gera chunks que começam sem sujeito e terminam sem verbo — veneno para a busca do RAG. Aqui, as sentenças vêm separadas por `\". \"`.\n\nEscreva `dividir_sentencas(texto, max_tokens)`:\n\n- separe as sentenças com `texto.split(\". \")`\n- agrupe sentenças CONSECUTIVAS num chunk enquanto o total de tokens não passar de `max_tokens` (tokenizador do Dojo, já no starter)\n- ao fechar um chunk, rejunte as sentenças dele com `\". \"`\n- garantido: cada sentença sozinha cabe em `max_tokens`; o texto não é vazio nem termina com ponto\n\nExemplo: `dividir_sentencas(\"um dois. tres quatro cinco. seis\", 5)` → `[\"um dois. tres quatro cinco\", \"seis\"]`",
+      "starter_code": "def contar_tokens(texto):\n    return len(texto.split())  # tokenizador do Dojo — já pronto\n\n\ndef dividir_sentencas(texto, max_tokens):\n    # Acumule sentenças inteiras num chunk enquanto o total couber; quando a\n    # próxima não cabe, feche o chunk e comece outro COM ela. O último acumulado\n    # também precisa sair no fim.\n    ...\n",
+      "solucao_referencia": "def contar_tokens(texto):\n    return len(texto.split())\n\n\ndef dividir_sentencas(texto, max_tokens):\n    chunks = []\n    atual = []\n    tokens_atual = 0\n    for s in texto.split(\". \"):\n        t = contar_tokens(s)\n        if atual and tokens_atual + t > max_tokens:\n            chunks.append(\". \".join(atual))\n            atual = [s]\n            tokens_atual = t\n        else:\n            atual.append(s)\n            tokens_atual += t\n    if atual:\n        chunks.append(\". \".join(atual))\n    return chunks\n",
+      "testes_visiveis": [
+        {
+          "nome": "duas sentenças juntas, uma sobra",
+          "codigo": "_verificar(dividir_sentencas('um dois. tres quatro cinco. seis', 5), ['um dois. tres quatro cinco', 'seis'])"
+        },
+        {
+          "nome": "tudo cabe num chunk só",
+          "codigo": "_verificar(dividir_sentencas('oi. tudo bem', 10), ['oi. tudo bem'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "cada sentença no seu chunk",
+          "codigo": "_verificar(dividir_sentencas('a b. c d. e f', 2), ['a b', 'c d', 'e f'])"
+        },
+        {
+          "nome": "limite exato fecha na conta certa",
+          "codigo": "_verificar(dividir_sentencas('w1 w2 w3. w4 w5 w6. w7', 6), ['w1 w2 w3. w4 w5 w6', 'w7'])"
+        },
+        {
+          "nome": "texto sem nenhum ponto",
+          "codigo": "_verificar(dividir_sentencas('sem ponto nenhum aqui', 10), ['sem ponto nenhum aqui'])"
+        }
+      ],
+      "dicas": [
+        "Mantenha um chunk \"em construção\": uma lista de sentenças e a soma de tokens dela. A decisão por sentença é: ela ainda cabe no chunk atual, ou fecha o atual e abre outro?",
+        "Para cada sentença `s`: se `atual` não está vazio e `tokens_atual + contar_tokens(s) > max_tokens`, feche com `\". \".join(atual)` e recomece com `s`. Depois do loop, não esqueça de fechar o último chunk.",
+        "Acumuladores `atual = []` e `tokens_atual = 0`; no ramo de fechar: `chunks.append(\". \".join(atual))`, `atual = [s]`, `tokens_atual = t`; depois do for: `if atual: chunks.append(\". \".join(atual))`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-chunking-t3-01",
+      "nivel": "chunking",
+      "tier": 3,
+      "conceitos": [
+        "chunking",
+        "overlap"
+      ],
+      "titulo": "Contrato de chunking",
+      "explicacao_md": "Em produção, sua função de chunking recebe o que mandarem: parâmetros sem sentido, texto vazio, documento menor que um chunk. O tier 3 é sobre **contratos**: decidir o comportamento de cada borda ANTES de escrever o código — e falhar alto quando o chamador erra.\n\n```python\nif overlap >= tamanho:\n    raise ValueError(\"overlap deve ser menor que tamanho\")\n```\n\nPor que explodir? Com `overlap >= tamanho`, o passo `tamanho - overlap` fica `<= 0` e o cursor nunca avança — loop infinito silencioso. Melhor um erro claro no primeiro segundo do que um worker travado em produção.\n\nE a ordem importa: validação de parâmetros vem PRIMEIRO, antes de qualquer olhada no texto. Chunking que trava ou devolve lixo nas bordas é chunking ruim — e chunking ruim é a causa nº 1 de RAG ruim.",
+      "enunciado_md": "Escreva `chunk_seguro(texto, tamanho, overlap)` com o contrato completo:\n\n1. `overlap >= tamanho` → `ValueError` com mensagem contendo a palavra `overlap` — a validação vem PRIMEIRO, mesmo com texto vazio\n2. texto vazio (ou só espaços) → `[]`\n3. texto com até `tamanho` palavras → exatamente 1 chunk: as palavras juntadas por um espaço\n4. caso geral: chunks de `tamanho` palavras, cursor avança `tamanho - overlap`, parando no primeiro chunk que alcança a última palavra\n\nExemplos: `chunk_seguro(\"a b c d e\", 2, 0)` → `[\"a b\", \"c d\", \"e\"]`; `chunk_seguro(\"oi\", 3, 3)` → `ValueError`",
+      "starter_code": "def chunk_seguro(texto, tamanho, overlap):\n    \"\"\"Chunking por palavras com contrato de produção.\n\n    Contrato:\n    - overlap >= tamanho -> ValueError (mensagem cita 'overlap');\n      valida ANTES de olhar o texto\n    - texto vazio ou só espaços -> []\n    - até `tamanho` palavras -> 1 chunk único (palavras juntadas por espaço)\n    - senão -> chunks de `tamanho` palavras, passo tamanho - overlap,\n      parando no primeiro chunk que alcança a última palavra\n    \"\"\"\n    # A ordem das bordas é o exercício: parâmetros primeiro (o passo <= 0 seria\n    # loop infinito silencioso), texto vazio depois, e só então o caso geral.\n    ...\n",
+      "solucao_referencia": "def chunk_seguro(texto, tamanho, overlap):\n    if overlap >= tamanho:\n        raise ValueError(\"overlap deve ser menor que tamanho\")\n    palavras = texto.split()\n    if not palavras:\n        return []\n    if len(palavras) <= tamanho:\n        return [\" \".join(palavras)]\n    passo = tamanho - overlap\n    chunks = []\n    i = 0\n    while i < len(palavras):\n        chunks.append(\" \".join(palavras[i:i + tamanho]))\n        if i + tamanho >= len(palavras):\n            break\n        i += passo\n    return chunks\n",
+      "testes_visiveis": [
+        {
+          "nome": "caso geral funciona",
+          "codigo": "_verificar(chunk_seguro('a b c d e', 2, 0), ['a b', 'c d', 'e'])"
+        },
+        {
+          "nome": "overlap igual ao tamanho explode",
+          "codigo": "try:\n    chunk_seguro('oi', 3, 3)\n    assert False, 'overlap igual ao tamanho deveria levantar ValueError'\nexcept ValueError as e:\n    assert 'overlap' in str(e).lower(), 'A mensagem do erro deve citar overlap'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "validação vem antes do texto vazio",
+          "codigo": "try:\n    chunk_seguro('', 2, 5)\n    assert False, 'overlap maior que tamanho deveria levantar ValueError mesmo com texto vazio'\nexcept ValueError as e:\n    assert 'overlap' in str(e).lower(), 'A mensagem do erro deve citar overlap'"
+        },
+        {
+          "nome": "só espaços vira lista vazia",
+          "codigo": "_verificar(chunk_seguro('   \\t ', 3, 1), [])"
+        },
+        {
+          "nome": "documento menor que um chunk",
+          "codigo": "_verificar(chunk_seguro('apenas tres palavras', 10, 2), ['apenas tres palavras'])"
+        },
+        {
+          "nome": "espaços extras não geram tokens fantasmas",
+          "codigo": "_verificar(chunk_seguro('  a   b  ', 5, 1), ['a b'])"
+        },
+        {
+          "nome": "com overlap válido continua costurando",
+          "codigo": "_verificar(chunk_seguro('a b c d e f g', 3, 1), ['a b c', 'c d e', 'e f g'])"
+        }
+      ],
+      "dicas": [
+        "A ordem das checagens É o contrato: parâmetros inválidos explodem antes de qualquer olhada no texto. Com `overlap >= tamanho`, o passo fica `<= 0` e o cursor nunca avançaria — por isso o ValueError.",
+        "Quatro blocos, nesta ordem: `raise` se `overlap >= tamanho`; `palavras = texto.split()`; `if not palavras: return []`; `if len(palavras) <= tamanho: return [\" \".join(palavras)]`; e só então o while do chunking normal.",
+        "`if overlap >= tamanho: raise ValueError(\"overlap deve ser menor que tamanho\")` — depois os dois retornos antecipados e o mesmo while do chunk com overlap (append, `break` quando `i + tamanho >= len(palavras)`, `i += tamanho - overlap`)."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-chunking-t3-02",
+      "nivel": "chunking",
+      "tier": 3,
+      "conceitos": [
+        "chunking",
+        "tokens"
+      ],
+      "titulo": "Sem farelo no fim",
+      "explicacao_md": null,
+      "enunciado_md": "Chunking de tamanho fixo deixa um problema no fim: o resto. Um chunk de 1 palavra vira um embedding sem contexto que polui a busca do RAG.\n\nEscreva `chunk_sem_farelo(texto, tamanho)` (sem overlap):\n\n- divida em pedaços consecutivos de `tamanho` palavras (o último pode ser menor), juntando com espaço\n- REGRA DO RESTO: se o último pedaço tiver MENOS que 25% de `tamanho` palavras (`resto < tamanho * 0.25`, estritamente menor) E existir pedaço anterior, junte-o ao anterior com um espaço\n- texto vazio → `[]`; texto com até `tamanho` palavras → 1 chunk (não há anterior para juntar)\n\nExemplo (`tamanho=5`, 11 palavras — resto de 1 < 1.25, junta):\n`chunk_sem_farelo(\"a b c d e f g h i j k\", 5)` → `[\"a b c d e\", \"f g h i j k\"]`",
+      "starter_code": "def chunk_sem_farelo(texto, tamanho):\n    \"\"\"Chunking fixo (sem overlap) que não deixa resto minúsculo no fim.\n\n    Contrato:\n    - pedaços consecutivos de `tamanho` palavras, juntadas por espaço\n    - se o ÚLTIMO pedaço tiver MENOS que 25% de `tamanho` palavras\n      (resto < tamanho * 0.25) E existir pedaço anterior,\n      ele é fundido ao anterior (separados por um espaço)\n    - texto vazio -> []\n    - até `tamanho` palavras -> 1 chunk único (nada para fundir)\n    \"\"\"\n    # Fatie normal primeiro; a regra do resto é um ajuste FINAL no último chunk\n    # — e o \"estritamente menor\" da fronteira dos 25% decide o caso empatado.\n    ...\n",
+      "solucao_referencia": "def chunk_sem_farelo(texto, tamanho):\n    palavras = texto.split()\n    if not palavras:\n        return []\n    chunks = []\n    for i in range(0, len(palavras), tamanho):\n        chunks.append(\" \".join(palavras[i:i + tamanho]))\n    if len(chunks) > 1 and len(chunks[-1].split()) < tamanho * 0.25:\n        chunks[-2] = chunks[-2] + \" \" + chunks[-1]\n        chunks.pop()\n    return chunks\n",
+      "testes_visiveis": [
+        {
+          "nome": "resto de 1 palavra é fundido",
+          "codigo": "_verificar(chunk_sem_farelo('a b c d e f g h i j k', 5), ['a b c d e', 'f g h i j k'])"
+        },
+        {
+          "nome": "resto de 2 em tamanho 5 fica separado",
+          "codigo": "_verificar(chunk_sem_farelo('a b c d e f g h i j k l', 5), ['a b c d e', 'f g h i j', 'k l'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "texto vazio",
+          "codigo": "_verificar(chunk_sem_farelo('', 4), [])"
+        },
+        {
+          "nome": "texto pequeno é um chunk único",
+          "codigo": "_verificar(chunk_sem_farelo('so uma', 8), ['so uma'])"
+        },
+        {
+          "nome": "múltiplo exato não tem resto",
+          "codigo": "_verificar(chunk_sem_farelo('a b c d e f', 3), ['a b c', 'd e f'])"
+        },
+        {
+          "nome": "tamanho 8 com resto de 1",
+          "codigo": "_verificar(chunk_sem_farelo('p01 p02 p03 p04 p05 p06 p07 p08 p09 p10 p11 p12 p13 p14 p15 p16 p17', 8), ['p01 p02 p03 p04 p05 p06 p07 p08', 'p09 p10 p11 p12 p13 p14 p15 p16 p17'])"
+        },
+        {
+          "nome": "fronteira dos 25%: 2 não é menor que 2",
+          "codigo": "_verificar(chunk_sem_farelo('p01 p02 p03 p04 p05 p06 p07 p08 p09 p10 p11 p12 p13 p14 p15 p16 p17 p18', 8), ['p01 p02 p03 p04 p05 p06 p07 p08', 'p09 p10 p11 p12 p13 p14 p15 p16', 'p17 p18'])"
+        }
+      ],
+      "dicas": [
+        "Primeiro fatie normalmente (um `range` com passo `tamanho` resolve o corte seco); a regra do resto é um pós-processamento: olhe só para o ÚLTIMO chunk depois de montar todos.",
+        "Conte as palavras do último chunk e compare com `tamanho * 0.25` usando `<` estrito; só funda se `len(chunks) > 1`. Fundir = concatenar com espaço no penúltimo e remover o último.",
+        "`for i in range(0, len(palavras), tamanho): chunks.append(\" \".join(palavras[i:i + tamanho]))`; depois `if len(chunks) > 1 and len(chunks[-1].split()) < tamanho * 0.25:` funda com `chunks[-2] += \" \" + chunks[-1]` e `chunks.pop()`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-chunking-t3-03",
+      "nivel": "chunking",
+      "tier": 3,
+      "conceitos": [
+        "chunking",
+        "tokens"
+      ],
+      "titulo": "Não corte a frase",
+      "explicacao_md": null,
+      "enunciado_md": "A regra de ouro do chunking para RAG: **não corte uma sentença — a menos que não haja escolha**.\n\nEscreva `empacotar_sentencas(texto, max_tokens)` (guloso, da esquerda para a direita):\n\n1. sentenças = `texto.split(\". \")`; tokens = palavras (Dojo)\n2. acumule sentenças consecutivas num chunk enquanto o total ficar `<= max_tokens`; ao fechar, rejunte com `\". \"`\n3. sentença que SOZINHA excede `max_tokens`: feche o chunk acumulado (se houver) e corte ELA em pedaços de `max_tokens` palavras (o último pode ser menor) — cada pedaço vira um chunk; depois siga acumulando do zero\n4. texto vazio (`\"\"`) → `[]`; `max_tokens >= 1` garantido; o texto não termina com ponto\n\nExemplo: `empacotar_sentencas(\"um dois. tres quatro. a b c d e f. fim\", 4)` → `[\"um dois. tres quatro\", \"a b c d\", \"e f\", \"fim\"]`",
+      "starter_code": "def contar_tokens(texto):\n    return len(texto.split())  # tokenizador do Dojo -- já pronto\n\n\ndef empacotar_sentencas(texto, max_tokens):\n    \"\"\"Empacota sentenças em chunks sem cortá-las... quando possível.\n\n    Contrato (guloso, da esquerda para a direita):\n    - sentenças separadas por \". \"; tokens = palavras\n    - acumula sentenças enquanto o total <= max_tokens; fecha com \". \".join\n    - sentença que sozinha excede max_tokens: fecha o acumulado (se houver)\n      e corta a sentença em pedaços de max_tokens palavras (último menor);\n      depois volta a acumular do zero\n    - texto vazio (\"\") -> []\n    \"\"\"\n    # Três destinos por sentença: cabe no acumulado, não cabe (fecha e recomeça),\n    # ou é gigante (fecha o que houver e corta ELA). O acumulado final também sai.\n    ...\n",
+      "solucao_referencia": "def contar_tokens(texto):\n    return len(texto.split())\n\n\ndef empacotar_sentencas(texto, max_tokens):\n    if not texto:\n        return []\n    chunks = []\n    atual = []\n    tokens_atual = 0\n    for s in texto.split(\". \"):\n        t = contar_tokens(s)\n        if t > max_tokens:\n            if atual:\n                chunks.append(\". \".join(atual))\n                atual = []\n                tokens_atual = 0\n            palavras = s.split()\n            for i in range(0, len(palavras), max_tokens):\n                chunks.append(\" \".join(palavras[i:i + max_tokens]))\n        elif tokens_atual + t > max_tokens:\n            chunks.append(\". \".join(atual))\n            atual = [s]\n            tokens_atual = t\n        else:\n            atual.append(s)\n            tokens_atual += t\n    if atual:\n        chunks.append(\". \".join(atual))\n    return chunks\n",
+      "testes_visiveis": [
+        {
+          "nome": "agrupa, corta a gigante e segue",
+          "codigo": "_verificar(empacotar_sentencas('um dois. tres quatro. a b c d e f. fim', 4), ['um dois. tres quatro', 'a b c d', 'e f', 'fim'])"
+        },
+        {
+          "nome": "sem sentença gigante, só agrupa",
+          "codigo": "_verificar(empacotar_sentencas('oi. tudo bem. sim', 3), ['oi. tudo bem', 'sim'])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "texto vazio",
+          "codigo": "_verificar(empacotar_sentencas('', 5), [])"
+        },
+        {
+          "nome": "gigante logo no início, sem acumulado para fechar",
+          "codigo": "_verificar(empacotar_sentencas('p1 p2 p3 p4 p5. ok', 2), ['p1 p2', 'p3 p4', 'p5', 'ok'])"
+        },
+        {
+          "nome": "sentença com exatamente max_tokens não é cortada",
+          "codigo": "_verificar(empacotar_sentencas('a b c. d', 3), ['a b c', 'd'])"
+        },
+        {
+          "nome": "tudo cabe num chunk",
+          "codigo": "_verificar(empacotar_sentencas('rag bom. chunk bom', 10), ['rag bom. chunk bom'])"
+        }
+      ],
+      "dicas": [
+        "São dois regimes por sentença: cabe no acumulador (agrupa) ou não cabe. E dentro do \"não cabe\" há dois casos: não cabe JUNTO (fecha o chunk e recomeça com ela) ou não cabe NEM SOZINHA (aí, e só aí, corta a sentença em pedaços de max_tokens palavras).",
+        "Trate a gigante primeiro: `if contar_tokens(s) > max_tokens:` — feche o acumulador se houver, corte com `range(0, len(palavras), max_tokens)` e siga com o acumulador zerado.",
+        "`for s in texto.split(\". \"):` com três ramos (gigante / estoura o atual / acumula) e, depois do loop, `if atual: chunks.append(\". \".join(atual))`. O corte da gigante: `for i in range(0, len(p), max_tokens): chunks.append(\" \".join(p[i:i + max_tokens]))`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-embeddings-t1-01",
+      "nivel": "embeddings",
+      "tier": 1,
+      "conceitos": [
+        "embeddings"
+      ],
+      "titulo": "Do texto ao significado",
+      "explicacao_md": "Um **embedding** transforma um texto num vetor de números que captura seu significado — a base de toda busca semântica e de todo RAG. Textos parecidos viram vetores parecidos. O cosseno que você montou à mão no numpy volta agora como motor da busca.\n\nNo Dojo, o helper `embed` já vem pronto no topo de cada exercício (ele chama a API mock de embeddings):\n\n```python\nfrom openai import OpenAI\n_client = OpenAI()\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n```\n\nDuas garantias do mock: o vetor sempre tem **16 dimensões** e **norma 1** (é unitário); o mesmo texto sempre gera o mesmo vetor, e textos com palavras em comum ficam mais próximos. Você não precisa entender a API — só usar `embed(texto)`.",
+      "enunciado_md": "Todo pipeline de busca semântica começa transformando texto em vetor.\n\nEscreva `vetor_do_texto(texto)` que devolve o **embedding** de `texto`, usando o helper `embed` já pronto no starter.\n\nO resultado é uma lista de 16 números (o vetor unitário do texto).\n\nExemplo: `vetor_do_texto(\"gato preto\")` → a lista de 16 números que representa esse texto.",
+      "starter_code": "from openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef vetor_do_texto(texto):\n    # O helper lá em cima já faz a viagem texto -> vetor. Chame-o e entregue o\n    # resultado — 16 números, norma 1, sempre os mesmos para o mesmo texto.\n    ...\n",
+      "solucao_referencia": "from openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef vetor_do_texto(texto):\n    return embed(texto)\n",
+      "testes_visiveis": [
+        {
+          "nome": "gera o vetor do texto",
+          "codigo": "_verificar(vetor_do_texto('gato preto'), _mocks.embed_texto('gato preto'))"
+        },
+        {
+          "nome": "o vetor tem 16 dimensões",
+          "codigo": "assert len(vetor_do_texto('busca semântica')) == 16, 'O embedding do Dojo tem 16 dimensões'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro texto",
+          "codigo": "_verificar(vetor_do_texto('preço do token'), _mocks.embed_texto('preço do token'))"
+        },
+        {
+          "nome": "o vetor é unitário (norma 1)",
+          "codigo": "v = vetor_do_texto('rag')\nassert abs(sum(x * x for x in v) ** 0.5 - 1.0) < 1e-6, 'Embeddings do Dojo têm norma 1'"
+        },
+        {
+          "nome": "texto vazio ainda gera vetor de 16 dims",
+          "codigo": "assert len(vetor_do_texto('')) == 16, 'Mesmo o texto vazio gera um vetor de 16 dimensões'"
+        }
+      ],
+      "dicas": [
+        "O embedding é o que a API devolve para um texto. O helper `embed` já faz a chamada — você só precisa usá-lo e devolver o resultado.",
+        "A função é uma linha: chame `embed(texto)` e retorne o valor.",
+        "`return embed(texto)`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-embeddings-t1-02",
+      "nivel": "embeddings",
+      "tier": 1,
+      "conceitos": [
+        "embeddings",
+        "similaridade"
+      ],
+      "titulo": "Perto ou longe?",
+      "explicacao_md": null,
+      "enunciado_md": "Para saber se dois textos falam da mesma coisa, medimos a **similaridade de cosseno** entre seus embeddings. Como os vetores do Dojo têm norma 1, o cosseno é só o **produto escalar** (`np.dot`) — sem precisar dividir por norma nenhuma.\n\nEscreva `similaridade(a, b)` que devolve o cosseno entre os embeddings de `a` e `b`, como `float`. Perto de `1.0` = muito parecidos; perto de `0` = nada a ver.\n\nExemplo: `similaridade(\"gato preto\", \"gato branco\")` → um número alto (compartilham \"gato\").",
+      "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef similaridade(a, b):\n    # Vetores de norma 1 dispensam a divisão do cosseno: o produto escalar já É\n    # a similaridade. Embedde os dois e devolva float Python.\n    ...\n",
+      "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef similaridade(a, b):\n    return float(np.dot(embed(a), embed(b)))\n",
+      "testes_visiveis": [
+        {
+          "nome": "cosseno entre dois textos",
+          "codigo": "_verificar(similaridade('gato preto', 'gato branco'), float(np.dot(_mocks.embed_texto('gato preto'), _mocks.embed_texto('gato branco'))))"
+        },
+        {
+          "nome": "texto consigo mesmo dá 1.0",
+          "codigo": "_verificar(similaridade('python', 'python'), 1.0)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro par",
+          "codigo": "_verificar(similaridade('erro de conexão', 'falha de rede'), float(np.dot(_mocks.embed_texto('erro de conexão'), _mocks.embed_texto('falha de rede'))))"
+        },
+        {
+          "nome": "é simétrica",
+          "codigo": "_verificar(similaridade('a b c', 'd e f'), similaridade('d e f', 'a b c'))"
+        },
+        {
+          "nome": "retorna float Python",
+          "codigo": "assert isinstance(similaridade('x', 'y'), float), 'Converta o resultado com float(...) — np.float64 confunde json'"
+        }
+      ],
+      "dicas": [
+        "Similaridade de cosseno mede o alinhamento de dois vetores. Com vetores de norma 1, ela vira o produto escalar puro — o mesmo `np.dot` que você viu no nível de numpy.",
+        "Embeddar cada texto (`embed(a)`, `embed(b)`) e passar os dois para `np.dot`; envolva em `float(...)`.",
+        "`return float(np.dot(embed(a), embed(b)))`"
+      ],
+      "xp": 10,
+      "pacotes": [
+        "numpy"
+      ],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 15
+    },
+    {
+      "id": "ato4-embeddings-t1-03",
+      "nivel": "embeddings",
+      "tier": 1,
+      "conceitos": [
+        "similaridade",
+        "busca-semantica"
+      ],
+      "titulo": "Qual dos dois?",
+      "explicacao_md": null,
+      "enunciado_md": "Uma busca semântica precisa decidir qual documento é mais relevante para a consulta. Aqui, a versão mínima: escolher entre **dois** candidatos.\n\nEscreva `mais_similar(consulta, a, b)` que devolve o texto (`a` ou `b`) com maior similaridade de cosseno em relação a `consulta`. Em empate, devolva `a`.\n\nExemplo: `mais_similar(\"gato preto\", \"gato branco\", \"banco de dados\")` → `\"gato branco\"` (compartilha mais significado com a consulta).",
+      "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef mais_similar(consulta, a, b):\n    # Embedde a consulta UMA vez e compare os dois candidatos contra ela.\n    # O critério de empate do enunciado decide o sinal da comparação.\n    ...\n",
+      "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef mais_similar(consulta, a, b):\n    q = embed(consulta)\n    sa = float(np.dot(embed(a), q))\n    sb = float(np.dot(embed(b), q))\n    return a if sa >= sb else b\n",
+      "testes_visiveis": [
+        {
+          "nome": "gato preto mais perto de gato branco",
+          "codigo": "_verificar(mais_similar('gato preto', 'gato branco', 'banco de dados'), 'gato branco')"
+        },
+        {
+          "nome": "vence o segundo quando ele é mais parecido",
+          "codigo": "_verificar(mais_similar('gato preto', 'banco de dados', 'gato branco'), 'gato branco')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outra consulta",
+          "codigo": "_verificar(mais_similar('preço do modelo', 'preço do modelo gpt', 'gato dorme'), 'preço do modelo gpt')"
+        },
+        {
+          "nome": "empate devolve o primeiro",
+          "codigo": "_verificar(mais_similar('oi', 'igual', 'igual'), 'igual')"
+        },
+        {
+          "nome": "devolve sempre uma das duas opções",
+          "codigo": "r = mais_similar('teste', 'opção um', 'opção dois')\nassert r in ('opção um', 'opção dois'), 'Retorne um dos dois textos recebidos, não outra coisa'"
+        }
+      ],
+      "dicas": [
+        "Compare a consulta com cada candidato pela similaridade de cosseno e devolva o texto de maior score. Cuidado com o empate: `a` só perde se `b` for ESTRITAMENTE maior.",
+        "Embedde a consulta uma vez, calcule `np.dot` dela com `embed(a)` e com `embed(b)`, e compare os dois números.",
+        "`sa = float(np.dot(embed(a), q))` e `sb = ...`; depois `return a if sa >= sb else b`"
+      ],
+      "xp": 10,
+      "pacotes": [
+        "numpy"
+      ],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 15
+    },
+    {
+      "id": "ato4-embeddings-t1-04",
+      "nivel": "embeddings",
+      "tier": 1,
+      "conceitos": [
+        "similaridade",
+        "threshold"
+      ],
+      "titulo": "Cache de prompts",
+      "explicacao_md": null,
+      "enunciado_md": "Um gateway de IA economiza dinheiro reaproveitando respostas de prompts **parecidos** — mas só quando a similaridade passa de um **limiar** de confiança.\n\nEscreva `sao_parecidos(a, b, limiar)` que devolve `True` se a similaridade de cosseno entre `a` e `b` for **maior ou igual** a `limiar`, senão `False`. O limiar exato já conta como parecido.\n\nExemplo: `sao_parecidos(\"gato preto\", \"gato branco\", 0.5)` → `True`; `sao_parecidos(\"gato preto\", \"banco de dados\", 0.5)` → `False`.",
+      "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef sao_parecidos(a, b, limiar):\n    # A similaridade comparada ao limiar — e o limiar exato ainda conta como\n    # parecido, escolha o sinal com isso em mente.\n    ...\n",
+      "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef sao_parecidos(a, b, limiar):\n    return float(np.dot(embed(a), embed(b))) >= limiar\n",
+      "testes_visiveis": [
+        {
+          "nome": "parecidos acima do limiar",
+          "codigo": "_verificar(sao_parecidos('gato preto', 'gato branco', 0.5), True)"
+        },
+        {
+          "nome": "diferentes abaixo do limiar",
+          "codigo": "_verificar(sao_parecidos('gato preto', 'banco de dados', 0.5), False)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "limiar exato conta como parecido",
+          "codigo": "s = float(np.dot(_mocks.embed_texto('gato preto'), _mocks.embed_texto('gato branco')))\n_verificar(sao_parecidos('gato preto', 'gato branco', s), True)"
+        },
+        {
+          "nome": "texto idêntico é sempre parecido",
+          "codigo": "_verificar(sao_parecidos('mesma coisa', 'mesma coisa', 0.99), True)"
+        },
+        {
+          "nome": "retorna booleano de verdade",
+          "codigo": "assert sao_parecidos('a b', 'c d', 0.9) is True or sao_parecidos('a b', 'c d', 0.9) is False, 'Retorne True/False de verdade'"
+        }
+      ],
+      "dicas": [
+        "É uma comparação: a similaridade de cosseno contra o limiar. Comparações em Python (`>=`) já devolvem True/False prontos.",
+        "Calcule `float(np.dot(embed(a), embed(b)))` e compare com `>=` limiar — sem `if`, retorne a comparação direto.",
+        "`return float(np.dot(embed(a), embed(b))) >= limiar`"
+      ],
+      "xp": 10,
+      "pacotes": [
+        "numpy"
+      ],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 15
+    },
+    {
+      "id": "ato4-embeddings-t1-05",
+      "nivel": "embeddings",
+      "tier": 1,
+      "conceitos": [
+        "embeddings",
+        "indice-vetorial"
+      ],
+      "titulo": "Tudo de uma vez",
+      "explicacao_md": null,
+      "enunciado_md": "Embeddar mil documentos com mil chamadas à API é lento e caro. A API aceita uma **lista** de textos numa chamada só: passe `input=[t1, t2, ...]` e receba um embedding por texto em `resposta.data`.\n\nEscreva `embeddar_lote(textos)` que faz **uma** chamada com a lista inteira e devolve a lista de embeddings (cada um é `.embedding`), na ordem dos textos. Use o `_client` já criado no starter.\n\nExemplo: `embeddar_lote([\"gato\", \"cão\"])` → `[vetor_de_gato, vetor_de_cão]`.",
+      "starter_code": "from openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef embeddar_lote(textos):\n    # O input aceita a LISTA inteira — uma chamada só. Da resposta, colete o\n    # .embedding de cada item de data, na ordem.\n    ...\n",
+      "solucao_referencia": "from openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef embeddar_lote(textos):\n    resposta = _client.embeddings.create(model=\"mock-embed\", input=textos)\n    return [d.embedding for d in resposta.data]\n",
+      "testes_visiveis": [
+        {
+          "nome": "embedda dois textos",
+          "codigo": "_verificar(embeddar_lote(['gato', 'cão']), [_mocks.embed_texto('gato'), _mocks.embed_texto('cão')])"
+        },
+        {
+          "nome": "um embedding por texto",
+          "codigo": "r = embeddar_lote(['a', 'b', 'c'])\nassert len(r) == 3, 'Deve sair um embedding por texto da lista'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outra lista",
+          "codigo": "_verificar(embeddar_lote(['python', 'rag', 'busca']), [_mocks.embed_texto('python'), _mocks.embed_texto('rag'), _mocks.embed_texto('busca')])"
+        },
+        {
+          "nome": "lista vazia devolve lista vazia",
+          "codigo": "_verificar(embeddar_lote([]), [])"
+        },
+        {
+          "nome": "cada embedding tem 16 dimensões",
+          "codigo": "r = embeddar_lote(['oi', 'tchau'])\nassert all(len(v) == 16 for v in r), 'Cada embedding do lote tem 16 dimensões'"
+        }
+      ],
+      "dicas": [
+        "A API de embeddings aceita a lista inteira em `input`. A resposta traz `data`, uma sequência com um item por texto — cada item tem o campo `.embedding`.",
+        "Chame `_client.embeddings.create(model=\"mock-embed\", input=textos)` e monte a lista com `[d.embedding for d in resposta.data]`.",
+        "`resposta = _client.embeddings.create(model=\"mock-embed\", input=textos)` e `return [d.embedding for d in resposta.data]`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-embeddings-t1-06",
+      "nivel": "embeddings",
+      "tier": 1,
+      "conceitos": [
+        "embeddings",
+        "indice-vetorial"
+      ],
+      "titulo": "O crachá .index",
+      "explicacao_md": null,
+      "enunciado_md": "Quando você embedda um lote, cada item de `resposta.data` traz um campo `.index` — a posição do texto na lista que você enviou. É esse crachá que garante o alinhamento entre embedding e documento no seu índice vetorial.\n\nEscreva `vetor_na_posicao(textos, i)` que embedda o lote e devolve o embedding cujo `.index` é igual a `i`. `i` é sempre uma posição válida.\n\nExemplo: `vetor_na_posicao([\"gato\", \"cão\", \"peixe\"], 1)` → o embedding de `\"cão\"`.",
+      "starter_code": "from openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef vetor_na_posicao(textos, i):\n    # Cada item de data carrega um .index — o crachá com a posição do texto na\n    # lista enviada. Ache o item certo por ele, não pela posição em data.\n    ...\n",
+      "solucao_referencia": "from openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef vetor_na_posicao(textos, i):\n    resposta = _client.embeddings.create(model=\"mock-embed\", input=textos)\n    for d in resposta.data:\n        if d.index == i:\n            return d.embedding\n",
+      "testes_visiveis": [
+        {
+          "nome": "vetor da posição 1",
+          "codigo": "_verificar(vetor_na_posicao(['gato', 'cão', 'peixe'], 1), _mocks.embed_texto('cão'))"
+        },
+        {
+          "nome": "vetor da posição 0",
+          "codigo": "_verificar(vetor_na_posicao(['alfa', 'beta'], 0), _mocks.embed_texto('alfa'))"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "última posição",
+          "codigo": "_verificar(vetor_na_posicao(['um', 'dois', 'três', 'quatro'], 3), _mocks.embed_texto('quatro'))"
+        },
+        {
+          "nome": "posição do meio",
+          "codigo": "_verificar(vetor_na_posicao(['a', 'b', 'c', 'd', 'e'], 2), _mocks.embed_texto('c'))"
+        },
+        {
+          "nome": "o vetor devolvido tem 16 dimensões",
+          "codigo": "assert len(vetor_na_posicao(['x', 'y'], 1)) == 16, 'O embedding tem 16 dimensões'"
+        }
+      ],
+      "dicas": [
+        "A API devolve os embeddings em `resposta.data`, e cada item carrega um `.index` com a posição original. Você quer o item cujo `.index` bate com `i`.",
+        "Percorra `resposta.data` com um for e teste `if d.index == i:` — quando bater, devolva `d.embedding`.",
+        "`for d in resposta.data:` com `if d.index == i: return d.embedding`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-embeddings-t2-01",
+      "nivel": "embeddings",
+      "tier": 2,
+      "conceitos": [
+        "busca-semantica",
+        "similaridade",
+        "embeddings"
+      ],
+      "titulo": "A busca semântica nasce",
+      "explicacao_md": "Busca semântica é o coração do RAG: em vez de casar palavras exatas, você compara **significados**. O passo a passo é sempre o mesmo: embeddar a consulta, embeddar cada documento do corpus, medir a **similaridade de cosseno** entre a consulta e cada um, e devolver os mais parecidos.\n\nComo os embeddings do Dojo são unitários (norma 1), o cosseno é só o produto escalar:\n\n```python\nscore = float(np.dot(embed(consulta), embed(doc)))\n```\n\nOrdene os documentos por score **decrescente** e pegue os **top-k** — esses são os trechos que entram no prompt do modelo. Score perto de 1 = muito relevante; perto de 0 = nada a ver.",
+      "enunciado_md": "Escreva `buscar(consulta, corpus, k)` que devolve os `k` documentos mais similares à `consulta`, cada um como uma **tupla** `(texto, score)`, ordenados por score decrescente:\n\n- `corpus` é uma lista de textos; `score` é o cosseno (produto escalar) `float`\n- se `k` for maior que o corpus, devolva todos ordenados\n\nExemplo: `buscar(\"gato preto\", [\"gato branco\", \"banco de dados\", \"gato preto dorme\"], 2)` → `[(\"gato preto dorme\", 0.78...), (\"gato branco\", 0.63...)]`",
+      "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef buscar(consulta, corpus, k):\n    # O passo a passo da aula: consulta embeddada uma vez, um score por\n    # documento, ordenação decrescente e o corte top-k (que o próprio fatiamento\n    # resolve quando k passa do corpus). Você treinou cada passo em separado;\n    # hoje eles jogam juntos pela primeira vez.\n    ...\n",
+      "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef buscar(consulta, corpus, k):\n    q = embed(consulta)\n    ranqueados = [(t, float(np.dot(embed(t), q))) for t in corpus]\n    ranqueados.sort(key=lambda p: -p[1])\n    return ranqueados[:k]\n",
+      "testes_visiveis": [
+        {
+          "nome": "top-2 do corpus",
+          "codigo": "q = 'gato preto'\ncorpus = ['gato branco', 'banco de dados', 'gato preto dorme']\nesp = sorted([(t, float(np.dot(_mocks.embed_texto(t), _mocks.embed_texto(q)))) for t in corpus], key=lambda p: -p[1])[:2]\n_verificar(buscar(q, corpus, 2), esp)"
+        },
+        {
+          "nome": "o melhor vem primeiro",
+          "codigo": "r = buscar('gato preto', ['banco de dados', 'gato preto dorme', 'gato branco'], 1)\n_verificar(r[0][0], 'gato preto dorme')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro corpus",
+          "codigo": "q = 'preço do modelo'\ncorpus = ['custo por token', 'preço do modelo gpt', 'gato dorme', 'modelo caro']\nesp = sorted([(t, float(np.dot(_mocks.embed_texto(t), _mocks.embed_texto(q)))) for t in corpus], key=lambda p: -p[1])[:2]\n_verificar(buscar(q, corpus, 2), esp)"
+        },
+        {
+          "nome": "k maior que o corpus devolve todos",
+          "codigo": "r = buscar('x', ['a b', 'c d'], 10)\nassert len(r) == 2, 'Com k maior que o corpus, devolve todos os documentos ranqueados'"
+        },
+        {
+          "nome": "cada resultado é uma tupla (texto, score float)",
+          "codigo": "r = buscar('gato', ['gato preto', 'cão'], 1)\nassert isinstance(r[0], tuple) and len(r[0]) == 2 and isinstance(r[0][1], float), 'Cada item é uma tupla (texto, score) com score float'"
+        }
+      ],
+      "dicas": [
+        "Três passos: embeddar a consulta uma vez, calcular o score (cosseno) de cada documento contra ela, e ordenar por score decrescente antes de cortar os k primeiros.",
+        "Monte pares `(t, float(np.dot(embed(t), q)))` para cada `t` no corpus, ordene com `sort(key=lambda p: -p[1])` e devolva a fatia `[:k]`.",
+        "`ranqueados = [(t, float(np.dot(embed(t), q))) for t in corpus]`, depois `ranqueados.sort(key=lambda p: -p[1])` e `return ranqueados[:k]`"
+      ],
+      "xp": 15,
+      "pacotes": [
+        "numpy"
+      ],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 15
+    },
+    {
+      "id": "ato4-embeddings-t2-02",
+      "nivel": "embeddings",
+      "tier": 2,
+      "conceitos": [
+        "indice-vetorial",
+        "embeddings"
+      ],
+      "titulo": "O índice vetorial",
+      "explicacao_md": null,
+      "enunciado_md": "Recalcular os embeddings do corpus a cada busca é desperdício. Um **índice vetorial** guarda tudo pronto: uma **matriz numpy** (uma linha por documento) e uma **lista paralela** de textos, alinhadas pelo índice da linha.\n\nEscreva `construir_indice(textos)` que devolve a tupla `(matriz, textos)`:\n\n- `matriz`: um `np.array` onde a linha `i` é o embedding de `textos[i]`\n- `textos`: a lista de textos, na mesma ordem\n\nExemplo: `construir_indice([\"gato\", \"cão\"])` → uma matriz de forma `(2, 16)` e `[\"gato\", \"cão\"]`.",
+      "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef construir_indice(textos):\n    # Uma linha de matriz por texto, na mesma ordem — e devolva a dupla\n    # (matriz, textos): o alinhamento pelo índice da linha é o contrato.\n    ...\n",
+      "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef construir_indice(textos):\n    matriz = np.array([embed(t) for t in textos])\n    return matriz, list(textos)\n",
+      "testes_visiveis": [
+        {
+          "nome": "matriz e lista paralela",
+          "codigo": "m, ts = construir_indice(['gato', 'cão'])\n_verificar(ts, ['gato', 'cão'])\n_verificar(m, [_mocks.embed_texto('gato'), _mocks.embed_texto('cão')])"
+        },
+        {
+          "nome": "a matriz tem forma (n, 16)",
+          "codigo": "m, ts = construir_indice(['a', 'b', 'c'])\nassert m.shape == (3, 16), 'A matriz tem uma linha por texto e 16 colunas'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro corpus",
+          "codigo": "m, ts = construir_indice(['python', 'rag', 'busca semântica'])\n_verificar(ts, ['python', 'rag', 'busca semântica'])\n_verificar(m, [_mocks.embed_texto('python'), _mocks.embed_texto('rag'), _mocks.embed_texto('busca semântica')])"
+        },
+        {
+          "nome": "um documento só",
+          "codigo": "m, ts = construir_indice(['único'])\nassert m.shape == (1, 16) and ts == ['único'], 'Com um texto, a matriz é (1, 16)'"
+        },
+        {
+          "nome": "a lista de textos preserva a ordem",
+          "codigo": "_verificar(construir_indice(['z', 'a', 'm'])[1], ['z', 'a', 'm'])"
+        }
+      ],
+      "dicas": [
+        "O índice tem duas partes alinhadas: os vetores (uma matriz numpy) e os textos (uma lista), na mesma ordem — a linha `i` da matriz corresponde ao `textos[i]`.",
+        "Embedde cada texto numa list comprehension e envolva em `np.array(...)` para virar matriz; devolva junto a lista de textos.",
+        "`matriz = np.array([embed(t) for t in textos])` e `return matriz, list(textos)`"
+      ],
+      "xp": 15,
+      "pacotes": [
+        "numpy"
+      ],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 15
+    },
+    {
+      "id": "ato4-embeddings-t2-03",
+      "nivel": "embeddings",
+      "tier": 2,
+      "conceitos": [
+        "busca-semantica",
+        "indice-vetorial",
+        "argsort-topk"
+      ],
+      "titulo": "Busca no índice pronto",
+      "explicacao_md": null,
+      "enunciado_md": "Com o índice pronto, a busca vira uma conta de matriz: `matriz @ q` calcula o cosseno de **todos** os documentos contra a consulta de uma vez (linhas e consulta têm norma 1). Depois, `np.argsort` ordena e você pega os top-k.\n\nEscreva `buscar_no_indice(matriz, textos, consulta, k)` que devolve os `k` melhores como tuplas `(texto, score)`, em ordem decrescente de score. Use `np.argsort(-scores)` para ranquear.\n\nExemplo: com o índice de `[\"gato branco\", \"banco de dados\", \"gato preto dorme\"]` e consulta `\"gato preto\"`, `k=2` → `[(\"gato preto dorme\", 0.78...), (\"gato branco\", 0.63...)]`.",
+      "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef buscar_no_indice(matriz, textos, consulta, k):\n    # matriz @ consulta rende todos os scores de uma vez (norma 1 dos dois\n    # lados). O argsort do negativo ranqueia decrescente; os índices dele\n    # apontam para textos e scores.\n    ...\n",
+      "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef buscar_no_indice(matriz, textos, consulta, k):\n    q = np.array(embed(consulta))\n    scores = matriz @ q\n    ordem = np.argsort(-scores)[:k]\n    return [(textos[i], float(scores[i])) for i in ordem]\n",
+      "testes_visiveis": [
+        {
+          "nome": "top-2 pelo índice",
+          "codigo": "textos = ['gato branco', 'banco de dados', 'gato preto dorme']\nm = np.array([_mocks.embed_texto(t) for t in textos])\nesp = sorted([(t, float(np.dot(_mocks.embed_texto(t), _mocks.embed_texto('gato preto')))) for t in textos], key=lambda p: -p[1])[:2]\n_verificar(buscar_no_indice(m, textos, 'gato preto', 2), esp)"
+        },
+        {
+          "nome": "aponta o melhor documento",
+          "codigo": "textos = ['banco de dados', 'gato preto dorme']\nm = np.array([_mocks.embed_texto(t) for t in textos])\nr = buscar_no_indice(m, textos, 'gato preto', 1)\n_verificar(r[0][0], 'gato preto dorme')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro índice",
+          "codigo": "textos = ['custo por token', 'preço do modelo gpt', 'modelo caro']\nm = np.array([_mocks.embed_texto(t) for t in textos])\nesp = sorted([(t, float(np.dot(_mocks.embed_texto(t), _mocks.embed_texto('preço do modelo')))) for t in textos], key=lambda p: -p[1])[:2]\n_verificar(buscar_no_indice(m, textos, 'preço do modelo', 2), esp)"
+        },
+        {
+          "nome": "k maior que o índice devolve todos",
+          "codigo": "textos = ['a b', 'c d', 'e f']\nm = np.array([_mocks.embed_texto(t) for t in textos])\nr = buscar_no_indice(m, textos, 'consulta', 10)\nassert len(r) == 3, 'Com k maior que o índice, devolve todos os documentos'"
+        },
+        {
+          "nome": "score é float Python",
+          "codigo": "textos = ['gato preto', 'cão grande']\nm = np.array([_mocks.embed_texto(t) for t in textos])\nr = buscar_no_indice(m, textos, 'gato', 1)\nassert isinstance(r[0][1], float), 'Converta o score com float(...)'"
+        }
+      ],
+      "dicas": [
+        "A matriz já tem todos os embeddings. `matriz @ q` (com `q` embeddado e transformado em array) devolve um vetor com o cosseno de cada linha de uma vez — sem loop.",
+        "Ranqueie com `np.argsort(-scores)`, pegue os `k` primeiros índices e monte as tuplas `(textos[i], float(scores[i]))`.",
+        "`scores = matriz @ np.array(embed(consulta))`, `ordem = np.argsort(-scores)[:k]`, `return [(textos[i], float(scores[i])) for i in ordem]`"
+      ],
+      "xp": 15,
+      "pacotes": [
+        "numpy"
+      ],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 15
+    },
+    {
+      "id": "ato4-embeddings-t2-04",
+      "nivel": "embeddings",
+      "tier": 2,
+      "conceitos": [
+        "indice-vetorial",
+        "embeddings"
+      ],
+      "titulo": "Índice que cresce",
+      "explicacao_md": null,
+      "enunciado_md": "Um índice de produção não é estático: novos documentos chegam o tempo todo. Adicionar um documento é embeddá-lo e **empilhar** a nova linha na matriz (`np.vstack`), além de guardar o texto na lista paralela.\n\nEscreva `adicionar(indice, texto)` que recebe `indice = (matriz, textos)` e devolve um novo `(matriz, textos)` com `texto` acrescentado ao fim:\n\n- se o índice estava vazio (`textos == []`), a matriz nova tem só a linha do novo texto\n- senão, empilhe a nova linha embaixo com `np.vstack`\n\nExemplo: partindo de um índice com `[\"gato\"]`, `adicionar` de `\"cão\"` dá uma matriz `(2, 16)` e `[\"gato\", \"cão\"]`.",
+      "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef adicionar(indice, texto):\n    # Desempacote a dupla, embedde o novo texto e empilhe: índice vazio nasce\n    # com uma linha só; senão o vstack põe a linha nova embaixo. Devolva a dupla nova.\n    ...\n",
+      "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef adicionar(indice, texto):\n    matriz, textos = indice\n    nova_linha = embed(texto)\n    if len(textos) == 0:\n        matriz = np.array([nova_linha])\n    else:\n        matriz = np.vstack([matriz, nova_linha])\n    return matriz, textos + [texto]\n",
+      "testes_visiveis": [
+        {
+          "nome": "adiciona a um índice de 1 documento",
+          "codigo": "m0 = np.array([_mocks.embed_texto('gato')])\nm1, ts1 = adicionar((m0, ['gato']), 'cão')\n_verificar(ts1, ['gato', 'cão'])\n_verificar(m1, [_mocks.embed_texto('gato'), _mocks.embed_texto('cão')])\nassert m1.shape == (2, 16), 'A matriz cresce para (2, 16)'"
+        },
+        {
+          "nome": "começando de um índice vazio",
+          "codigo": "m1, ts1 = adicionar((np.array([]), []), 'primeiro')\n_verificar(ts1, ['primeiro'])\n_verificar(m1, [_mocks.embed_texto('primeiro')])\nassert m1.shape == (1, 16), 'O primeiro documento faz a matriz (1, 16)'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "adiciona a um índice de 2 documentos",
+          "codigo": "m0 = np.array([_mocks.embed_texto('a'), _mocks.embed_texto('b')])\nm1, ts1 = adicionar((m0, ['a', 'b']), 'c')\n_verificar(ts1, ['a', 'b', 'c'])\nassert m1.shape == (3, 16), 'A matriz cresce para (3, 16)'\n_verificar(m1[2], _mocks.embed_texto('c'))"
+        },
+        {
+          "nome": "vários adds em sequência montam o índice",
+          "codigo": "idx = (np.array([]), [])\nfor t in ['x', 'y', 'z']:\n    idx = adicionar(idx, t)\nm, ts = idx\n_verificar(ts, ['x', 'y', 'z'])\nassert m.shape == (3, 16), 'Três adds fazem uma matriz (3, 16)'"
+        },
+        {
+          "nome": "a linha nova é o embedding do texto novo",
+          "codigo": "m0 = np.array([_mocks.embed_texto('velho')])\nm1, _ts = adicionar((m0, ['velho']), 'novo')\n_verificar(m1[1], _mocks.embed_texto('novo'))"
+        }
+      ],
+      "dicas": [
+        "Adicionar é embeddar o texto novo e colocar essa linha embaixo da matriz, além de anexar o texto na lista. O único cuidado é o índice vazio: não dá para empilhar numa matriz sem linhas.",
+        "Desempacote `matriz, textos = indice`; se `textos` estiver vazio, a matriz nova é `np.array([nova_linha])`; senão, `np.vstack([matriz, nova_linha])`.",
+        "`nova_linha = embed(texto)`; monte a matriz com o `if len(textos) == 0` / `np.vstack(...)`; `return matriz, textos + [texto]`"
+      ],
+      "xp": 15,
+      "pacotes": [
+        "numpy"
+      ],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 15
+    },
+    {
+      "id": "ato4-embeddings-t2-05",
+      "nivel": "embeddings",
+      "tier": 2,
+      "conceitos": [
+        "busca-semantica",
+        "embeddings"
+      ],
+      "titulo": "Contexto para o prompt",
+      "explicacao_md": null,
+      "enunciado_md": "No RAG, os documentos recuperados viram o **contexto** que você cola no prompt antes da pergunta. Depois de buscar, é preciso montar esse bloco de texto.\n\nEscreva `montar_contexto(consulta, corpus, k)` que busca os `k` documentos mais similares e devolve os textos deles (só os textos, sem score) juntados por uma **quebra de linha** (`\\n`), na ordem de relevância.\n\nExemplo: `montar_contexto(\"gato preto\", [\"gato branco\", \"banco de dados\", \"gato preto dorme\"], 2)` → `\"gato preto dorme\\ngato branco\"`.",
+      "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef montar_contexto(consulta, corpus, k):\n    # É a busca que você já fez, com outra saída: só os textos dos top-k,\n    # unidos por quebra de linha, na ordem de relevância.\n    ...\n",
+      "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef montar_contexto(consulta, corpus, k):\n    q = embed(consulta)\n    ranqueados = [(t, float(np.dot(embed(t), q))) for t in corpus]\n    ranqueados.sort(key=lambda p: -p[1])\n    return \"\\n\".join(t for t, _ in ranqueados[:k])\n",
+      "testes_visiveis": [
+        {
+          "nome": "contexto com os 2 melhores",
+          "codigo": "esp = chr(10).join(['gato preto dorme', 'gato branco'])\n_verificar(montar_contexto('gato preto', ['gato branco', 'banco de dados', 'gato preto dorme'], 2), esp)"
+        },
+        {
+          "nome": "um documento só no contexto",
+          "codigo": "_verificar(montar_contexto('gato preto', ['banco de dados', 'gato preto dorme'], 1), 'gato preto dorme')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro corpus",
+          "codigo": "q = 'preço do modelo'\ncorpus = ['custo por token', 'preço do modelo gpt', 'modelo caro']\nesp = chr(10).join(t for t, _ in sorted([(t, float(np.dot(_mocks.embed_texto(t), _mocks.embed_texto(q)))) for t in corpus], key=lambda p: -p[1])[:2])\n_verificar(montar_contexto(q, corpus, 2), esp)"
+        },
+        {
+          "nome": "o resultado é uma string",
+          "codigo": "assert isinstance(montar_contexto('x', ['a b', 'c d'], 1), str), 'montar_contexto devolve uma string única'"
+        },
+        {
+          "nome": "dois documentos, uma quebra de linha entre eles",
+          "codigo": "r = montar_contexto('gato', ['gato preto', 'gato branco'], 2)\nassert r.count(chr(10)) == 1, 'Dois documentos são separados por uma quebra de linha'"
+        }
+      ],
+      "dicas": [
+        "É a busca do exercício anterior, mas o resultado final é texto, não tuplas: pegue só os textos dos top-k e cole um embaixo do outro.",
+        "Ranqueie como no `buscar`, fatie os `k` primeiros e junte os textos com `\"\\n\".join(...)`.",
+        "`return \"\\n\".join(t for t, _ in ranqueados[:k])` (depois de ordenar `ranqueados` por score decrescente)"
+      ],
+      "xp": 15,
+      "pacotes": [
+        "numpy"
+      ],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 15
+    },
+    {
+      "id": "ato4-embeddings-t3-01",
+      "nivel": "embeddings",
+      "tier": 3,
+      "conceitos": [
+        "threshold",
+        "busca-semantica"
+      ],
+      "titulo": "Melhor dizer não sei",
+      "explicacao_md": "No tier 3 a busca encontra o mundo real: às vezes **nenhum** documento é relevante. Devolver os top-k mesmo assim enche o prompt de lixo — e o modelo alucina em cima de contexto irrelevante.\n\nA defesa é um **limiar** (threshold): só entra no resultado quem tem score `>=` limiar. Se ninguém passa, a resposta honesta é uma **lista vazia** — melhor dizer 'não sei' do que inventar.\n\n```python\nrelevantes = [(t, s) for t, s in ranqueados if s >= limiar]\n```\n\nE as bordas clássicas: corpus vazio não pode quebrar (retorna `[]`), e o limiar é aplicado ANTES do corte top-k.",
+      "enunciado_md": "Escreva `buscar_com_limiar(consulta, corpus, k, limiar)` com o contrato:\n\n- devolve até `k` tuplas `(texto, score)`, ordenadas por score decrescente\n- só entram documentos com score (cosseno) `>=` `limiar`\n- se nada passa do limiar → `[]`; se `corpus` é vazio → `[]` (sem erro)\n- o limiar é aplicado ANTES de cortar os top-k\n\nExemplo: `buscar_com_limiar(\"gato preto\", [\"gato branco\", \"banco de dados\", \"gato preto dorme\", \"cachorro grande\"], 10, 0.5)` → só `[(\"gato preto dorme\", 0.78...), (\"gato branco\", 0.63...)]`.",
+      "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef buscar_com_limiar(consulta, corpus, k, limiar):\n    \"\"\"Busca semântica com corte por limiar.\n\n    Contrato:\n    - devolve até k tuplas (texto, score), score decrescente\n    - só documentos com score >= limiar entram\n    - nada relevante -> []; corpus vazio -> [] (sem erro)\n    - o limiar é aplicado ANTES do corte top-k\n    \"\"\"\n    # A ordem das operações é o exercício: filtre pelo limiar primeiro, corte\n    # os k depois — invertido, um documento ruim rouba a vaga de um bom.\n    ...\n",
+      "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef buscar_com_limiar(consulta, corpus, k, limiar):\n    if not corpus:\n        return []\n    q = embed(consulta)\n    ranqueados = [(t, float(np.dot(embed(t), q))) for t in corpus]\n    relevantes = [p for p in ranqueados if p[1] >= limiar]\n    relevantes.sort(key=lambda p: -p[1])\n    return relevantes[:k]\n",
+      "testes_visiveis": [
+        {
+          "nome": "só o que passa do limiar",
+          "codigo": "q = 'gato preto'\ncorpus = ['gato branco', 'banco de dados', 'gato preto dorme', 'cachorro grande']\nr = buscar_com_limiar(q, corpus, 10, 0.5)\n_verificar([t for t, _ in r], ['gato preto dorme', 'gato branco'])"
+        },
+        {
+          "nome": "nada relevante devolve lista vazia",
+          "codigo": "_verificar(buscar_com_limiar('gato preto', ['banco de dados', 'cachorro grande'], 5, 0.5), [])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "corpus vazio não quebra",
+          "codigo": "_verificar(buscar_com_limiar('x', [], 3, 0.1), [])"
+        },
+        {
+          "nome": "limiar aplicado antes do top-k",
+          "codigo": "q = 'preço do modelo'\ncorpus = ['preço do modelo gpt', 'custo por token', 'modelo caro']\nr = buscar_com_limiar(q, corpus, 1, 0.0)\n_verificar([t for t, _ in r], ['preço do modelo gpt'])"
+        },
+        {
+          "nome": "score no resultado é float",
+          "codigo": "r = buscar_com_limiar('gato preto', ['gato preto dorme'], 1, 0.0)\nassert isinstance(r[0][1], float), 'O score de cada resultado deve ser float'"
+        },
+        {
+          "nome": "limiar alto corta tudo",
+          "codigo": "_verificar(buscar_com_limiar('gato preto', ['gato branco'], 5, 0.99), [])"
+        }
+      ],
+      "dicas": [
+        "A ordem do contrato importa: proteja o corpus vazio primeiro, filtre pelo limiar depois, e só então corte os top-k. Se o filtro esvazia tudo, o resultado é `[]` naturalmente.",
+        "Guard `if not corpus: return []`; monte os pares `(t, score)`, filtre com `if p[1] >= limiar`, ordene por score decrescente e fatie `[:k]`.",
+        "`if not corpus: return []`; `relevantes = [p for p in ranqueados if p[1] >= limiar]`; `relevantes.sort(key=lambda p: -p[1])`; `return relevantes[:k]`"
+      ],
+      "xp": 25,
+      "pacotes": [
+        "numpy"
+      ],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 15
+    },
+    {
+      "id": "ato4-embeddings-t3-02",
+      "nivel": "embeddings",
+      "tier": 3,
+      "conceitos": [
+        "busca-semantica",
+        "indice-vetorial",
+        "argsort-topk"
+      ],
+      "titulo": "Empate sem bagunça",
+      "explicacao_md": null,
+      "enunciado_md": "Corpus de produção têm documentos repetidos (o mesmo trecho indexado duas vezes) — e eles produzem scores **idênticos**. Quando dois documentos empatam, o esperado é manter a **ordem original do corpus**. O erro clássico: `np.argsort(scores)[::-1]` inverte a lista e **embaralha os empates**.\n\nO jeito estável: `np.argsort(-scores, kind=\"stable\")` — negar os scores ordena decrescente, e `kind=\"stable\"` mantém empates na ordem em que apareceram.\n\nEscreva `buscar_estavel(consulta, corpus, k)` que devolve os **índices** (posições no corpus) dos `k` documentos mais similares, em ordem decrescente de score, empates na ordem original. Corpus vazio → `[]`. Devolva `int` Python.\n\nExemplo: com `[\"erro de rede\", \"outro assunto\", \"erro de rede\", \"falha grave\"]` e consulta `\"erro\"`, `k=3` → `[0, 2, 3]` (as posições 0 e 2 empatam e saem nessa ordem).",
+      "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef buscar_estavel(consulta, corpus, k):\n    \"\"\"Índices dos k mais similares, empates na ordem original do corpus.\n\n    Contrato:\n    - devolve lista de int Python (posições no corpus), score decrescente\n    - empates mantêm a ordem original (np.argsort(-scores, kind=\"stable\"))\n    - corpus vazio -> []\n    \"\"\"\n    # Negar os scores ordena decrescente sem o [::-1] (que embaralha empates);\n    # o kind estável faz o resto. Converta cada índice para int Python.\n    ...\n",
+      "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef buscar_estavel(consulta, corpus, k):\n    if not corpus:\n        return []\n    q = np.array(embed(consulta))\n    matriz = np.array([embed(t) for t in corpus])\n    scores = matriz @ q\n    ordem = np.argsort(-scores, kind=\"stable\")[:k]\n    return [int(i) for i in ordem]\n",
+      "testes_visiveis": [
+        {
+          "nome": "índices em ordem de score",
+          "codigo": "corpus = ['erro de rede', 'outro assunto', 'erro de rede', 'falha grave']\n_verificar(buscar_estavel('erro', corpus, 3), [0, 2, 3])"
+        },
+        {
+          "nome": "empate mantém a ordem original",
+          "codigo": "corpus = ['erro de rede', 'outro assunto', 'erro de rede', 'falha grave']\n_verificar(buscar_estavel('erro', corpus, 4), [0, 2, 3, 1])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "corpus vazio não quebra",
+          "codigo": "_verificar(buscar_estavel('x', [], 3), [])"
+        },
+        {
+          "nome": "outro corpus com duplicata",
+          "codigo": "corpus = ['python é legal', 'java é chato', 'python é legal']\nscores = [float(np.dot(_mocks.embed_texto(t), _mocks.embed_texto('python'))) for t in corpus]\nesp = sorted(range(len(corpus)), key=lambda i: -scores[i])[:3]\n_verificar(buscar_estavel('python', corpus, 3), esp)"
+        },
+        {
+          "nome": "índices são int Python",
+          "codigo": "r = buscar_estavel('erro', ['erro de rede', 'falha grave'], 2)\nassert all(type(i) is int for i in r), 'Converta cada índice com int(...) — np.int64 quebra json'"
+        },
+        {
+          "nome": "k limita a quantidade de índices",
+          "codigo": "corpus = ['erro de rede', 'outro assunto', 'erro de rede', 'falha grave']\nassert len(buscar_estavel('erro', corpus, 2)) == 2, 'k limita quantos índices saem'"
+        }
+      ],
+      "dicas": [
+        "O perigo do empate: `argsort` crescente + `[::-1]` inverte também a ordem dos empatados. Para decrescente sem bagunçar empates, negue os scores e passe `kind=\"stable\"`.",
+        "Proteja o corpus vazio; monte a matriz do corpus, calcule `scores = matriz @ q` e ranqueie com `np.argsort(-scores, kind=\"stable\")[:k]`, convertendo cada índice para `int`.",
+        "`if not corpus: return []`; `scores = np.array([embed(t) for t in corpus]) @ np.array(embed(consulta))`; `ordem = np.argsort(-scores, kind=\"stable\")[:k]`; `return [int(i) for i in ordem]`"
+      ],
+      "xp": 25,
+      "pacotes": [
+        "numpy"
+      ],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 15
+    },
+    {
+      "id": "ato4-embeddings-t3-03",
+      "nivel": "embeddings",
+      "tier": 3,
+      "conceitos": [
+        "busca-semantica",
+        "threshold",
+        "similaridade"
+      ],
+      "titulo": "Sem eco no contexto",
+      "explicacao_md": null,
+      "enunciado_md": "Corpus reais têm quase-duplicatas: o mesmo parágrafo com uma palavra a mais, a FAQ repetida em duas páginas. Se a busca devolve os dois, o contexto do RAG vira um **eco** — você paga tokens repetidos e o modelo lê a mesma coisa duas vezes.\n\nEscreva `buscar_sem_duplicatas(consulta, corpus, k, limiar_dup)`:\n\n- ranqueie o corpus por cosseno (decrescente)\n- percorra do melhor para o pior, mantendo um resultado só se ele **não** for quase-idêntico a nenhum já mantido: descarte se a similaridade com algum escolhido for `>` `limiar_dup` (fica o primeiro que apareceu)\n- pare ao juntar `k` resultados; cada um é `(texto, score)` (score = cosseno com a consulta)\n- corpus vazio → `[]`\n\nExemplo: `buscar_sem_duplicatas(\"gato preto\", [\"gato preto dorme\", \"gato preto dorme\", \"gato branco\"], 3, 0.95)` → `[(\"gato preto dorme\", 0.78...), (\"gato branco\", 0.63...)]` (a duplicata some).",
+      "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef buscar_sem_duplicatas(consulta, corpus, k, limiar_dup):\n    \"\"\"Busca top-k que descarta quase-duplicatas entre os resultados.\n\n    Contrato:\n    - ranqueia por cosseno decrescente\n    - mantém um resultado só se a similaridade com CADA já escolhido for\n      <= limiar_dup (quase-duplicata > limiar_dup é descartada; fica a primeira)\n    - para ao juntar k resultados; cada um é (texto, score) com score = cosseno\n    - corpus vazio -> []\n    \"\"\"\n    # Do melhor para o pior: cada candidato é comparado com TODOS os já\n    # escolhidos — basta um acima do limiar para ele cair. Pare ao juntar k.\n    ...\n",
+      "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef buscar_sem_duplicatas(consulta, corpus, k, limiar_dup):\n    if not corpus:\n        return []\n    q = embed(consulta)\n    ranqueados = [(t, float(np.dot(embed(t), q))) for t in corpus]\n    ranqueados.sort(key=lambda p: -p[1])\n    escolhidos = []\n    for texto, score in ranqueados:\n        v = embed(texto)\n        duplicata = False\n        for jt, _js in escolhidos:\n            if float(np.dot(v, embed(jt))) > limiar_dup:\n                duplicata = True\n                break\n        if not duplicata:\n            escolhidos.append((texto, score))\n        if len(escolhidos) == k:\n            break\n    return escolhidos\n",
+      "testes_visiveis": [
+        {
+          "nome": "duplicata exata some (fica a primeira)",
+          "codigo": "r = buscar_sem_duplicatas('gato preto', ['gato preto dorme', 'gato preto dorme', 'gato branco'], 3, 0.95)\n_verificar([t for t, _ in r], ['gato preto dorme', 'gato branco'])"
+        },
+        {
+          "nome": "score é o cosseno com a consulta",
+          "codigo": "r = buscar_sem_duplicatas('gato preto', ['gato branco', 'banco de dados'], 2, 0.95)\n_verificar(r[0][0], 'gato branco')\n_verificar(r[0][1], float(np.dot(_mocks.embed_texto('gato branco'), _mocks.embed_texto('gato preto'))))"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "quase-duplicata acima do limiar também some",
+          "codigo": "r = buscar_sem_duplicatas('preco do token', ['preco do token subiu', 'preco do token subiu hoje', 'gato preto'], 3, 0.95)\n_verificar([t for t, _ in r], ['preco do token subiu', 'gato preto'])"
+        },
+        {
+          "nome": "limiar alto preserva as quase-duplicatas",
+          "codigo": "r = buscar_sem_duplicatas('preco do token', ['preco do token subiu', 'preco do token subiu hoje'], 5, 0.99)\n_verificar(len(r), 2)"
+        },
+        {
+          "nome": "corpus vazio não quebra",
+          "codigo": "_verificar(buscar_sem_duplicatas('x', [], 3, 0.95), [])"
+        },
+        {
+          "nome": "sem duplicatas, devolve os k melhores",
+          "codigo": "r = buscar_sem_duplicatas('gato preto', ['gato preto dorme', 'gato branco', 'banco de dados'], 2, 0.95)\nassert len(r) == 2 and [t for t, _ in r] == ['gato preto dorme', 'gato branco'], 'Sem duplicatas, o resultado é o top-k normal'"
+        }
+      ],
+      "dicas": [
+        "Primeiro ranqueie tudo por cosseno; depois vá escolhendo do melhor para o pior, mas antes de aceitar um candidato compare-o com os que você JÁ escolheu — se for quase-idêntico a algum (similaridade > limiar_dup), pule.",
+        "Mantenha uma lista `escolhidos`. Para cada candidato ranqueado, calcule a similaridade dele com cada escolhido; se nenhuma passar de `limiar_dup`, aceite. Pare quando `len(escolhidos) == k`.",
+        "No loop dos ranqueados: `if not any(float(np.dot(embed(texto), embed(jt))) > limiar_dup for jt, _ in escolhidos): escolhidos.append((texto, score))`; depois `if len(escolhidos) == k: break`"
+      ],
+      "xp": 25,
+      "pacotes": [
+        "numpy"
+      ],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 15
+    },
+    {
+      "id": "ato4-llm-t1-01",
+      "nivel": "llm",
+      "tier": 1,
+      "conceitos": [
+        "chat-api-openai"
+      ],
+      "titulo": "Primeira conversa com o modelo",
+      "explicacao_md": "Chegou a hora de falar com um LLM. Você atravessou três atos para chegar a esta chamada — respeite-a: é ela que custa dinheiro de verdade. No Dojo o modelo é um **mock determinístico** (respostas fixas de uma tabela), mas a API é fiel à real.\n\nUma conversa é uma **lista de mensagens**, cada uma um dict com `role` (quem fala) e `content` (o texto). O estilo **OpenAI**:\n\n```python\nfrom openai import OpenAI\nclient = OpenAI()\nresp = client.chat.completions.create(\n    model=\"mock-4\",\n    messages=[{\"role\": \"user\", \"content\": \"qual a capital do brasil?\"}],\n)\nresp.choices[0].message.content   # \"Brasília\"\n```\n\nRepare no caminho até o texto: `resp` → `choices[0]` → `message` → `content`. A resposta vem aninhada porque o modelo pode devolver várias escolhas — você quase sempre usa a primeira.",
+      "enunciado_md": "Faça sua primeira chamada de LLM no estilo OpenAI.\n\nEscreva `responder_openai(client, pergunta)` que:\n\n- monta uma lista com UMA mensagem de `role` `\"user\"` e `content` igual a `pergunta`\n- chama `client.chat.completions.create` com `model=\"mock-4\"`\n- retorna o texto da resposta (`resp.choices[0].message.content`)\n\nO `client` já vem pronto. As respostas saem de uma tabela fixa. Exemplo: `responder_openai(client, \"qual a capital do brasil?\")` → `\"Brasília\"`",
+      "starter_code": "def responder_openai(client, pergunta):\n    # A rota do chat recebe o modelo e a lista de messages; a resposta traz o\n    # texto em choices[0].message.content — o caminho de sempre da OpenAI.\n    ...\n",
+      "solucao_referencia": "def responder_openai(client, pergunta):\n    resp = client.chat.completions.create(\n        model=\"mock-4\",\n        messages=[{\"role\": \"user\", \"content\": pergunta}],\n    )\n    return resp.choices[0].message.content\n",
+      "testes_visiveis": [
+        {
+          "nome": "pergunta da tabela",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(responder_openai(c, 'qual a capital do brasil?'), 'Brasília')"
+        },
+        {
+          "nome": "saudação",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(responder_openai(c, 'olá'), 'Olá! Como posso ajudar?')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outra pergunta da tabela",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(responder_openai(c, 'me fale sobre python'), 'Python é uma linguagem de programação.')"
+        },
+        {
+          "nome": "capital da frança",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(responder_openai(c, 'qual a capital da frança?'), 'Paris')"
+        },
+        {
+          "nome": "usou mesmo a API (uma chamada registrada)",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nresponder_openai(c, 'oi')\n_verificar(len(c.chamadas), 1)"
+        }
+      ],
+      "dicas": [
+        "Uma conversa é uma lista de mensagens; cada mensagem é um dict com `role` e `content`. Aqui você envia uma só, com role `\"user\"`.",
+        "Depois de `client.chat.completions.create(...)`, o texto está em `resp.choices[0].message.content` — siga o caminho campo a campo.",
+        "`resp = client.chat.completions.create(model=\"mock-4\", messages=[{\"role\": \"user\", \"content\": pergunta}])` e `return resp.choices[0].message.content`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-llm-t1-02",
+      "nivel": "llm",
+      "tier": 1,
+      "conceitos": [
+        "chat-api-anthropic"
+      ],
+      "titulo": "O sotaque da Anthropic",
+      "explicacao_md": null,
+      "enunciado_md": "O mesmo pedido, outro SDK. No estilo **Anthropic** o método é `client.messages.create`, `max_tokens` é **obrigatório**, e o texto sai por outro caminho: `resp.content[0].text`.\n\n```python\nresp = client.messages.create(\n    model=\"mock-claude\",\n    max_tokens=256,\n    messages=[{\"role\": \"user\", \"content\": \"...\"}],\n)\nresp.content[0].text\n```\n\nEscreva `responder_anthropic(client, pergunta)` que faz a chamada no estilo Anthropic (com `max_tokens=256`) e retorna o texto.\n\nExemplo: `responder_anthropic(client, \"qual a capital do brasil?\")` → `\"Brasília\"`",
+      "starter_code": "def responder_anthropic(client, pergunta):\n    # O sotaque da Anthropic: max_tokens é OBRIGATÓRIO e o texto sai de\n    # content[0].text — não existe choices aqui.\n    #    (no estilo Anthropic, max_tokens é OBRIGATÓRIO)\n    ...\n",
+      "solucao_referencia": "def responder_anthropic(client, pergunta):\n    resp = client.messages.create(\n        model=\"mock-claude\",\n        max_tokens=256,\n        messages=[{\"role\": \"user\", \"content\": pergunta}],\n    )\n    return resp.content[0].text\n",
+      "testes_visiveis": [
+        {
+          "nome": "pergunta da tabela",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(responder_anthropic(c, 'qual a capital do brasil?'), 'Brasília')"
+        },
+        {
+          "nome": "python",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(responder_anthropic(c, 'me fale sobre python'), 'Python é uma linguagem de programação.')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "capital da frança",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(responder_anthropic(c, 'qual a capital da frança?'), 'Paris')"
+        },
+        {
+          "nome": "max_tokens foi enviado de verdade",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\nresponder_anthropic(c, 'oi')\n_verificar(c.chamadas[-1]['max_tokens'], 256)"
+        },
+        {
+          "nome": "texto vem de content[0].text, não de choices",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(responder_anthropic(c, 'olá'), 'Olá! Como posso ajudar?')"
+        }
+      ],
+      "dicas": [
+        "O estilo Anthropic muda três coisas: o método é `client.messages.create`, `max_tokens` é obrigatório, e a resposta é uma lista de blocos.",
+        "Chame com `max_tokens=256` e pegue o texto do primeiro bloco: `resp.content[0].text`.",
+        "`resp = client.messages.create(model=\"mock-claude\", max_tokens=256, messages=[{\"role\": \"user\", \"content\": pergunta}])` e `return resp.content[0].text`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [
+        "anthropic"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-llm-t1-03",
+      "nivel": "llm",
+      "tier": 1,
+      "conceitos": [
+        "roles"
+      ],
+      "titulo": "Anatomia de uma mensagem",
+      "explicacao_md": null,
+      "enunciado_md": "Toda mensagem numa conversa de IA é um dicionário com duas chaves: `role` (o papel de quem fala — `\"user\"`, `\"assistant\"` ou `\"system\"`) e `content` (o texto). É esse formato que os dois SDKs esperam na lista de mensagens.\n\nEscreva `montar_mensagem(papel, texto)` que devolve o dict `{\"role\": papel, \"content\": texto}`.\n\nExemplo: `montar_mensagem(\"user\", \"olá\")` → `{\"role\": \"user\", \"content\": \"olá\"}`",
+      "starter_code": "def montar_mensagem(papel, texto):\n    # Uma mensagem é um dict de exatamente duas chaves — nem uma a mais.\n    ...\n",
+      "solucao_referencia": "def montar_mensagem(papel, texto):\n    return {\"role\": papel, \"content\": texto}\n",
+      "testes_visiveis": [
+        {
+          "nome": "mensagem de usuário",
+          "codigo": "_verificar(montar_mensagem('user', 'olá'), {'role': 'user', 'content': 'olá'})"
+        },
+        {
+          "nome": "mensagem do assistente",
+          "codigo": "_verificar(montar_mensagem('assistant', 'oi, tudo bem?'), {'role': 'assistant', 'content': 'oi, tudo bem?'})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "papel system",
+          "codigo": "_verificar(montar_mensagem('system', 'seja breve'), {'role': 'system', 'content': 'seja breve'})"
+        },
+        {
+          "nome": "exatamente duas chaves, sem sobras",
+          "codigo": "m = montar_mensagem('user', 'x')\nassert isinstance(m, dict) and set(m.keys()) == {'role', 'content'}, 'A mensagem deve ser um dict com exatamente as chaves role e content'"
+        }
+      ],
+      "dicas": [
+        "Uma mensagem de chat é sempre um dict com as chaves `role` e `content` — nada mais. Aqui você monta uma a partir dos dois parâmetros.",
+        "Devolva um dicionário literal na forma `{\"role\": ..., \"content\": ...}`, usando `papel` e `texto`.",
+        "`return {\"role\": papel, \"content\": texto}`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-llm-t1-04",
+      "nivel": "llm",
+      "tier": 1,
+      "conceitos": [
+        "system-prompt",
+        "roles",
+        "chat-api-openai"
+      ],
+      "titulo": "A instrução de sistema (OpenAI)",
+      "explicacao_md": null,
+      "enunciado_md": "O **system prompt** define o comportamento do assistente (\"você é um suporte técnico conciso\"). No estilo OpenAI ele é só mais uma mensagem na lista, com `role` `\"system\"`, e vem **antes** da mensagem do usuário.\n\nEscreva `responder_com_sistema(client, sistema, pergunta)` que monta a lista com duas mensagens nesta ordem — `{\"role\": \"system\", ...}` depois `{\"role\": \"user\", ...}` — chama a API estilo OpenAI (`model=\"mock-4\"`) e retorna `resp.choices[0].message.content`.\n\nExemplo: `responder_com_sistema(client, \"seja breve\", \"qual a capital do brasil?\")` → `\"Brasília\"`",
+      "starter_code": "def responder_com_sistema(client, sistema, pergunta):\n    # Na OpenAI o system entra como a PRIMEIRA mensagem da lista, antes do user.\n    #    {\"role\": \"system\", \"content\": sistema} e {\"role\": \"user\", \"content\": pergunta}\n    ...\n",
+      "solucao_referencia": "def responder_com_sistema(client, sistema, pergunta):\n    mensagens = [\n        {\"role\": \"system\", \"content\": sistema},\n        {\"role\": \"user\", \"content\": pergunta},\n    ]\n    resp = client.chat.completions.create(model=\"mock-4\", messages=mensagens)\n    return resp.choices[0].message.content\n",
+      "testes_visiveis": [
+        {
+          "nome": "responde a pergunta",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(responder_com_sistema(c, 'Você é um assistente conciso.', 'qual a capital do brasil?'), 'Brasília')"
+        },
+        {
+          "nome": "system entra como primeira mensagem",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nresponder_com_sistema(c, 'seja breve', 'olá')\nmsgs = c.chamadas[-1]['messages']\n_verificar(msgs[0], {'role': 'system', 'content': 'seja breve'})\n_verificar(msgs[1], {'role': 'user', 'content': 'olá'})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outra pergunta e outro system",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(responder_com_sistema(c, 'responda em português', 'quanto é 2+2?'), '4')"
+        },
+        {
+          "nome": "são exatamente duas mensagens, na ordem certa",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nresponder_com_sistema(c, 'persona', 'me fale sobre python')\nmsgs = c.chamadas[-1]['messages']\nassert len(msgs) == 2 and msgs[0]['role'] == 'system' and msgs[1]['role'] == 'user', 'A lista deve ter system e depois user'"
+        }
+      ],
+      "dicas": [
+        "No estilo OpenAI não existe parâmetro separado para o system: ele é uma mensagem como as outras, só que com `role` `\"system\"`, colocada antes da do usuário.",
+        "Monte `mensagens` com o dict de system primeiro e o de user depois; passe essa lista em `messages=` e extraia o texto como no primeiro exercício.",
+        "`mensagens = [{\"role\": \"system\", \"content\": sistema}, {\"role\": \"user\", \"content\": pergunta}]` e depois `return client.chat.completions.create(model=\"mock-4\", messages=mensagens).choices[0].message.content`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-llm-t1-05",
+      "nivel": "llm",
+      "tier": 1,
+      "conceitos": [
+        "system-prompt",
+        "chat-api-anthropic"
+      ],
+      "titulo": "System é parâmetro (Anthropic)",
+      "explicacao_md": null,
+      "enunciado_md": "Aqui os dois estilos divergem de verdade. No estilo **Anthropic**, o system **não** vai na lista de mensagens — vai num parâmetro à parte, `system=`. Colocá-lo como uma mensagem `role=\"system\"` estaria errado.\n\nEscreva `responder_anthropic_sistema(client, sistema, pergunta)` que chama `client.messages.create` com `model=\"mock-claude\"`, `max_tokens=256`, `system=sistema` e a mensagem do usuário em `messages`, e retorna `resp.content[0].text`.\n\nO mock do Dojo obedece ao system: se ele contém a palavra `\"maiúsculas\"`, a resposta vem em CAIXA ALTA. Exemplo: `responder_anthropic_sistema(client, \"responda em maiúsculas\", \"qual a capital do brasil?\")` → `\"BRASÍLIA\"`",
+      "starter_code": "def responder_anthropic_sistema(client, sistema, pergunta):\n    # Na Anthropic o system NÃO entra na lista: ele é um parâmetro próprio da chamada.\n    #    system=sistema, messages=[{\"role\": \"user\", \"content\": pergunta}])\n    ...\n",
+      "solucao_referencia": "def responder_anthropic_sistema(client, sistema, pergunta):\n    resp = client.messages.create(\n        model=\"mock-claude\",\n        max_tokens=256,\n        system=sistema,\n        messages=[{\"role\": \"user\", \"content\": pergunta}],\n    )\n    return resp.content[0].text\n",
+      "testes_visiveis": [
+        {
+          "nome": "system em maiúsculas afeta a resposta",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(responder_anthropic_sistema(c, 'responda em maiúsculas', 'qual a capital do brasil?'), 'BRASÍLIA')"
+        },
+        {
+          "nome": "system vai no parâmetro, não nas mensagens",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\nresponder_anthropic_sistema(c, 'seja formal', 'olá')\nreg = c.chamadas[-1]\n_verificar(reg['system'], 'seja formal')\nassert all(m['role'] != 'system' for m in reg['messages']), 'No estilo Anthropic o system vai no parâmetro system=, nunca como mensagem role=system'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "system neutro não altera o texto",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(responder_anthropic_sistema(c, 'seja educado', 'me fale sobre python'), 'Python é uma linguagem de programação.')"
+        },
+        {
+          "nome": "maiúsculas com outra pergunta",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(responder_anthropic_sistema(c, 'escreva em maiúsculas', 'qual a capital da frança?'), 'PARIS')"
+        }
+      ],
+      "dicas": [
+        "A grande diferença entre os estilos aparece aqui: no Anthropic o system é um argumento próprio da chamada, não um item da lista de mensagens.",
+        "Passe `system=sistema` e `max_tokens=256` direto em `client.messages.create`, deixando `messages` só com a mensagem do usuário.",
+        "`resp = client.messages.create(model=\"mock-claude\", max_tokens=256, system=sistema, messages=[{\"role\": \"user\", \"content\": pergunta}])` e `return resp.content[0].text`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [
+        "anthropic"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-llm-t1-06",
+      "nivel": "llm",
+      "tier": 1,
+      "conceitos": [
+        "chat-api-openai"
+      ],
+      "titulo": "A conta de tokens da chamada",
+      "explicacao_md": null,
+      "enunciado_md": "Toda resposta de LLM traz um relatório de uso em `resp.usage`: quantos tokens entraram (`prompt_tokens`) e quantos saíram (`completion_tokens`). É desses números que sai a sua fatura.\n\nEscreva `tokens_usados(client, pergunta)` que faz uma chamada estilo OpenAI (`model=\"mock-4\"`) e retorna a **tupla** `(prompt_tokens, completion_tokens)`.\n\nNo mock, 1 token = 1 palavra. Exemplo: `tokens_usados(client, \"qual a capital do brasil?\")` → `(5, 1)` (5 palavras na pergunta, 1 na resposta \"Brasília\").",
+      "starter_code": "def tokens_usados(client, pergunta):\n    # O recibo da chamada mora em resposta.usage — leia os dois lados e devolva a tupla.\n    ...\n",
+      "solucao_referencia": "def tokens_usados(client, pergunta):\n    resp = client.chat.completions.create(\n        model=\"mock-4\",\n        messages=[{\"role\": \"user\", \"content\": pergunta}],\n    )\n    return resp.usage.prompt_tokens, resp.usage.completion_tokens\n",
+      "testes_visiveis": [
+        {
+          "nome": "pergunta curta, resposta curta",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(tokens_usados(c, 'qual a capital do brasil?'), (5, 1))"
+        },
+        {
+          "nome": "resposta mais longa",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(tokens_usados(c, 'me fale sobre python'), (4, 6))"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "saudação",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(tokens_usados(c, 'olá'), (1, 4))"
+        },
+        {
+          "nome": "conta bate com 2+2",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(tokens_usados(c, 'quanto é 2+2?'), (3, 1))"
+        },
+        {
+          "nome": "devolve uma tupla de inteiros",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nr = tokens_usados(c, 'oi')\nassert isinstance(r, tuple) and len(r) == 2 and all(isinstance(x, int) for x in r), 'Retorne uma tupla (prompt_tokens, completion_tokens) de inteiros'"
+        }
+      ],
+      "dicas": [
+        "O relatório de consumo de cada chamada fica em `resp.usage`; os campos de entrada e saída têm nomes próprios.",
+        "Leia `resp.usage.prompt_tokens` e `resp.usage.completion_tokens` e devolva os dois numa tupla, nessa ordem.",
+        "`return resp.usage.prompt_tokens, resp.usage.completion_tokens`"
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-llm-t2-01",
+      "nivel": "llm",
+      "tier": 2,
+      "conceitos": [
+        "historico-chat",
+        "multi-turno",
+        "roles"
+      ],
+      "titulo": "Conversa com memória",
+      "explicacao_md": "No tier 2 a conversa ganha memória. Um LLM não guarda estado entre chamadas: para ele \"lembrar\" do que já foi dito, você reenvia o histórico INTEIRO a cada turno — uma lista crescente de mensagens `user` e `assistant`.\n\n```python\nmensagens = [\n    {\"role\": \"user\", \"content\": \"oi\"},\n    {\"role\": \"assistant\", \"content\": \"Olá! Como posso ajudar?\"},\n    {\"role\": \"user\", \"content\": \"qual a capital do brasil?\"},\n]\n```\n\nA cada rodada: acrescente a fala do usuário, chame a API, e acrescente a resposta do assistente ao histórico. É por isso que conversas longas ficam caras — você paga de novo por tudo a cada turno.",
+      "enunciado_md": "Escreva `conversar(client, historico, nova_pergunta)` que dá um turno na conversa:\n\n- monte as mensagens = `historico` + a nova mensagem de `user`\n- chame a API estilo OpenAI (`model=\"mock-4\"`) e pegue a resposta\n- devolva a tupla `(resposta, novo_historico)`, onde `novo_historico` é a lista enviada MAIS a resposta do assistente acrescentada\n- **não** altere a lista `historico` recebida — devolva uma nova\n\nExemplo: `conversar(client, [], \"qual a capital do brasil?\")` → `(\"Brasília\", [{\"role\": \"user\", \"content\": \"qual a capital do brasil?\"}, {\"role\": \"assistant\", \"content\": \"Brasília\"}])`",
+      "starter_code": "def conversar(client, historico, nova_pergunta):\n    # Aqui nasce a memória do chat — e ela fica inteira nas suas mãos.\n    # Copie o histórico (nada de mutar a lista recebida), anexe a pergunta nova,\n    # envie o TODO e devolva o histórico novo com a resposta anexada.\n    ...\n",
+      "solucao_referencia": "def conversar(client, historico, nova_pergunta):\n    mensagens = list(historico) + [{\"role\": \"user\", \"content\": nova_pergunta}]\n    resp = client.chat.completions.create(model=\"mock-4\", messages=mensagens)\n    resposta = resp.choices[0].message.content\n    novo_historico = mensagens + [{\"role\": \"assistant\", \"content\": resposta}]\n    return resposta, novo_historico\n",
+      "testes_visiveis": [
+        {
+          "nome": "primeiro turno monta o histórico",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nresposta, hist = conversar(c, [], 'qual a capital do brasil?')\n_verificar(resposta, 'Brasília')\n_verificar(hist, [{'role': 'user', 'content': 'qual a capital do brasil?'}, {'role': 'assistant', 'content': 'Brasília'}])"
+        },
+        {
+          "nome": "segundo turno cresce a lista",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_, hist1 = conversar(c, [], 'olá')\nresposta2, hist2 = conversar(c, hist1, 'qual a capital da frança?')\n_verificar(resposta2, 'Paris')\n_verificar(len(hist2), 4)\n_verificar(hist2[-1], {'role': 'assistant', 'content': 'Paris'})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "o histórico inteiro é reenviado",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nhist = [{'role': 'user', 'content': 'oi'}, {'role': 'assistant', 'content': 'Olá! Como posso ajudar?'}]\nresposta, _ = conversar(c, hist, 'me fale sobre python')\n_verificar(resposta, 'Python é uma linguagem de programação.')\n_verificar(len(c.chamadas[-1]['messages']), 3)"
+        },
+        {
+          "nome": "não muta a lista recebida",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\noriginal = [{'role': 'user', 'content': 'oi'}, {'role': 'assistant', 'content': 'Olá! Como posso ajudar?'}]\nconversar(c, original, 'quanto é 2+2?')\n_verificar(len(original), 2)"
+        },
+        {
+          "nome": "começando do zero",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nresposta, hist = conversar(c, [], 'quanto é 2+2?')\n_verificar(resposta, '4')\n_verificar(hist, [{'role': 'user', 'content': 'quanto é 2+2?'}, {'role': 'assistant', 'content': '4'}])"
+        }
+      ],
+      "dicas": [
+        "O modelo não lembra de nada sozinho: memória é a lista de mensagens que VOCÊ reenvia. A cada turno ela cresce com a fala do usuário e, depois, com a resposta do assistente.",
+        "Monte `mensagens = list(historico) + [nova mensagem user]`, chame a API, e devolva também o histórico com a resposta do assistente acrescentada. Copie com `list(...)` para não alterar a lista recebida.",
+        "`mensagens = list(historico) + [{\"role\": \"user\", \"content\": nova_pergunta}]`; após a chamada, `novo = mensagens + [{\"role\": \"assistant\", \"content\": resposta}]` e `return resposta, novo`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-llm-t2-02",
+      "nivel": "llm",
+      "tier": 2,
+      "conceitos": [
+        "chat-api-openai",
+        "chat-api-anthropic"
+      ],
+      "titulo": "Um só balcão para dois SDKs",
+      "explicacao_md": null,
+      "enunciado_md": "Gateways de IA recebem clientes de provedores diferentes e precisam falar com todos por uma porta só. Os dois estilos se distinguem pelos atributos: o cliente OpenAI tem `.chat`; o Anthropic tem `.messages`.\n\nEscreva `perguntar(client, texto)` que detecta o estilo com `hasattr` e faz a chamada certa:\n\n- se `hasattr(client, \"chat\")`: estilo OpenAI → `resp.choices[0].message.content`\n- senão (tem `.messages`): estilo Anthropic → passe `max_tokens=1024` → `resp.content[0].text`\n\nDos dois jeitos, retorne o texto. Exemplo: com qualquer um dos clientes, `perguntar(client, \"qual a capital do brasil?\")` → `\"Brasília\"`",
+      "starter_code": "def perguntar(client, texto):\n    # Um balcão, dois sotaques: descubra qual cliente chegou (cada SDK tem um\n    # atributo que só ele tem) — o retorno é o mesmo texto nos dois.\n    ...\n",
+      "solucao_referencia": "def perguntar(client, texto):\n    mensagens = [{\"role\": \"user\", \"content\": texto}]\n    if hasattr(client, \"chat\"):\n        resp = client.chat.completions.create(model=\"mock-4\", messages=mensagens)\n        return resp.choices[0].message.content\n    resp = client.messages.create(model=\"mock-claude\", max_tokens=1024, messages=mensagens)\n    return resp.content[0].text\n",
+      "testes_visiveis": [
+        {
+          "nome": "funciona no cliente OpenAI",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(perguntar(c, 'qual a capital do brasil?'), 'Brasília')"
+        },
+        {
+          "nome": "funciona no cliente Anthropic",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(perguntar(c, 'qual a capital do brasil?'), 'Brasília')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "OpenAI usou a rota chat.completions",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(perguntar(c, 'me fale sobre python'), 'Python é uma linguagem de programação.')\n_verificar(c.chamadas[-1]['api'], 'chat.completions.create')"
+        },
+        {
+          "nome": "Anthropic usou messages com max_tokens",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(perguntar(c, 'olá'), 'Olá! Como posso ajudar?')\n_verificar(c.chamadas[-1]['api'], 'messages.create')\nassert c.chamadas[-1]['max_tokens'] is not None, 'No estilo Anthropic o max_tokens é obrigatório'"
+        },
+        {
+          "nome": "mesma pergunta, mesma resposta nos dois",
+          "codigo": "from openai import OpenAI\nfrom anthropic import Anthropic\n_verificar(perguntar(OpenAI(), 'qual a capital da frança?'), 'Paris')\n_verificar(perguntar(Anthropic(), 'qual a capital da frança?'), 'Paris')"
+        }
+      ],
+      "dicas": [
+        "Os dois SDKs têm formas diferentes de chamada e de resposta. Descubra qual cliente você recebeu ANTES de chamar — `hasattr(obj, \"nome\")` diz se um objeto tem certo atributo.",
+        "O cliente OpenAI tem `.chat`; o Anthropic tem `.messages`. Ramifique com `if hasattr(client, \"chat\"):` e trate cada estilo (lembre do `max_tokens` obrigatório no Anthropic).",
+        "No ramo OpenAI: `client.chat.completions.create(...).choices[0].message.content`. No outro: `client.messages.create(..., max_tokens=1024, ...).content[0].text`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [
+        "openai",
+        "anthropic"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-llm-t2-03",
+      "nivel": "llm",
+      "tier": 2,
+      "conceitos": [
+        "system-prompt",
+        "chat-api-anthropic"
+      ],
+      "titulo": "Fale como um pirata",
+      "explicacao_md": null,
+      "enunciado_md": "O system prompt é onde se define a **persona** do assistente — e dá para ver o efeito. O modelo-mock do Dojo vira pirata quando o system contém a palavra `\"pirata\"`: ele prefixa `\"Arrr! \"` em toda resposta.\n\nEscreva `falar_como_pirata(client, pergunta)` que faz uma chamada estilo Anthropic (`model=\"mock-claude\"`, `max_tokens=256`) com um `system=` que instrui o modelo a responder como pirata (o texto do system precisa conter a palavra `\"pirata\"`) e retorna `resp.content[0].text`.\n\nExemplo: `falar_como_pirata(client, \"qual a capital do brasil?\")` → `\"Arrr! Brasília\"`",
+      "starter_code": "def falar_como_pirata(client, pergunta):\n    # A persona vive no system; a pergunta continua no user. O teste confere os dois.\n    ...\n",
+      "solucao_referencia": "def falar_como_pirata(client, pergunta):\n    resp = client.messages.create(\n        model=\"mock-claude\",\n        max_tokens=256,\n        system=\"Você é um pirata. Responda sempre como um pirata.\",\n        messages=[{\"role\": \"user\", \"content\": pergunta}],\n    )\n    return resp.content[0].text\n",
+      "testes_visiveis": [
+        {
+          "nome": "sotaque de pirata na capital",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(falar_como_pirata(c, 'qual a capital do brasil?'), 'Arrr! Brasília')"
+        },
+        {
+          "nome": "pirata falando de python",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(falar_como_pirata(c, 'me fale sobre python'), 'Arrr! Python é uma linguagem de programação.')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "pirata com outra pergunta",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(falar_como_pirata(c, 'quanto é 2+2?'), 'Arrr! 4')"
+        },
+        {
+          "nome": "o system realmente pede pirata",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\nfalar_como_pirata(c, 'olá')\nassert 'pirata' in (c.chamadas[-1]['system'] or '').lower(), 'O system precisa instruir o modelo a falar como pirata (conter a palavra pirata)'"
+        },
+        {
+          "nome": "prefixo Arrr! na saudação",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(falar_como_pirata(c, 'olá'), 'Arrr! Olá! Como posso ajudar?')"
+        }
+      ],
+      "dicas": [
+        "A persona mora no system. No mock, basta o system conter a palavra `\"pirata\"` para o modelo prefixar `\"Arrr! \"` — é o system moldando o comportamento.",
+        "Use o estilo Anthropic: `client.messages.create(..., system=<seu prompt de pirata>, max_tokens=256, ...)`. O prompt precisa conter a palavra `\"pirata\"`.",
+        "`system=\"Você é um pirata. Responda como um pirata.\"` na chamada e `return resp.content[0].text`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [
+        "anthropic"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-llm-t2-04",
+      "nivel": "llm",
+      "tier": 2,
+      "conceitos": [
+        "chat-api-openai"
+      ],
+      "titulo": "Cortado no meio da frase",
+      "explicacao_md": null,
+      "enunciado_md": "Quando a resposta atinge o teto de `max_tokens`, o modelo para no meio — e você precisa saber disso para não tratar um texto truncado como completo. No estilo OpenAI, o sinal está em `resp.choices[0].finish_reason`: vale `\"stop\"` quando terminou naturalmente e `\"length\"` quando bateu no limite.\n\nEscreva `resposta_truncada(client, pergunta, max_tokens)` que faz a chamada OpenAI passando `max_tokens`, e retorna a tupla `(texto, foi_truncada)`, onde `foi_truncada` é `True` se `finish_reason == \"length\"`.\n\nExemplo: `resposta_truncada(client, \"me fale sobre python\", 3)` → `(\"Python é uma\", True)` (a resposta tem 6 palavras, cortadas em 3).",
+      "starter_code": "def resposta_truncada(client, pergunta, max_tokens):\n    # Compare o finish_reason com 'length' para saber se cortou — e a flag de\n    # saída tem de ser um booleano de verdade.\n    ...\n",
+      "solucao_referencia": "def resposta_truncada(client, pergunta, max_tokens):\n    resp = client.chat.completions.create(\n        model=\"mock-4\",\n        messages=[{\"role\": \"user\", \"content\": pergunta}],\n        max_tokens=max_tokens,\n    )\n    escolha = resp.choices[0]\n    return escolha.message.content, escolha.finish_reason == \"length\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "resposta cortada pelo limite",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(resposta_truncada(c, 'me fale sobre python', 3), ('Python é uma', True))"
+        },
+        {
+          "nome": "limite folgado não corta",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(resposta_truncada(c, 'me fale sobre python', 20), ('Python é uma linguagem de programação.', False))"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "resposta curta cabe no limite",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(resposta_truncada(c, 'qual a capital do brasil?', 1), ('Brasília', False))"
+        },
+        {
+          "nome": "fallback longo também trunca",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(resposta_truncada(c, 'explique bastante coisa por favor agora', 3), ('Você disse: explique', True))"
+        },
+        {
+          "nome": "a flag é um booleano de verdade",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\ntexto, flag = resposta_truncada(c, 'me fale sobre python', 2)\nassert flag is True and texto == 'Python é', 'Com max_tokens=2 a resposta é cortada e a flag é True'"
+        }
+      ],
+      "dicas": [
+        "Uma resposta cortada por falta de espaço não é a resposta inteira. O estilo OpenAI avisa isso num campo da escolha, que passa de `\"stop\"` para `\"length\"`.",
+        "Passe `max_tokens=max_tokens` na chamada, pegue `resp.choices[0]` e compare `.finish_reason` com `\"length\"` para obter o booleano.",
+        "`escolha = resp.choices[0]` e `return escolha.message.content, escolha.finish_reason == \"length\"`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-llm-t2-05",
+      "nivel": "llm",
+      "tier": 2,
+      "conceitos": [
+        "chat-api-openai",
+        "custo-llm"
+      ],
+      "titulo": "Quanto custou essa resposta?",
+      "explicacao_md": null,
+      "enunciado_md": "O financeiro quer o custo de cada chamada. O total de tokens (entrada + saída) vem pronto em `resp.usage.total_tokens`, e o preço é o mesmo por-mil-tokens que você já viu no chunking.\n\nEscreva `perguntar_e_custo(client, pergunta, preco_por_1k)` que faz a chamada OpenAI (`model=\"mock-4\"`) e retorna a tupla `(texto, custo)`, onde:\n\n```\ncusto = resp.usage.total_tokens / 1000 * preco_por_1k\n```\n\nExemplo: `perguntar_e_custo(client, \"qual a capital do brasil?\", 0.5)` → `(\"Brasília\", 0.003)` (5 tokens de entrada + 1 de saída = 6; 6/1000*0.5).",
+      "starter_code": "def perguntar_e_custo(client, pergunta, preco_por_1k):\n    # O usage da resposta dá os dois lados da conta; o preço é por MIL tokens.\n    ...\n",
+      "solucao_referencia": "def perguntar_e_custo(client, pergunta, preco_por_1k):\n    resp = client.chat.completions.create(\n        model=\"mock-4\",\n        messages=[{\"role\": \"user\", \"content\": pergunta}],\n    )\n    texto = resp.choices[0].message.content\n    custo = resp.usage.total_tokens / 1000 * preco_por_1k\n    return texto, custo\n",
+      "testes_visiveis": [
+        {
+          "nome": "custo da capital",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(perguntar_e_custo(c, 'qual a capital do brasil?', 0.5), ('Brasília', 0.003))"
+        },
+        {
+          "nome": "resposta mais longa custa mais",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(perguntar_e_custo(c, 'me fale sobre python', 1.0), ('Python é uma linguagem de programação.', 0.01))"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro preço por 1k",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(perguntar_e_custo(c, 'qual a capital da frança?', 2.0), ('Paris', 0.012))"
+        },
+        {
+          "nome": "preço zero, custo zero",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\ntexto, custo = perguntar_e_custo(c, 'olá', 0.0)\n_verificar(texto, 'Olá! Como posso ajudar?')\n_verificar(custo, 0.0)"
+        }
+      ],
+      "dicas": [
+        "A conta de tokens de uma chamada vem pronta em `resp.usage` — `total_tokens` já soma entrada e saída. O custo é a mesma fórmula por mil tokens do nível de chunking.",
+        "Leia `resp.usage.total_tokens`, aplique `total / 1000 * preco_por_1k`, e devolva `(texto, custo)`.",
+        "`custo = resp.usage.total_tokens / 1000 * preco_por_1k` e `return texto, custo`"
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-llm-t3-01",
+      "nivel": "llm",
+      "tier": 3,
+      "conceitos": [
+        "erros-llm",
+        "chat-api-openai"
+      ],
+      "titulo": "Tentar de novo depois do 429",
+      "explicacao_md": "No tier 3, a rede e o modelo conspiram contra você. Chamadas de LLM falham (limite de requisições — `RateLimitError`), respostas chegam partidas em blocos, e às vezes você mesmo monta uma lista de mensagens inválida. Código de produção antecipa isso.\n\nO padrão mais comum é o **retry**: tentou, tomou `429`, tenta de novo, com um teto de tentativas para não insistir para sempre.\n\n```python\nfrom openai import RateLimitError\nultimo = None\nfor _ in range(tentativas):\n    try:\n        return client.chat.completions.create(...).choices[0].message.content\n    except RateLimitError as e:\n        ultimo = e   # guarda e tenta de novo\nraise ultimo   # todas falharam: relance o último 429\n```\n\nNo Dojo, `_mocks.roteirizar_erros_llm(['rate_limit', None])` faz a 1ª chamada falhar e a 2ª passar. Cada chamada — mesmo as que falham — fica registrada em `client.chamadas`.",
+      "enunciado_md": "Escreva `perguntar_com_retry(client, pergunta, tentativas)` (estilo OpenAI, `model=\"mock-4\"`) que:\n\n- tenta a chamada até `tentativas` vezes\n- a cada `RateLimitError` (importe de `openai`), tenta de novo\n- no primeiro sucesso, retorna `resp.choices[0].message.content`\n- se TODAS as tentativas falharem com `RateLimitError`, deixe o último erro propagar (relance-o)\n- garantido: `tentativas >= 1`\n\nUse `_mocks.roteirizar_erros_llm([...])` nos testes. Exemplo: com `['rate_limit', None]` e `tentativas=3`, a 1ª chamada falha, a 2ª devolve `\"Brasília\"`, e `client.chamadas` fica com 2 registros.",
+      "starter_code": "def perguntar_com_retry(client, pergunta, tentativas):\n    \"\"\"Chama o LLM com retry em RateLimitError.\n\n    Contrato:\n    - tenta até `tentativas` vezes (tentativas >= 1)\n    - RateLimitError (de openai) -> tenta de novo\n    - 1º sucesso -> retorna resp.choices[0].message.content\n    - todas falharam -> relança o último RateLimitError\n    \"\"\"\n    # O RateLimitError do SDK é a exceção a capturar; conte cada chamada e\n    # propague o erro quando o orçamento esgotar.\n    ...\n",
+      "solucao_referencia": "from openai import RateLimitError\n\n\ndef perguntar_com_retry(client, pergunta, tentativas):\n    ultimo_erro = None\n    for _ in range(tentativas):\n        try:\n            resp = client.chat.completions.create(\n                model=\"mock-4\",\n                messages=[{\"role\": \"user\", \"content\": pergunta}],\n            )\n            return resp.choices[0].message.content\n        except RateLimitError as e:\n            ultimo_erro = e\n    raise ultimo_erro\n",
+      "testes_visiveis": [
+        {
+          "nome": "falha uma vez, acerta na segunda",
+          "codigo": "from openai import OpenAI\n_mocks.roteirizar_erros_llm(['rate_limit', None])\nc = OpenAI()\n_verificar(perguntar_com_retry(c, 'qual a capital do brasil?', 3), 'Brasília')\n_verificar(len(c.chamadas), 2)"
+        },
+        {
+          "nome": "sem falha, uma chamada só",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(perguntar_com_retry(c, 'me fale sobre python', 3), 'Python é uma linguagem de programação.')\n_verificar(len(c.chamadas), 1)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "duas falhas antes do acerto",
+          "codigo": "from openai import OpenAI\n_mocks.roteirizar_erros_llm(['rate_limit', 'rate_limit', None])\nc = OpenAI()\n_verificar(perguntar_com_retry(c, 'quanto é 2+2?', 5), '4')\n_verificar(len(c.chamadas), 3)"
+        },
+        {
+          "nome": "esgotou as tentativas e propagou o erro",
+          "codigo": "from openai import OpenAI, RateLimitError\n_mocks.roteirizar_erros_llm(['rate_limit', 'rate_limit'])\nc = OpenAI()\ntry:\n    perguntar_com_retry(c, 'olá', 2)\n    assert False, 'após esgotar as tentativas, o RateLimitError deveria propagar'\nexcept RateLimitError:\n    pass\n_verificar(len(c.chamadas), 2)"
+        },
+        {
+          "nome": "conta as chamadas mesmo com falha no meio",
+          "codigo": "from openai import OpenAI\n_mocks.roteirizar_erros_llm(['rate_limit', None])\nc = OpenAI()\nperguntar_com_retry(c, 'qual a capital da frança?', 4)\n_verificar(len(c.chamadas), 2)"
+        }
+      ],
+      "dicas": [
+        "Um `429` (RateLimitError) costuma ser temporário: a resposta certa é tentar de novo, com um teto de tentativas para não insistir para sempre.",
+        "Faça um `for _ in range(tentativas)` com `try/except RateLimitError`: no try, retorne a resposta; no except, guarde o erro e siga. Se o loop acabar sem sucesso, relance o último erro.",
+        "`from openai import RateLimitError`; no loop, `try: return ...choices[0].message.content` e `except RateLimitError as e: ultimo = e`; depois do loop, `raise ultimo`"
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-llm-t3-02",
+      "nivel": "llm",
+      "tier": 3,
+      "conceitos": [
+        "chat-api-anthropic",
+        "erros-llm"
+      ],
+      "titulo": "Resposta em vários blocos",
+      "explicacao_md": null,
+      "enunciado_md": "No estilo Anthropic, `resp.content` é uma **lista de blocos**, não um texto só. Pegar apenas `content[0].text` funciona por sorte quando há um bloco — e perde metade da resposta quando o modelo devolve vários.\n\nEscreva `texto_completo(client, pergunta)` (estilo Anthropic, `model=\"mock-claude\"`, `max_tokens=1024`) que concatena o `.text` de TODOS os blocos de `resp.content` e retorna a string inteira.\n\nUse `_mocks.roteirizar_erros_llm(['multi_blocos'])` para forçar a resposta a vir partida em dois blocos. Exemplo: com esse roteiro, `texto_completo(client, \"me fale sobre python\")` → `\"Python é uma linguagem de programação.\"` (remontado dos dois pedaços).",
+      "starter_code": "def texto_completo(client, pergunta):\n    # A resposta pode vir em VÁRIOS blocos de content — junte o .text de todos,\n    # na ordem, num texto só.\n    ...\n",
+      "solucao_referencia": "def texto_completo(client, pergunta):\n    resp = client.messages.create(\n        model=\"mock-claude\",\n        max_tokens=1024,\n        messages=[{\"role\": \"user\", \"content\": pergunta}],\n    )\n    return \"\".join(bloco.text for bloco in resp.content)\n",
+      "testes_visiveis": [
+        {
+          "nome": "remonta a resposta partida em dois blocos",
+          "codigo": "from anthropic import Anthropic\n_mocks.roteirizar_erros_llm(['multi_blocos'])\nc = Anthropic()\n_verificar(texto_completo(c, 'me fale sobre python'), 'Python é uma linguagem de programação.')"
+        },
+        {
+          "nome": "bloco único também funciona",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(texto_completo(c, 'qual a capital do brasil?'), 'Brasília')"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro texto longo em dois blocos",
+          "codigo": "from anthropic import Anthropic\n_mocks.roteirizar_erros_llm(['multi_blocos'])\nc = Anthropic()\n_verificar(texto_completo(c, 'explique bastante coisa por favor'), 'Você disse: explique bastante coisa por favor')"
+        },
+        {
+          "nome": "resposta de uma palavra vira um bloco só",
+          "codigo": "from anthropic import Anthropic\n_mocks.roteirizar_erros_llm(['multi_blocos'])\nc = Anthropic()\n_verificar(texto_completo(c, 'qual a capital da frança?'), 'Paris')"
+        },
+        {
+          "nome": "de fato vieram dois blocos no cenário",
+          "codigo": "from anthropic import Anthropic\n_mocks.roteirizar_erros_llm(['multi_blocos'])\nc = Anthropic()\nresp = c.messages.create(model='mock-claude', max_tokens=64, messages=[{'role': 'user', 'content': 'me fale sobre python'}])\nassert len(resp.content) >= 2, 'Com multi_blocos a resposta chega em vários blocos — por isso concatenar todos importa'"
+        }
+      ],
+      "dicas": [
+        "A API da Anthropic devolve `content` como uma LISTA de blocos. Só olhar `content[0]` ignora os demais quando há mais de um.",
+        "Percorra todos os blocos de `resp.content` e junte o `.text` de cada um. `\"\".join(...)` com uma generator expression resolve.",
+        "`return \"\".join(bloco.text for bloco in resp.content)`"
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [
+        "anthropic"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-llm-t3-03",
+      "nivel": "llm",
+      "tier": 3,
+      "conceitos": [
+        "roles",
+        "erros-llm"
+      ],
+      "titulo": "Valide antes de gastar",
+      "explicacao_md": null,
+      "enunciado_md": "Mandar uma mensagem com `role` inválido para a API gasta uma chamada paga só para receber um erro obscuro. Melhor validar antes. Numa conversa, só três papéis são válidos: `user`, `assistant` e `system`.\n\nDefina a exceção `RoleInvalida(Exception)` e escreva `enviar_validado(client, mensagens)` que:\n\n- percorre `mensagens` ANTES de qualquer chamada; se algum `role` não estiver em `{\"user\", \"assistant\", \"system\"}` (ou faltar), levanta `RoleInvalida` cuja mensagem contém o role inválido (como texto)\n- se todas forem válidas, chama a API OpenAI (`model=\"mock-4\"`) com `mensagens` e retorna `resp.choices[0].message.content`\n- se alguma for inválida, NENHUMA chamada é feita\n\nExemplo: `enviar_validado(client, [{\"role\": \"robô\", \"content\": \"oi\"}])` → levanta `RoleInvalida`.",
+      "starter_code": "class RoleInvalida(Exception):\n    \"\"\"Levantada quando uma mensagem tem role fora de user/assistant/system.\"\"\"\n    pass\n\n\ndef enviar_validado(client, mensagens):\n    \"\"\"Valida os roles ANTES de enviar; role inválido -> RoleInvalida (citando o role).\n\n    Contrato:\n    - roles válidos: user, assistant, system\n    - role fora do conjunto (ou ausente) -> RoleInvalida antes de qualquer chamada\n    - todos válidos -> chama a API OpenAI e retorna resp.choices[0].message.content\n    \"\"\"\n    # Valide o formato ANTES de gastar: role inválido levanta a SUA RoleInvalida\n    # sem nenhuma chamada à API — o mock confere que nada foi enviado.\n    ...\n",
+      "solucao_referencia": "class RoleInvalida(Exception):\n    pass\n\n\ndef enviar_validado(client, mensagens):\n    validos = {\"user\", \"assistant\", \"system\"}\n    for m in mensagens:\n        papel = m.get(\"role\")\n        if papel not in validos:\n            raise RoleInvalida(f\"role inválido: {papel}\")\n    resp = client.chat.completions.create(model=\"mock-4\", messages=mensagens)\n    return resp.choices[0].message.content\n",
+      "testes_visiveis": [
+        {
+          "nome": "mensagens válidas passam",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(enviar_validado(c, [{'role': 'user', 'content': 'qual a capital do brasil?'}]), 'Brasília')"
+        },
+        {
+          "nome": "role inválido levanta RoleInvalida citando o role",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\ntry:\n    enviar_validado(c, [{'role': 'robô', 'content': 'oi'}])\n    assert False, \"role 'robô' é inválido e deveria levantar RoleInvalida\"\nexcept RoleInvalida as e:\n    assert 'robô' in str(e), 'A mensagem do erro deve citar o role inválido (robô)'"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "valida antes de enviar: nenhuma chamada feita",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\ntry:\n    enviar_validado(c, [{'role': 'system', 'content': 'x'}, {'role': 'user', 'content': 'oi'}, {'role': 'admin', 'content': 'y'}])\n    assert False, 'role admin é inválido e deveria levantar RoleInvalida'\nexcept RoleInvalida:\n    pass\n_verificar(len(c.chamadas), 0)"
+        },
+        {
+          "nome": "mensagem sem role também é inválida",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\ntry:\n    enviar_validado(c, [{'content': 'cadê o role?'}])\n    assert False, 'mensagem sem role deveria levantar RoleInvalida'\nexcept RoleInvalida:\n    pass"
+        },
+        {
+          "nome": "system + user válidos respondem",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nmsgs = [{'role': 'system', 'content': 'seja breve'}, {'role': 'user', 'content': 'quanto é 2+2?'}]\n_verificar(enviar_validado(c, msgs), '4')"
+        }
+      ],
+      "dicas": [
+        "Validar antes de enviar economiza uma chamada paga e um erro obscuro lá na API. Só três papéis valem numa conversa: user, assistant e system.",
+        "Defina `class RoleInvalida(Exception): pass`. Percorra as mensagens ANTES de qualquer chamada; se algum `role` não estiver em `{\"user\", \"assistant\", \"system\"}`, levante `RoleInvalida` citando o role.",
+        "No loop: `if m.get(\"role\") not in {\"user\", \"assistant\", \"system\"}: raise RoleInvalida(f\"role inválido: {m.get('role')}\")`; só depois chame a API e retorne `resp.choices[0].message.content`"
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-estruturada-t1-01",
+      "nivel": "estruturada",
+      "tier": 1,
+      "conceitos": [
+        "saida-estruturada",
+        "validacao-dataclass"
+      ],
+      "titulo": "Resposta em JSON",
+      "explicacao_md": "Modelos de IA respondem em **texto livre** por natureza — mas para automatizar (abrir um chamado, roteirizar, preencher um formulário) você pede a resposta em **JSON** e a converte em objeto Python.\n\n`json.loads(texto)` transforma o texto JSON num `dict`. Uma **dataclass** dá nome e tipo a cada campo, e `Classe(**dados)` monta a instância a partir do dict:\n\n```python\nimport json\nfrom dataclasses import dataclass\n\n@dataclass\nclass Intencao:\n    intencao: str\n    confianca: float\n\ndados = json.loads('{\"intencao\": \"reembolso\", \"confianca\": 0.9}')\nIntencao(**dados)  # Intencao(intencao='reembolso', confianca=0.9)\n```\n\nAqui o JSON já vem **limpo**: é só parsear. Nos próximos, o modelo apronta.\n\nÉ o último degrau antes do boss final. ...Você está pronto. Tá. Eu disse. Segue.",
+      "enunciado_md": "Um classificador de intenções foi configurado para responder **só em JSON**. A resposta chega limpa, ex.: `{\"intencao\": \"reembolso\", \"confianca\": 0.9}`.\n\nA dataclass `Intencao` já está pronta no starter. Complete `montar_intencao(texto)` para:\n\n- converter o texto JSON num dict\n- construir e retornar uma `Intencao`\n\nExemplo: `montar_intencao('{\"intencao\": \"duvida\", \"confianca\": 0.5}')` devolve `Intencao(intencao='duvida', confianca=0.5)`.",
+      "starter_code": "import json\nfrom dataclasses import dataclass\n\n\n@dataclass\nclass Intencao:\n    intencao: str\n    confianca: float\n\n\ndef montar_intencao(texto):\n    # Do texto JSON à dataclass: loads primeiro, campos pelos colchetes, e a\n    # instância sai com os dois valores.\n    ...\n",
+      "solucao_referencia": "import json\nfrom dataclasses import dataclass\n\n\n@dataclass\nclass Intencao:\n    intencao: str\n    confianca: float\n\n\ndef montar_intencao(texto):\n    dados = json.loads(texto)\n    return Intencao(**dados)\n",
+      "testes_visiveis": [
+        {
+          "nome": "intenção de reembolso",
+          "codigo": "_verificar(montar_intencao('{\"intencao\": \"reembolso\", \"confianca\": 0.9}'), Intencao(\"reembolso\", 0.9))"
+        },
+        {
+          "nome": "outra intenção",
+          "codigo": "_verificar(montar_intencao('{\"intencao\": \"duvida\", \"confianca\": 0.5}'), Intencao(\"duvida\", 0.5))"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "elogio com confiança 1.0",
+          "codigo": "_verificar(montar_intencao('{\"intencao\": \"elogio\", \"confianca\": 1.0}'), Intencao(\"elogio\", 1.0))"
+        },
+        {
+          "nome": "retorna uma dataclass Intencao",
+          "codigo": "assert isinstance(montar_intencao('{\"intencao\": \"x\", \"confianca\": 0.0}'), Intencao), \"Retorne uma instância de Intencao, não um dict\""
+        },
+        {
+          "nome": "campo confianca acessível",
+          "codigo": "_verificar(montar_intencao('{\"intencao\": \"spam\", \"confianca\": 0.25}').confianca, 0.25)"
+        }
+      ],
+      "dicas": [
+        "Uma resposta em JSON é só texto: `json.loads(texto)` devolve um dict com as mesmas chaves. Uma dataclass dá nome e tipo a esses campos.",
+        "Com o dict em mãos, `Intencao(**dados)` espalha as chaves como argumentos nomeados (`intencao=..., confianca=...`).",
+        "`dados = json.loads(texto)` e depois `return Intencao(**dados)`."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-estruturada-t1-02",
+      "nivel": "estruturada",
+      "tier": 1,
+      "conceitos": [
+        "json-tolerante",
+        "saida-estruturada"
+      ],
+      "titulo": "JSON dentro da cerca",
+      "explicacao_md": null,
+      "enunciado_md": "O modelo costuma embrulhar o JSON numa **cerca Markdown**: uma linha abre com três crases e a palavra `json`, o JSON vem no meio, e outra linha de três crases fecha — quase sempre com texto solto em volta. Por exemplo, a resposta pode ser `Claro, aqui está:` seguida da cerca com `{\"ok\": true}` dentro.\n\nAntes de `json.loads`, é preciso extrair só o miolo `{...}` de dentro da cerca. O regex já está no starter. Complete `extrair_bloco_json(resposta)` para devolver o **dict** — no exemplo, `{\"ok\": True}`.",
+      "starter_code": "import json\nimport re\n\n\ndef extrair_bloco_json(resposta):\n    # A cerca pode vir com ou sem a tag json — o regex preguiçoso do Ato 2\n    # resolve; o miolo ainda passa pelo loads antes de voltar.\n    m = re.search(r\"```(?:json)?\\s*(\\{.*?\\})\\s*```\", resposta, re.DOTALL)\n    ...\n",
+      "solucao_referencia": "import json\nimport re\n\n\ndef extrair_bloco_json(resposta):\n    m = re.search(r\"```(?:json)?\\s*(\\{.*?\\})\\s*```\", resposta, re.DOTALL)\n    return json.loads(m.group(1))\n",
+      "testes_visiveis": [
+        {
+          "nome": "cerca com texto em volta",
+          "codigo": "_verificar(extrair_bloco_json('Claro!\\n```json\\n{\"resposta\": \"Paris\", \"fontes\": [1]}\\n```'), {\"resposta\": \"Paris\", \"fontes\": [1]})"
+        },
+        {
+          "nome": "cerca simples",
+          "codigo": "_verificar(extrair_bloco_json('```json\\n{\"ok\": true}\\n```'), {\"ok\": True})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "cerca sem a tag json",
+          "codigo": "_verificar(extrair_bloco_json('resultado:\\n```\\n{\"x\": 1, \"y\": 2}\\n```'), {\"x\": 1, \"y\": 2})"
+        },
+        {
+          "nome": "payload de intenção",
+          "codigo": "_verificar(extrair_bloco_json('```json\\n{\"intencao\": \"reembolso\", \"confianca\": 0.9}\\n```'), {\"intencao\": \"reembolso\", \"confianca\": 0.9})"
+        },
+        {
+          "nome": "devolve dict, não string",
+          "codigo": "assert isinstance(extrair_bloco_json('```json\\n{\"a\": 1}\\n```'), dict), \"Retorne o dict já convertido, não a string do miolo\""
+        }
+      ],
+      "dicas": [
+        "Modelos costumam embrulhar o JSON numa cerca de código (três crases seguidas da palavra `json`); você precisa pegar só o miolo `{...}` antes de converter.",
+        "O regex do starter já captura o miolo no grupo 1 — use `m.group(1)` e passe para `json.loads`.",
+        "`m = re.search(...)` (já dado no starter), depois `return json.loads(m.group(1))`."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-estruturada-t1-03",
+      "nivel": "estruturada",
+      "tier": 1,
+      "conceitos": [
+        "saida-estruturada",
+        "json-tolerante"
+      ],
+      "titulo": "Todos os campos vieram?",
+      "explicacao_md": null,
+      "enunciado_md": "Antes de confiar na saída do modelo, cheque se ela trouxe todos os campos que o seu código precisa.\n\nComplete `validar_campos(dados, obrigatorios)`:\n\n- `dados`: o dict já parseado da resposta\n- `obrigatorios`: lista de nomes de campos que **têm** que existir\n\nRetorne `True` se todos os obrigatórios estiverem em `dados`, e `False` se faltar algum.\n\nExemplo: `validar_campos({\"intencao\": \"x\", \"confianca\": 0.5}, [\"intencao\", \"confianca\"])` devolve `True`.",
+      "starter_code": "def validar_campos(dados, obrigatorios):\n    # Todo obrigatório presente? Cuidado: contar chaves não basta — cheque\n    # cada nome (um extra pode mascarar um faltante).\n    ...\n",
+      "solucao_referencia": "def validar_campos(dados, obrigatorios):\n    return all(campo in dados for campo in obrigatorios)\n",
+      "testes_visiveis": [
+        {
+          "nome": "todos presentes",
+          "codigo": "_verificar(validar_campos({\"intencao\": \"x\", \"confianca\": 0.5}, [\"intencao\", \"confianca\"]), True)"
+        },
+        {
+          "nome": "falta um campo",
+          "codigo": "_verificar(validar_campos({\"intencao\": \"x\"}, [\"intencao\", \"confianca\"]), False)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "campos extras não atrapalham",
+          "codigo": "_verificar(validar_campos({\"a\": 1, \"b\": 2, \"c\": 3}, [\"a\", \"c\"]), True)"
+        },
+        {
+          "nome": "lista de obrigatórios vazia",
+          "codigo": "_verificar(validar_campos({}, []), True)"
+        },
+        {
+          "nome": "retorna booleano de verdade",
+          "codigo": "assert validar_campos({\"x\": 1}, [\"x\"]) is True and validar_campos({}, [\"x\"]) is False, \"Retorne True/False, não outra coisa\""
+        },
+        {
+          "nome": "mesma contagem, mas falta obrigatório",
+          "codigo": "_verificar(validar_campos({\"a\": 1, \"z\": 9}, [\"a\", \"b\"]), False)"
+        }
+      ],
+      "dicas": [
+        "Validar é perguntar: todo campo obrigatório existe no dict? A resposta é um único True/False.",
+        "`campo in dados` diz se a chave existe. Você quer que isso valha para TODOS os obrigatórios — pense em `all(...)`.",
+        "`return all(campo in dados for campo in obrigatorios)`."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-estruturada-t1-04",
+      "nivel": "estruturada",
+      "tier": 1,
+      "conceitos": [
+        "saida-estruturada"
+      ],
+      "titulo": "Parâmetro aninhado",
+      "explicacao_md": null,
+      "enunciado_md": "Um modelo roteador respondeu escolhendo uma ferramenta e seus parâmetros, em JSON limpo:\n\n`{\"ferramenta\": \"clima\", \"argumentos\": {\"cidade\": \"Recife\"}}`\n\nComplete `extrair_cidade(texto)` para devolver só o **nome da cidade** que está aninhado dentro de `argumentos` (no exemplo, `\"Recife\"`).",
+      "starter_code": "import json\n\n\ndef extrair_cidade(texto):\n    # Desça o caminho do tool call: função, nome e argumentos — indexação\n    # encadeada, nada de adivinhar posições.\n    ...\n",
+      "solucao_referencia": "import json\n\n\ndef extrair_cidade(texto):\n    dados = json.loads(texto)\n    return dados[\"argumentos\"][\"cidade\"]\n",
+      "testes_visiveis": [
+        {
+          "nome": "cidade Recife",
+          "codigo": "_verificar(extrair_cidade('{\"ferramenta\": \"clima\", \"argumentos\": {\"cidade\": \"Recife\"}}'), \"Recife\")"
+        },
+        {
+          "nome": "cidade com acento",
+          "codigo": "_verificar(extrair_cidade('{\"ferramenta\": \"clima\", \"argumentos\": {\"cidade\": \"Belém\"}}'), \"Belém\")"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "argumentos com campo extra",
+          "codigo": "_verificar(extrair_cidade('{\"ferramenta\": \"clima\", \"argumentos\": {\"cidade\": \"São Paulo\", \"dias\": 3}}'), \"São Paulo\")"
+        },
+        {
+          "nome": "outra ferramenta, mesma estrutura",
+          "codigo": "_verificar(extrair_cidade('{\"ferramenta\": \"buscar\", \"argumentos\": {\"cidade\": \"Curitiba\"}}'), \"Curitiba\")"
+        }
+      ],
+      "dicas": [
+        "JSON pode ter dict dentro de dict. Depois de `json.loads`, você desce nível por nível com colchetes.",
+        "Primeiro pegue `dados['argumentos']` (que é outro dict), depois a chave `'cidade'` dentro dele.",
+        "`dados = json.loads(texto)` e `return dados['argumentos']['cidade']`."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-estruturada-t1-05",
+      "nivel": "estruturada",
+      "tier": 1,
+      "conceitos": [
+        "tool-calls",
+        "saida-estruturada"
+      ],
+      "titulo": "Argumentos são texto",
+      "explicacao_md": null,
+      "enunciado_md": "Quando um modelo pede a ferramenta `somar`, os argumentos chegam como **texto JSON**, ex.: `'{\"a\": 2, \"b\": 3}'` — nunca como dict pronto. Você sempre parseia antes de usar.\n\nComplete `usar_argumentos(args_json)`:\n\n- converta a string JSON num dict\n- some os campos `\"a\"` e `\"b\"`\n- retorne a soma (um número)\n\nExemplo: `usar_argumentos('{\"a\": 2, \"b\": 3}')` devolve `5`.",
+      "starter_code": "import json\n\n\ndef usar_argumentos(args_json):\n    # arguments chega como TEXTO JSON: loads primeiro, e só então a conta —\n    # a ordem das chaves no texto não importa para o dict.\n    ...\n",
+      "solucao_referencia": "import json\n\n\ndef usar_argumentos(args_json):\n    args = json.loads(args_json)\n    return args[\"a\"] + args[\"b\"]\n",
+      "testes_visiveis": [
+        {
+          "nome": "2 e 3",
+          "codigo": "_verificar(usar_argumentos('{\"a\": 2, \"b\": 3}'), 5)"
+        },
+        {
+          "nome": "10 e 20",
+          "codigo": "_verificar(usar_argumentos('{\"a\": 10, \"b\": 20}'), 30)"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outros números",
+          "codigo": "_verificar(usar_argumentos('{\"a\": 7, \"b\": 8}'), 15)"
+        },
+        {
+          "nome": "chaves fora de ordem no texto",
+          "codigo": "_verificar(usar_argumentos('{\"b\": 100, \"a\": 1}'), 101)"
+        },
+        {
+          "nome": "retorna número, não string",
+          "codigo": "assert isinstance(usar_argumentos('{\"a\": 1, \"b\": 1}'), int), \"Some os valores parseados; o resultado é um número\""
+        }
+      ],
+      "dicas": [
+        "Os arguments de um tool_call chegam como texto JSON, nunca como dict — sempre parseie antes de usar.",
+        "Depois de `json.loads`, você tem um dict com `'a'` e `'b'`; some os dois.",
+        "`args = json.loads(args_json)` e `return args['a'] + args['b']`."
+      ],
+      "xp": 10,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-estruturada-t2-01",
+      "nivel": "estruturada",
+      "tier": 2,
+      "conceitos": [
+        "tools"
+      ],
+      "titulo": "Descrevendo a ferramenta",
+      "explicacao_md": "**Function calling** deixa o modelo pedir para você rodar uma função. Você descreve cada ferramenta num dict no formato de **JSON Schema simplificado**: nome, descrição e os parâmetros esperados.\n\n```python\ntool = {\n    \"type\": \"function\",\n    \"function\": {\n        \"name\": \"somar\",\n        \"description\": \"Soma dois inteiros.\",\n        \"parameters\": {\n            \"type\": \"object\",\n            \"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"integer\"}},\n            \"required\": [\"a\", \"b\"],\n        },\n    },\n}\n```\n\nPassando `tools=[tool]` na chamada, se o modelo decidir usar a ferramenta a resposta muda: `finish_reason` vira `\"tool_calls\"`, `message.content` é `None` e `message.tool_calls` traz `function.name` e `function.arguments` (uma **string JSON**).",
+      "enunciado_md": "Escreva `definir_tool_somar()` que retorna o **dict de schema** da ferramenta `somar`, exatamente neste formato:\n\n```python\n{\n    \"type\": \"function\",\n    \"function\": {\n        \"name\": \"somar\",\n        \"description\": \"Soma dois números inteiros.\",\n        \"parameters\": {\n            \"type\": \"object\",\n            \"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"integer\"}},\n            \"required\": [\"a\", \"b\"],\n        },\n    },\n}\n```\n\nÉ esse dict que você passaria em `tools=[...]` para o modelo saber que a função existe.",
+      "starter_code": "def definir_tool_somar():\n    # O schema é um dict aninhado com formato fixo: type function, o nome, e\n    # os parâmetros com required. Siga o molde do enunciado à risca.\n    ...\n",
+      "solucao_referencia": "def definir_tool_somar():\n    return {\n        \"type\": \"function\",\n        \"function\": {\n            \"name\": \"somar\",\n            \"description\": \"Soma dois números inteiros.\",\n            \"parameters\": {\n                \"type\": \"object\",\n                \"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"integer\"}},\n                \"required\": [\"a\", \"b\"],\n            },\n        },\n    }\n",
+      "testes_visiveis": [
+        {
+          "nome": "schema completo",
+          "codigo": "_verificar(definir_tool_somar(), {\"type\": \"function\", \"function\": {\"name\": \"somar\", \"description\": \"Soma dois números inteiros.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"integer\"}}, \"required\": [\"a\", \"b\"]}}})"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "nome da função é somar",
+          "codigo": "assert definir_tool_somar()[\"function\"][\"name\"] == \"somar\", \"O nome da função no schema deve ser 'somar'\""
+        },
+        {
+          "nome": "tipo é function",
+          "codigo": "assert definir_tool_somar()[\"type\"] == \"function\", \"O tipo da tool deve ser 'function'\""
+        },
+        {
+          "nome": "campos obrigatórios a e b",
+          "codigo": "_verificar(definir_tool_somar()[\"function\"][\"parameters\"][\"required\"], [\"a\", \"b\"])"
+        }
+      ],
+      "dicas": [
+        "Uma tool é descrita ao modelo como um dict aninhado: tipo, nome, descrição e o schema dos parâmetros (JSON Schema).",
+        "A casca externa é `{'type': 'function', 'function': {...}}`; dentro de `function` vão name, description e parameters.",
+        "Em `parameters`, `type` é `'object'`, `properties` traz `a` e `b` como `{'type': 'integer'}`, e `required` é `['a', 'b']`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-estruturada-t2-02",
+      "nivel": "estruturada",
+      "tier": 2,
+      "conceitos": [
+        "tool-calls",
+        "tools"
+      ],
+      "titulo": "Agir ou responder?",
+      "explicacao_md": null,
+      "enunciado_md": "Com uma ferramenta disponível, o modelo decide entre **agir** (pedir a tool) ou **responder** direto. Isso aparece no `finish_reason` da escolha: `\"tool_calls\"` quando ele quer a ferramenta, `\"stop\"` quando é texto normal.\n\nEscreva `qual_acao(cliente, pergunta)` que manda `pergunta` ao modelo com a tool `somar` disponível e retorna:\n\n- `\"ferramenta\"` se `finish_reason == \"tool_calls\"`\n- `\"texto\"` caso contrário\n\nA tool passada em `tools=[...]` precisa ter `function.name == \"somar\"`. Ex.: `qual_acao(cliente, \"some 2 e 2\")` devolve `\"ferramenta\"`; `qual_acao(cliente, \"olá\")` devolve `\"texto\"`.",
+      "starter_code": "def qual_acao(cliente, pergunta):\n    # A resposta ou traz tool_calls (agir) ou traz content (responder) —\n    # inspecione a message e devolva o que o enunciado pede em cada caso.\n    ...\n",
+      "solucao_referencia": "def qual_acao(cliente, pergunta):\n    tools = [{\n        \"type\": \"function\",\n        \"function\": {\n            \"name\": \"somar\",\n            \"description\": \"Soma dois inteiros.\",\n            \"parameters\": {\n                \"type\": \"object\",\n                \"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"integer\"}},\n                \"required\": [\"a\", \"b\"],\n            },\n        },\n    }]\n    resp = cliente.chat.completions.create(\n        model=\"mock-4\",\n        messages=[{\"role\": \"user\", \"content\": pergunta}],\n        tools=tools,\n    )\n    if resp.choices[0].finish_reason == \"tool_calls\":\n        return \"ferramenta\"\n    return \"texto\"\n",
+      "testes_visiveis": [
+        {
+          "nome": "pedido de soma vira ferramenta",
+          "codigo": "from openai import OpenAI\n_verificar(qual_acao(OpenAI(), \"some 2 e 2\"), \"ferramenta\")"
+        },
+        {
+          "nome": "saudação vira texto",
+          "codigo": "from openai import OpenAI\n_verificar(qual_acao(OpenAI(), \"olá\"), \"texto\")"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outra soma",
+          "codigo": "from openai import OpenAI\n_verificar(qual_acao(OpenAI(), \"some 10 e 20\"), \"ferramenta\")"
+        },
+        {
+          "nome": "pergunta comum é texto",
+          "codigo": "from openai import OpenAI\n_verificar(qual_acao(OpenAI(), \"qual a capital do brasil\"), \"texto\")"
+        },
+        {
+          "nome": "padrão A + B também aciona a tool",
+          "codigo": "from openai import OpenAI\n_verificar(qual_acao(OpenAI(), \"quanto é 3 + 4\"), \"ferramenta\")"
+        }
+      ],
+      "dicas": [
+        "Quando o modelo decide agir, ele não devolve texto: o `finish_reason` da escolha muda de `'stop'` para `'tool_calls'`.",
+        "Chame `cliente.chat.completions.create(...)` passando `tools=[schema da somar]` e leia `resp.choices[0].finish_reason`.",
+        "Compare `resp.choices[0].finish_reason == 'tool_calls'`: se for, retorne `'ferramenta'`; senão `'texto'`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-estruturada-t2-03",
+      "nivel": "estruturada",
+      "tier": 2,
+      "conceitos": [
+        "tool-calls",
+        "tools"
+      ],
+      "titulo": "Lendo o tool_call",
+      "explicacao_md": null,
+      "enunciado_md": "Quando o modelo pede uma ferramenta, o pedido vem em `resp.choices[0].message.tool_calls` — uma lista. Cada item tem `function.name` (o nome) e `function.arguments` (uma **string JSON**).\n\nEscreva `pedir_soma(cliente, a, b)` que:\n\n- manda `\"some {a} e {b}\"` ao modelo com a tool `somar` disponível\n- lê o **primeiro** tool_call\n- retorna a tupla `(nome_da_funcao, argumentos_dict)`, com os arguments já parseados\n\nEx.: `pedir_soma(cliente, 2, 3)` devolve `(\"somar\", {\"a\": 2, \"b\": 3})`.",
+      "starter_code": "import json\n\n\ndef pedir_soma(cliente, a, b):\n    # O tool_call carrega function.name e function.arguments (texto JSON) —\n    # devolva o nome e o dict já parseado.\n    ...\n",
+      "solucao_referencia": "import json\n\n\ndef pedir_soma(cliente, a, b):\n    tools = [{\n        \"type\": \"function\",\n        \"function\": {\n            \"name\": \"somar\",\n            \"description\": \"Soma dois inteiros.\",\n            \"parameters\": {\n                \"type\": \"object\",\n                \"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"integer\"}},\n                \"required\": [\"a\", \"b\"],\n            },\n        },\n    }]\n    resp = cliente.chat.completions.create(\n        model=\"mock-4\",\n        messages=[{\"role\": \"user\", \"content\": f\"some {a} e {b}\"}],\n        tools=tools,\n    )\n    chamada = resp.choices[0].message.tool_calls[0]\n    return chamada.function.name, json.loads(chamada.function.arguments)\n",
+      "testes_visiveis": [
+        {
+          "nome": "soma 2 e 3",
+          "codigo": "from openai import OpenAI\n_verificar(pedir_soma(OpenAI(), 2, 3), (\"somar\", {\"a\": 2, \"b\": 3}))"
+        },
+        {
+          "nome": "soma 10 e 20",
+          "codigo": "from openai import OpenAI\n_verificar(pedir_soma(OpenAI(), 10, 20), (\"somar\", {\"a\": 10, \"b\": 20}))"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outros números",
+          "codigo": "from openai import OpenAI\n_verificar(pedir_soma(OpenAI(), 7, 5), (\"somar\", {\"a\": 7, \"b\": 5}))"
+        },
+        {
+          "nome": "o nome vem de function.name",
+          "codigo": "from openai import OpenAI\nassert pedir_soma(OpenAI(), 1, 1)[0] == \"somar\", \"O nome deve vir de function.name\""
+        },
+        {
+          "nome": "arguments parseados para dict",
+          "codigo": "from openai import OpenAI\nassert isinstance(pedir_soma(OpenAI(), 1, 2)[1], dict), \"arguments vem como string JSON — parseie com json.loads\""
+        }
+      ],
+      "dicas": [
+        "O pedido de ferramenta vem em `message.tool_calls`; cada um tem `function.name` e `function.arguments` (string JSON).",
+        "Pegue `resp.choices[0].message.tool_calls[0]`; o nome é `.function.name` e os argumentos precisam de `json.loads`.",
+        "`chamada = resp.choices[0].message.tool_calls[0]` e `return chamada.function.name, json.loads(chamada.function.arguments)`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-estruturada-t2-04",
+      "nivel": "estruturada",
+      "tier": 2,
+      "conceitos": [
+        "loop-ferramentas",
+        "tool-calls"
+      ],
+      "titulo": "O loop de dois passos",
+      "explicacao_md": null,
+      "enunciado_md": "O ciclo completo de function calling tem **duas idas** ao modelo: na 1ª ele pede a ferramenta; você executa localmente e, na 2ª, devolve o resultado numa mensagem com `role=\"tool\"`. O modelo então responde em texto.\n\nEscreva `executar_ferramenta(cliente, a, b)`:\n\n1. manda `\"some {a} e {b}\"` com a tool `somar` disponível\n2. lê o tool_call e soma `a + b` localmente (a partir dos arguments)\n3. adiciona `{\"role\": \"tool\", \"content\": str(resultado)}` às mensagens e chama o modelo de novo\n4. retorna o **texto final** (algo como `\"O resultado é 5.\"`)\n\nEx.: `executar_ferramenta(cliente, 2, 3)` devolve `\"O resultado é 5.\"`.\n\n> No Dojo, o mock aceita a mensagem `role=\"tool\"` logo após o pedido. Numa API real você também anexaria antes a mensagem do `assistant` que trouxe o tool_call (com um `tool_call_id`) — aqui simplificamos para focar no ciclo.",
+      "starter_code": "import json\n\n\ndef executar_ferramenta(cliente, a, b):\n    # O loop completo: 1ª chamada pede a ferramenta, você executa a conta, e a\n    # 2ª chamada devolve o resultado ao modelo — exatamente duas idas.\n    ...\n",
+      "solucao_referencia": "import json\n\n\ndef executar_ferramenta(cliente, a, b):\n    tools = [{\n        \"type\": \"function\",\n        \"function\": {\n            \"name\": \"somar\",\n            \"description\": \"Soma dois inteiros.\",\n            \"parameters\": {\n                \"type\": \"object\",\n                \"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"integer\"}},\n                \"required\": [\"a\", \"b\"],\n            },\n        },\n    }]\n    mensagens = [{\"role\": \"user\", \"content\": f\"some {a} e {b}\"}]\n    resp = cliente.chat.completions.create(model=\"mock-4\", messages=mensagens, tools=tools)\n    chamada = resp.choices[0].message.tool_calls[0]\n    args = json.loads(chamada.function.arguments)\n    resultado = args[\"a\"] + args[\"b\"]\n    mensagens.append({\"role\": \"tool\", \"content\": str(resultado)})\n    final = cliente.chat.completions.create(model=\"mock-4\", messages=mensagens)\n    return final.choices[0].message.content\n",
+      "testes_visiveis": [
+        {
+          "nome": "soma 2 e 3",
+          "codigo": "from openai import OpenAI\n_verificar(executar_ferramenta(OpenAI(), 2, 3), \"O resultado é 5.\")"
+        },
+        {
+          "nome": "soma 10 e 20",
+          "codigo": "from openai import OpenAI\n_verificar(executar_ferramenta(OpenAI(), 10, 20), \"O resultado é 30.\")"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outros números",
+          "codigo": "from openai import OpenAI\n_verificar(executar_ferramenta(OpenAI(), 7, 8), \"O resultado é 15.\")"
+        },
+        {
+          "nome": "resultado vem dos arguments (negativo)",
+          "codigo": "from openai import OpenAI\n_verificar(executar_ferramenta(OpenAI(), -2, 5), \"O resultado é 3.\")"
+        },
+        {
+          "nome": "são exatamente 2 chamadas ao modelo",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nexecutar_ferramenta(c, 1, 1)\nassert len(c.chamadas) == 2, \"O loop tem exatamente 2 idas ao modelo\""
+        }
+      ],
+      "dicas": [
+        "O loop de ferramenta tem 2 idas ao modelo: na 1ª ele pede a tool; na 2ª você devolve o resultado numa mensagem `role='tool'`.",
+        "Depois de somar localmente, adicione `{'role': 'tool', 'content': str(resultado)}` à lista de mensagens e chame o modelo de novo.",
+        "Na 2ª chamada o modelo responde algo como `'O resultado é 5.'` — retorne `final.choices[0].message.content`."
+      ],
+      "xp": 15,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-estruturada-t3-01",
+      "nivel": "estruturada",
+      "tier": 3,
+      "conceitos": [
+        "loop-ferramentas",
+        "tool-calls",
+        "erros-llm",
+        "tools"
+      ],
+      "titulo": "Argumentos quebrados",
+      "explicacao_md": "No mundo real o modelo **erra**: os `arguments` de um tool_call às vezes chegam como JSON **cortado**. Como é só um `json.loads`, trate igual a qualquer parse que pode falhar — `try/except ValueError` — e **re-peça uma vez**.\n\n```python\ntry:\n    args = json.loads(chamada.function.arguments)\nexcept ValueError:\n    resp = cliente.chat.completions.create(model=\"mock-4\", messages=mensagens, tools=tools)\n    chamada = resp.choices[0].message.tool_calls[0]\n    args = json.loads(chamada.function.arguments)\n```\n\nO teste injeta a falha com `_mocks.roteirizar_erros_llm(['args_invalidos', None])`: a 1ª chamada quebra, a 2ª volta ao normal. `json.JSONDecodeError` é subclasse de `ValueError`, então um `except ValueError` já pega. Neste tier você também lida com **vários tool_calls** e **campos faltando**.",
+      "enunciado_md": "Escreva `somar_resiliente(cliente, a, b)` que faz o loop de ferramenta da `somar`, mas aguenta o modelo devolver `arguments` **quebrados**:\n\n- manda `\"some {a} e {b}\"` com a tool `somar`\n- tenta `json.loads` em `function.arguments`\n- se o parse falhar (`ValueError`), **re-peça UMA vez** e parseie de novo\n- soma os argumentos, devolve o resultado com `role=\"tool\"` e retorna o texto final\n\nO teste injeta a falha com `_mocks.roteirizar_erros_llm(['args_invalidos', None])`. Ex.: com a falha ativa, `somar_resiliente(cliente, 4, 5)` ainda devolve `\"O resultado é 9.\"`.",
+      "starter_code": "import json\n\n\ndef somar_resiliente(cliente, a, b):\n    # Contrato:\n    #   - a 1a resposta pode ter function.arguments como JSON cortado\n    #   - json.loads nesse texto levanta ValueError (JSONDecodeError)\n    #   - capture, RE-PECA uma unica vez, e parseie de novo\n    #   - depois: soma dos args, mensagem role \"tool\", retorna o texto final\n    # arguments pode vir quebrado: se o loads falhar, re-peça ao modelo (mais\n    # uma chamada) e tente de novo — sem falha, nada de chamada extra.\n    ...\n",
+      "solucao_referencia": "import json\n\n\ndef somar_resiliente(cliente, a, b):\n    tools = [{\n        \"type\": \"function\",\n        \"function\": {\n            \"name\": \"somar\",\n            \"description\": \"Soma dois inteiros.\",\n            \"parameters\": {\n                \"type\": \"object\",\n                \"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"integer\"}},\n                \"required\": [\"a\", \"b\"],\n            },\n        },\n    }]\n    mensagens = [{\"role\": \"user\", \"content\": f\"some {a} e {b}\"}]\n    resp = cliente.chat.completions.create(model=\"mock-4\", messages=mensagens, tools=tools)\n    chamada = resp.choices[0].message.tool_calls[0]\n    try:\n        args = json.loads(chamada.function.arguments)\n    except ValueError:\n        resp = cliente.chat.completions.create(model=\"mock-4\", messages=mensagens, tools=tools)\n        chamada = resp.choices[0].message.tool_calls[0]\n        args = json.loads(chamada.function.arguments)\n    resultado = args[\"a\"] + args[\"b\"]\n    mensagens.append({\"role\": \"tool\", \"content\": str(resultado)})\n    final = cliente.chat.completions.create(model=\"mock-4\", messages=mensagens)\n    return final.choices[0].message.content\n",
+      "testes_visiveis": [
+        {
+          "nome": "recupera do JSON quebrado",
+          "codigo": "from openai import OpenAI\n_mocks.roteirizar_erros_llm([\"args_invalidos\", None])\n_verificar(somar_resiliente(OpenAI(), 4, 5), \"O resultado é 9.\")"
+        },
+        {
+          "nome": "recupera com outros números",
+          "codigo": "from openai import OpenAI\n_mocks.roteirizar_erros_llm([\"args_invalidos\", None])\n_verificar(somar_resiliente(OpenAI(), 1, 2), \"O resultado é 3.\")"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "recupera",
+          "codigo": "from openai import OpenAI\n_mocks.roteirizar_erros_llm([\"args_invalidos\", None])\n_verificar(somar_resiliente(OpenAI(), 8, 8), \"O resultado é 16.\")"
+        },
+        {
+          "nome": "re-pediu: 3 chamadas quando há falha",
+          "codigo": "from openai import OpenAI\n_mocks.roteirizar_erros_llm([\"args_invalidos\", None])\nc = OpenAI()\nsomar_resiliente(c, 3, 3)\nassert len(c.chamadas) == 3, \"Esperado 3 chamadas: pedido, re-pedido e resultado da ferramenta\""
+        },
+        {
+          "nome": "sem falha: não re-pede (2 chamadas)",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(somar_resiliente(c, 6, 6), \"O resultado é 12.\")\nassert len(c.chamadas) == 2, \"Sem falha, o loop tem só 2 chamadas — re-peça apenas no except\""
+        }
+      ],
+      "dicas": [
+        "Parsear arguments é como qualquer `json.loads`: pode falhar. Trate a falha como erro recuperável — tente de novo.",
+        "Envolva o `json.loads(chamada.function.arguments)` num `try/except ValueError`; no except, refaça a chamada UMA vez e parseie de novo.",
+        "No except repita `cliente.chat.completions.create(...)`, pegue o novo tool_call e `json.loads` os arguments; depois siga o loop normal (role 'tool')."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-estruturada-t3-02",
+      "nivel": "estruturada",
+      "tier": 3,
+      "conceitos": [
+        "tool-calls",
+        "loop-ferramentas",
+        "tools"
+      ],
+      "titulo": "Várias ferramentas de uma vez",
+      "explicacao_md": null,
+      "enunciado_md": "Uma única resposta pode trazer **vários** tool_calls: `message.tool_calls` é uma lista, não um item só. Ex.: o pedido `\"some 1 e 2 e depois some 10 e 20\"` gera 2 tool_calls.\n\nEscreva `executar_todas(cliente, pedido)`:\n\n- manda `pedido` ao modelo com a tool `somar` disponível\n- percorre **todos** os tool_calls na ordem, parseando os arguments e somando\n- retorna a **lista** de resultados, ex.: `[3, 30]`\n- se não houver nenhum tool_call (`tool_calls` é `None`), retorna `[]`\n\nEx.: `executar_todas(cliente, \"some 1 e 2 e depois some 10 e 20\")` devolve `[3, 30]`.",
+      "starter_code": "import json\n\n\ndef executar_todas(cliente, pedido):\n    # Contrato:\n    #   - message.tool_calls pode ter VARIOS itens (ou ser None)\n    #   - percorra na ordem, json.loads em cada arguments, some a e b\n    #   - retorne a lista de resultados; sem tool_calls -> []\n    # Pode vir MAIS de um tool_call na mesma resposta: um resultado por\n    # pedido, na ordem em que vieram; sem ferramenta, lista vazia.\n    ...\n",
+      "solucao_referencia": "import json\n\n\ndef executar_todas(cliente, pedido):\n    tools = [{\n        \"type\": \"function\",\n        \"function\": {\n            \"name\": \"somar\",\n            \"description\": \"Soma dois inteiros.\",\n            \"parameters\": {\n                \"type\": \"object\",\n                \"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"integer\"}},\n                \"required\": [\"a\", \"b\"],\n            },\n        },\n    }]\n    resp = cliente.chat.completions.create(\n        model=\"mock-4\",\n        messages=[{\"role\": \"user\", \"content\": pedido}],\n        tools=tools,\n    )\n    chamadas = resp.choices[0].message.tool_calls\n    if not chamadas:\n        return []\n    resultados = []\n    for chamada in chamadas:\n        args = json.loads(chamada.function.arguments)\n        resultados.append(args[\"a\"] + args[\"b\"])\n    return resultados\n",
+      "testes_visiveis": [
+        {
+          "nome": "dois pedidos numa resposta",
+          "codigo": "from openai import OpenAI\n_verificar(executar_todas(OpenAI(), \"some 1 e 2 e depois some 10 e 20\"), [3, 30])"
+        },
+        {
+          "nome": "um pedido só",
+          "codigo": "from openai import OpenAI\n_verificar(executar_todas(OpenAI(), \"some 5 e 6\"), [11])"
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "dois pedidos, outros números",
+          "codigo": "from openai import OpenAI\n_verificar(executar_todas(OpenAI(), \"some 100 e 1 e some 2 e 3\"), [101, 5])"
+        },
+        {
+          "nome": "sem ferramenta vira lista vazia",
+          "codigo": "from openai import OpenAI\n_verificar(executar_todas(OpenAI(), \"olá, tudo bem?\"), [])"
+        },
+        {
+          "nome": "ordem preservada",
+          "codigo": "from openai import OpenAI\n_verificar(executar_todas(OpenAI(), \"some 3 e 3 e depois some 1 e 1\"), [6, 2])"
+        }
+      ],
+      "dicas": [
+        "Uma única resposta pode trazer vários tool_calls — `message.tool_calls` é uma lista, não um item só.",
+        "Percorra a lista na ordem; para cada um, `json.loads` nos arguments e some. Se `tool_calls` for None, devolva `[]`.",
+        "`chamadas = resp.choices[0].message.tool_calls`; se `not chamadas: return []`; senão acumule `args['a'] + args['b']` de cada um numa lista."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [
+        "openai"
+      ],
+      "timeout_s": 5
+    },
+    {
+      "id": "ato4-estruturada-t3-03",
+      "nivel": "estruturada",
+      "tier": 3,
+      "conceitos": [
+        "saida-estruturada",
+        "validacao-dataclass",
+        "excecoes-customizadas"
+      ],
+      "titulo": "Falhe alto no campo que faltou",
+      "explicacao_md": null,
+      "enunciado_md": "Validação estrita: se a saída do modelo **não** trouxe um campo obrigatório, o certo é falhar alto — com uma exceção sua que diz **qual** campo faltou (assim o log aponta o problema exato).\n\nComplete a exceção `CampoFaltando` e a função `campo_ou_erro(texto, campo)`:\n\n- o `texto` pode vir cru **ou** cercado por ```json ... ``` (tolere as duas formas)\n- se `campo` existir no JSON, retorne `dados[campo]`\n- se **não** existir, levante `CampoFaltando(campo)` guardando o nome em `self.campo`\n\nEx.: `campo_ou_erro('{\"intencao\": \"x\"}', \"confianca\")` levanta `CampoFaltando` com `.campo == \"confianca\"`.",
+      "starter_code": "import json\nimport re\n\n\nclass CampoFaltando(Exception):\n    \"\"\"Levantada quando um campo obrigatorio nao esta no JSON.\n    Deve guardar o nome do campo em self.campo.\"\"\"\n    ...\n\n\ndef campo_ou_erro(texto, campo):\n    # Contrato:\n    #   - o texto pode vir cru ou cercado por ```json ... ```\n    #   - retorne dados[campo] quando existir\n    #   - se `campo` nao estiver no JSON, levante CampoFaltando(campo)\n    #     com self.campo == campo\n    # Tolere a cerca, parseie, e cheque os obrigatórios um a um — o erro tem\n    # de NOMEAR o campo que faltou, senão ninguém conserta o prompt.\n    ...\n",
+      "solucao_referencia": "import json\nimport re\n\n\nclass CampoFaltando(Exception):\n    def __init__(self, campo):\n        super().__init__(f\"campo obrigatório ausente: {campo}\")\n        self.campo = campo\n\n\ndef campo_ou_erro(texto, campo):\n    m = re.search(r\"```(?:json)?\\s*(\\{.*?\\})\\s*```\", texto, re.DOTALL)\n    bruto = m.group(1) if m else texto\n    dados = json.loads(bruto)\n    if campo not in dados:\n        raise CampoFaltando(campo)\n    return dados[campo]\n",
+      "testes_visiveis": [
+        {
+          "nome": "campo presente é devolvido",
+          "codigo": "_verificar(campo_ou_erro('{\"intencao\": \"reembolso\", \"confianca\": 0.9}', \"intencao\"), \"reembolso\")"
+        },
+        {
+          "nome": "campo faltando levanta com o nome",
+          "codigo": "try:\n    campo_ou_erro('{\"intencao\": \"x\"}', \"confianca\")\n    assert False, \"Deveria ter levantado CampoFaltando\"\nexcept CampoFaltando as e:\n    assert e.campo == \"confianca\", \"A exceção deve carregar o nome do campo que faltou\""
+        }
+      ],
+      "testes_ocultos": [
+        {
+          "nome": "outro campo presente",
+          "codigo": "_verificar(campo_ou_erro('{\"a\": 1, \"b\": 2}', \"b\"), 2)"
+        },
+        {
+          "nome": "tolera a cerca ```json```",
+          "codigo": "_verificar(campo_ou_erro('```json\\n{\"resposta\": \"Paris\", \"fontes\": [1, 2]}\\n```', \"fontes\"), [1, 2])"
+        },
+        {
+          "nome": "nome correto no campo faltando",
+          "codigo": "try:\n    campo_ou_erro('{\"nome\": \"Ana\"}', \"idade\")\n    assert False, \"Deveria ter levantado CampoFaltando para idade\"\nexcept CampoFaltando as e:\n    assert e.campo == \"idade\", \"O nome do campo faltando deve ser 'idade'\""
+        }
+      ],
+      "dicas": [
+        "Validação estrita: se o campo obrigatório não veio, o certo é falhar alto — com uma exceção sua que diz qual campo faltou.",
+        "Defina `CampoFaltando` guardando o nome (ex.: `self.campo = campo` no `__init__`); no parse, se `campo not in dados`, levante-a.",
+        "Depois de parsear (tolerando a cerca ```json```), `if campo not in dados: raise CampoFaltando(campo)`; senão `return dados[campo]`."
+      ],
+      "xp": 25,
+      "pacotes": [],
+      "mocks": [],
+      "timeout_s": 5
+    }
+  ]
+}
