@@ -5,6 +5,8 @@ math, calling LLM APIs, tool calling, structured output, chunking, embeddings, r
 retries, and data handling. Every exercise runs **real Python in your browser** (Pyodide).
 There's no account, no backend and no telemetry; progress stays in your browser.
 
+**▶ Play it: [python-ai-dojo.vercel.app](https://python-ai-dojo.vercel.app)** (desktop browser, keyboard recommended)
+
 > The game's text is in **Brazilian Portuguese**. It was built for Portuguese-speaking
 > developers moving into AI work. The code, the architecture and this README are in English.
 
@@ -67,6 +69,7 @@ nothing).
 | Schema, content rules, solution passes, starter fails (CPython 3.12) | `python -X utf8 tools/verify.py` | **273/273** |
 | The same check inside real Pyodide in Chrome | `npm run parity` | **273/273** |
 | Web Lab: solution passes, starter fails (real browser) | `npm run weblab` | **30/30** |
+| Same two browser checks against the live deploy | `DOJO_URL=https://python-ai-dojo.vercel.app npm run parity` | **273/273** and **30/30** |
 | Markdown rendering of every statement | `npm run md` | **0 broken fields** |
 
 ```bash

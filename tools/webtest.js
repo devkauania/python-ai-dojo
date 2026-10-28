@@ -1,7 +1,7 @@
 // Harness web 30/30: para CADA exercício do Lab, roda os testes_web com o
 // webrunner REAL do jogo — a solução tem de PASSAR e o starter tem de FALHAR.
 const { chromium } = require("playwright-core");
-const BASE = "http://localhost:8321";
+const BASE = process.env.DOJO_URL || "http://localhost:8321";
 
 (async () => {
   const browser = await chromium.launch({ channel: "chrome", headless: true });
