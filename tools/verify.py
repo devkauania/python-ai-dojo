@@ -20,6 +20,9 @@ O que faz:
   4. Executa a solucao_referencia de cada exercício com o MESMO runner do jogo
      (py/runner.py + py/mocks_ia.py) — critério: status == "ok".
   5. Anti-trivialidade: roda o starter_code; se ele passar em tudo, FALHA.
+     Porta de mutação (tools/mutantes.py): cada resposta errada nomeada precisa
+     reprovar em "falha_teste", cada alternativa correta precisa passar, e a
+     comparação do runner precisa dar o resultado da tabela.
   6. Watchdog: cada execução num processo filho com timeout; timeout mata o
      pool e recria (sem SIGALRM — não existe no Windows). PYTHONHASHSEED=0.
   7. Relatório: uma linha por exercício, sumário por nível/tier, gates de
@@ -36,6 +39,9 @@ import os
 import re
 import sys
 from collections import defaultdict
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mutantes as M  # noqa: E402
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONTENT = os.path.join(RAIZ, "content")
@@ -338,12 +344,85 @@ def motivo_falha(resultado):
     return f"status inesperado: {status}"
 
 
+def aplicar_reescritas(fonte, reescritas):
+    """Aplica as reescritas de um mutante. Retorna None se alguma não mudou nada."""
+    if isinstance(reescritas, dict):
+        reescritas = reescritas[LANG]
+    for padrao, troca in reescritas:
+        novo = re.sub(padrao, troca, fonte)
+        if novo == fonte:
+            return None
+        fonte = novo
+    return fonte
+
+
+def conferir_mutantes(pool, ex, timeout_ext):
+    """Porta de mutação de um exercício. Retorna (lista de falhas, mortos, vivos-ok)."""
+    falhas = []
+    ex_id = ex["id"]
+    mortos = 0
+    for nome, reescritas in M.MUTANTES.get(ex_id, ()):
+        fonte = aplicar_reescritas(ex["solucao_referencia"], reescritas)
+        if fonte is None:
+            falhas.append(f"mutante '{nome}' não se aplica mais à solução")
+            continue
+        r = json.loads(pool.executar(montar_payload(ex, fonte), timeout_ext))
+        if r.get("status") == "ok":
+            falhas.append(f"mutante '{nome}' passou em todos os testes")
+        elif r.get("status") != "falha_teste":
+            falhas.append(f"mutante '{nome}' não chegou aos testes: {motivo_falha(r)}")
+        else:
+            mortos += 1
+    aceitas = 0
+    for nome, reescritas in M.ALTERNATIVAS.get(ex_id, ()):
+        fonte = aplicar_reescritas(ex["solucao_referencia"], reescritas)
+        if fonte is None:
+            falhas.append(f"alternativa '{nome}' não se aplica mais à solução")
+            continue
+        r = json.loads(pool.executar(montar_payload(ex, fonte), timeout_ext))
+        if r.get("status") != "ok":
+            falhas.append(f"alternativa correta '{nome}' reprovou: {motivo_falha(r)}")
+        else:
+            aceitas += 1
+    return falhas, mortos, aceitas
+
+
+def validar_comparacao():
+    """A comparação do runner, direto na tabela de tools/mutantes.py."""
+    caminho_py = os.path.join(RAIZ, "py")
+    if caminho_py not in sys.path:
+        sys.path.insert(0, caminho_py)
+    import runner  # noqa: PLC0415
+
+    class SempreIgual:
+        def __eq__(self, _outro):
+            return True
+
+        __hash__ = None
+
+    erros = []
+    casos = list(M.COMPARACAO) + [(SempreIgual(), e, False) for e in ([1], 1, 1.5, "a", {"a": 1}, None)]
+    try:
+        import numpy as np  # noqa: PLC0415
+    except ImportError:
+        np = None
+    if np is not None:
+        casos += [(np.int64(3), 3, True), (np.float64(3.0), 3, False), (np.float64(0.5), 0.5, True),
+                  (np.array([1, 2]), [1, 2], True), (np.array([1.0, 2.0]), [1, 2], False)]
+    for obtido, esperado, igual in casos:
+        if runner._iguais(obtido, esperado) != igual:
+            erros.append(f"[COMPARACAO] _iguais({obtido!r}, {esperado!r}) deveria ser {igual}")
+    return erros
+
+
 def executar_exercicios(exercicios):
-    """Roda solução (deve passar) + starter (deve falhar) de cada exercício.
-    Retorna (ok, falhas). Compartilhado com tools/verify_fragment.py."""
+    """Roda solução (deve passar) + starter (deve falhar) + porta de mutação de
+    cada exercício. Retorna (ok, falhas). Compartilhado com tools/verify_fragment.py."""
     pool = Pool()
     falhas_exec = 0
     ok = 0
+    mortos_total = 0
+    aceitas_total = 0
     try:
         for _arq, _i, ex in exercicios:
             ex_id = ex.get("id", "?")
@@ -367,10 +446,21 @@ def executar_exercicios(exercicios):
                 print(f"[FALHA] {ex_id} — starter já resolve os testes (anti-trivialidade)")
                 continue
 
+            falhas_mut, mortos, aceitas = conferir_mutantes(pool, ex, timeout_ext)
+            mortos_total += mortos
+            aceitas_total += aceitas
+            if falhas_mut:
+                falhas_exec += 1
+                for f in falhas_mut:
+                    print(f"[FALHA] {ex_id} — {f}")
+                continue
+
             ok += 1
             print(f"[OK] {ex_id}")
     finally:
         pool.matar()
+    print(f"\nPorta de mutação: {mortos_total} resposta(s) errada(s) reprovada(s), "
+          f"{aceitas_total} alternativa(s) correta(s) aceita(s).")
     return ok, falhas_exec
 
 
@@ -417,6 +507,10 @@ def main():
 
     ok, falhas_exec = executar_exercicios(exercicios)
 
+    erros_comparacao = validar_comparacao()
+    for e in erros_comparacao:
+        print(f"[FALHA] {e}")
+
     erros_contagem = [] if filtrado else validar_contagem(manifest, exercicios, faltando)
     for e in erros_contagem:
         print(f"[FALHA] {e}")
@@ -432,7 +526,7 @@ def main():
         c = por_nivel[slug]
         print(f"  {slug}: {c[0]}/{c[1]}/{c[2]} = {sum(c)}")
 
-    total_falhas = len(erros_schema) + falhas_exec + len(erros_contagem)
+    total_falhas = len(erros_schema) + falhas_exec + len(erros_contagem) + len(erros_comparacao)
     print(f"\n{ok} verde(s), {total_falhas} falha(s), {len(exercicios)} exercício(s).")
     if total_falhas == 0:
         print("VERIFY: 100% VERDE")

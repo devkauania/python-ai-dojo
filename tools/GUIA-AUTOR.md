@@ -44,10 +44,13 @@ curto, descritivo, e nos ocultos não pode entregar a resposta.
 - O código do teste roda num namespace que enxerga os globais do aluno, MAIS:
   - `_verificar(obtido, esperado)` — comparação com tolerância de float
     (1e-6), diff automático para strings multilinha, arrays numpy convertidos.
-    Use SEMPRE que possível (gera o painel esperado/obtido).
+    Esperado `int` exige `int` exato (`3.0` não passa); esperado `float` aceita
+    `float` ou `int` dentro da tolerância. Use SEMPRE que possível (gera o painel
+    esperado/obtido).
   - `assert cond, "mensagem em PT-BR"` — para checagens de tipo/propriedade.
   - `_stdout` — o que o código do aluno imprimiu (string).
-  - `_mocks` — o módulo de mocks: `_mocks.roteirizar_falhas(rota, [429, 200], retry_after=2)`,
+  - `_mocks` — o módulo de mocks: `_mocks.roteirizar_falhas(rota, [429, 200], retry_after=2)`
+    (itens especiais em `/modelos`: `"loop"` repete página e cursor; `"repete"` traz um id já visto),
     `_mocks.roteirizar_erros_llm(['rate_limit', None])` (eventos: `rate_limit`,
     `args_invalidos`, `multi_blocos`, `vetor_zero` = embedding de norma zero), `_mocks.relogio()`
     (segundos virtuais — `time.sleep` e `asyncio.sleep` avançam esse relógio sem
@@ -95,6 +98,22 @@ curto, descritivo, e nos ocultos não pode entregar a resposta.
 Técnico, direto, respeitoso. Sem sarcasmo, sem infantilizar, sem "!!!". Cada
 enunciado conecta o exercício ao MUNDO REAL de IA em 1 frase quando natural.
 Mensagens de assert em PT-BR e úteis.
+
+## Testes que reprovam resposta errada
+
+Passar a solução não prova o teste. Para cada contrato do enunciado, pergunte qual
+resposta plausível e errada ainda passaria:
+
+- janela, passo e parada: confira a lista inteira, com um caso que tenha cauda
+- top-k e ranking: mais itens que `k`, com o melhor fora da primeira posição
+- fronteira anunciada (`>=`, `pontas incluídas`, `k=1`): use o valor exato da fronteira
+- cosseno e contas: um caso não colinear, com resultado irracional
+- modelo e `max_tokens` citados no enunciado: confira em `client.chamadas[-1]`
+- toda borda do contrato no enunciado precisa de um teste que a alcance
+
+Registre as respostas erradas em `tools/mutantes.py`: o `verify.py` exige que
+cada uma reprove (`falha_teste`) e que cada alternativa correta passe, nos dois
+idiomas.
 
 ## Como verificar (loop até verde)
 
