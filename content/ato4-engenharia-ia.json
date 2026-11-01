@@ -531,6 +531,14 @@
         {
           "nome": "fronteira dos 25%: 2 não é menor que 2",
           "codigo": "_verificar(chunk_sem_farelo('p01 p02 p03 p04 p05 p06 p07 p08 p09 p10 p11 p12 p13 p14 p15 p16 p17 p18', 8), ['p01 p02 p03 p04 p05 p06 p07 p08', 'p09 p10 p11 p12 p13 p14 p15 p16', 'p17 p18'])"
+        },
+        {
+          "nome": "uma palavra só não tem anterior",
+          "codigo": "_verificar(chunk_sem_farelo('a', 5), ['a'])"
+        },
+        {
+          "nome": "dois pedaços: o resto junta ao primeiro",
+          "codigo": "_verificar(chunk_sem_farelo('a b c d e f', 5), ['a b c d e f'])"
         }
       ],
       "dicas": [
@@ -582,6 +590,14 @@
         {
           "nome": "tudo cabe num chunk",
           "codigo": "_verificar(empacotar_sentencas('rag bom. chunk bom', 10), ['rag bom. chunk bom'])"
+        },
+        {
+          "nome": "max_tokens = 1: uma palavra por chunk",
+          "codigo": "_verificar(empacotar_sentencas('oi. tudo bem. sim', 1), ['oi', 'tudo', 'bem', 'sim'])"
+        },
+        {
+          "nome": "depois da gigante o acúmulo recomeça do zero",
+          "codigo": "_verificar(empacotar_sentencas('p q r. a b c d e. f g. h i. j', 4), ['p q r', 'a b c d', 'e', 'f g. h i', 'j'])"
         }
       ],
       "dicas": [
@@ -652,7 +668,7 @@
       ],
       "titulo": "Perto ou longe?",
       "explicacao_md": null,
-      "enunciado_md": "Para saber se dois textos falam da mesma coisa, medimos a **similaridade de cosseno** entre seus embeddings. Como os vetores do Dojo têm norma 1, o cosseno é só o **produto escalar** (`np.dot`) — sem precisar dividir por norma nenhuma.\n\nEscreva `similaridade(a, b)` que devolve o cosseno entre os embeddings de `a` e `b`, como `float`. Perto de `1.0` = muito parecidos; perto de `0` = nada a ver.\n\nExemplo: `similaridade(\"gato preto\", \"gato branco\")` → um número alto (compartilham \"gato\").",
+      "enunciado_md": "Para saber se dois textos falam da mesma coisa, medimos a **similaridade de cosseno** entre seus embeddings. Como os vetores do Dojo têm norma 1, o cosseno é só o **produto escalar** (`np.dot`) — sem precisar dividir por norma nenhuma.\n\nEscreva `similaridade(a, b)` que devolve o cosseno entre os embeddings de `a` e `b`, como `float` Python. Perto de `1.0` = muito parecidos; perto de `0` = nada a ver.\n\nExemplo: `similaridade(\"gato preto\", \"gato branco\")` → um número alto (compartilham \"gato\").",
       "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef similaridade(a, b):\n    # Vetores de norma 1 dispensam a divisão do cosseno: o produto escalar já É\n    # a similaridade. Embedde os dois e devolva float Python.\n    ...\n",
       "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef similaridade(a, b):\n    return float(np.dot(embed(a), embed(b)))\n",
       "testes_visiveis": [
@@ -676,7 +692,7 @@
         },
         {
           "nome": "retorna float Python",
-          "codigo": "assert isinstance(similaridade('x', 'y'), float), 'Converta o resultado com float(...) — np.float64 confunde json'"
+          "codigo": "assert type(similaridade('x', 'y')) is float, 'Converta o resultado com float(...): em listas e no repr, np.float64 aparece como np.float64(...)'"
         }
       ],
       "dicas": [
@@ -723,7 +739,7 @@
         },
         {
           "nome": "empate devolve o primeiro",
-          "codigo": "_verificar(mais_similar('oi', 'igual', 'igual'), 'igual')"
+          "codigo": "_verificar(mais_similar('oi', 'IGUAL', 'igual'), 'IGUAL')"
         },
         {
           "nome": "devolve sempre uma das duas opções",
@@ -779,6 +795,14 @@
         {
           "nome": "retorna booleano de verdade",
           "codigo": "assert sao_parecidos('a b', 'c d', 0.9) is True or sao_parecidos('a b', 'c d', 0.9) is False, 'Retorne True/False de verdade'"
+        },
+        {
+          "nome": "outros textos, abaixo do limiar",
+          "codigo": "_verificar(sao_parecidos('gato preto', 'cachorro grande', 0.5), False)"
+        },
+        {
+          "nome": "as mesmas palavras em outra ordem",
+          "codigo": "_verificar(sao_parecidos('preto gato', 'gato preto', 0.1), True)"
         }
       ],
       "dicas": [
@@ -1007,7 +1031,7 @@
       ],
       "titulo": "Busca no índice pronto",
       "explicacao_md": null,
-      "enunciado_md": "Com o índice pronto, a busca vira uma conta de matriz: `matriz @ q` calcula o cosseno de **todos** os documentos contra a consulta de uma vez (linhas e consulta têm norma 1). Depois, `np.argsort` ordena e você pega os top-k.\n\nEscreva `buscar_no_indice(matriz, textos, consulta, k)` que devolve os `k` melhores como tuplas `(texto, score)`, em ordem decrescente de score. Use `np.argsort(-scores)` para ranquear.\n\nExemplo: com o índice de `[\"gato branco\", \"banco de dados\", \"gato preto dorme\"]` e consulta `\"gato preto\"`, `k=2` → `[(\"gato preto dorme\", 0.78...), (\"gato branco\", 0.63...)]`.",
+      "enunciado_md": "Com o índice pronto, a busca vira uma conta de matriz: `matriz @ q` calcula o cosseno de **todos** os documentos contra a consulta de uma vez (linhas e consulta têm norma 1). Depois, `np.argsort` ordena e você pega os top-k.\n\nEscreva `buscar_no_indice(matriz, textos, consulta, k)` que devolve os `k` melhores como tuplas `(texto, score)`, com `score` `float` Python, em ordem decrescente de score. Use `np.argsort(-scores)` para ranquear.\n\nExemplo: com o índice de `[\"gato branco\", \"banco de dados\", \"gato preto dorme\"]` e consulta `\"gato preto\"`, `k=2` → `[(\"gato preto dorme\", 0.78...), (\"gato branco\", 0.63...)]`.",
       "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef buscar_no_indice(matriz, textos, consulta, k):\n    # matriz @ consulta rende todos os scores de uma vez (norma 1 dos dois\n    # lados). O argsort do negativo ranqueia decrescente; os índices dele\n    # apontam para textos e scores.\n    ...\n",
       "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(texto):\n    return _client.embeddings.create(model=\"mock-embed\", input=texto).data[0].embedding\n\n\ndef buscar_no_indice(matriz, textos, consulta, k):\n    q = np.array(embed(consulta))\n    scores = matriz @ q\n    ordem = np.argsort(-scores)[:k]\n    return [(textos[i], float(scores[i])) for i in ordem]\n",
       "testes_visiveis": [
@@ -1031,7 +1055,7 @@
         },
         {
           "nome": "score é float Python",
-          "codigo": "textos = ['gato preto', 'cão grande']\nm = np.array([_mocks.embed_texto(t) for t in textos])\nr = buscar_no_indice(m, textos, 'gato', 1)\nassert isinstance(r[0][1], float), 'Converta o score com float(...)'"
+          "codigo": "textos = ['gato preto', 'cão grande']\nm = np.array([_mocks.embed_texto(t) for t in textos])\nr = buscar_no_indice(m, textos, 'gato', 1)\nassert type(r[0][1]) is float, 'Converta o score com float(...): em listas e no repr, np.float64 aparece como np.float64(...)'"
         }
       ],
       "dicas": [
@@ -1083,6 +1107,10 @@
         {
           "nome": "a linha nova é o embedding do texto novo",
           "codigo": "m0 = np.array([_mocks.embed_texto('velho')])\nm1, _ts = adicionar((m0, ['velho']), 'novo')\n_verificar(m1[1], _mocks.embed_texto('novo'))"
+        },
+        {
+          "nome": "o índice recebido não muda",
+          "codigo": "m0 = np.array([_mocks.embed_texto('a')])\nts0 = ['a']\nm1, ts1 = adicionar((m0, ts0), 'b')\n_verificar(ts0, ['a'])\n_verificar(m0.shape, (1, 16))\n_verificar(ts1, ['a', 'b'])"
         }
       ],
       "dicas": [
@@ -1189,6 +1217,18 @@
         {
           "nome": "limiar alto corta tudo",
           "codigo": "_verificar(buscar_com_limiar('gato preto', ['gato branco'], 5, 0.99), [])"
+        },
+        {
+          "nome": "mais documentos acima do limiar que k",
+          "codigo": "r = buscar_com_limiar('gato preto', ['gato branco', 'gato preto dorme'], 1, 0.5)\n_verificar([t for t, _ in r], ['gato preto dorme'])"
+        },
+        {
+          "nome": "score igual ao limiar entra",
+          "codigo": "s = buscar_com_limiar('gato preto', ['gato branco'], 1, -1.0)[0][1]\n_verificar([t for t, _ in buscar_com_limiar('gato preto', ['gato branco'], 1, s)], ['gato branco'])"
+        },
+        {
+          "nome": "o score é o cosseno exato",
+          "codigo": "r = buscar_com_limiar('gato preto', ['gato branco'], 1, 0.0)\n_verificar(r[0][1], float(np.dot(_mocks.embed_texto('gato branco'), _mocks.embed_texto('gato preto'))))"
         }
       ],
       "dicas": [
@@ -1301,6 +1341,14 @@
         {
           "nome": "sem duplicatas, devolve os k melhores",
           "codigo": "r = buscar_sem_duplicatas('gato preto', ['gato preto dorme', 'gato branco', 'banco de dados'], 2, 0.95)\nassert len(r) == 2 and [t for t, _ in r] == ['gato preto dorme', 'gato branco'], 'Sem duplicatas, o resultado é o top-k normal'"
+        },
+        {
+          "nome": "corpus fora de ordem sai ranqueado",
+          "codigo": "r = buscar_sem_duplicatas('gato preto', ['gato branco', 'gato preto dorme'], 2, 0.95)\n_verificar([t for t, _ in r], ['gato preto dorme', 'gato branco'])\nassert r[0][1] > r[1][1], 'Os resultados saem em ordem decrescente de score'"
+        },
+        {
+          "nome": "similaridade igual ao limiar não é duplicata",
+          "codigo": "s = buscar_sem_duplicatas('gato preto dorme', ['gato branco'], 1, 0.95)[0][1]\nr = buscar_sem_duplicatas('gato preto', ['gato preto dorme', 'gato branco'], 5, s)\n_verificar([t for t, _ in r], ['gato preto dorme', 'gato branco'])"
         }
       ],
       "dicas": [
@@ -1351,6 +1399,10 @@
         {
           "nome": "usou mesmo a API (uma chamada registrada)",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nresponder_openai(c, 'oi')\n_verificar(len(c.chamadas), 1)"
+        },
+        {
+          "nome": "usa o modelo pedido",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nresponder_openai(c, 'oi')\n_verificar(c.chamadas[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -1399,6 +1451,10 @@
         {
           "nome": "texto vem de content[0].text, não de choices",
           "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(responder_anthropic(c, 'olá'), 'Olá! Como posso ajudar?')"
+        },
+        {
+          "nome": "usa o modelo e o max_tokens pedidos",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\nresponder_anthropic(c, 'oi')\n_verificar(c.chamadas[-1]['model'], 'mock-claude')\n_verificar(c.chamadas[-1]['max_tokens'], 256)"
         }
       ],
       "dicas": [
@@ -1487,6 +1543,10 @@
         {
           "nome": "são exatamente duas mensagens, na ordem certa",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nresponder_com_sistema(c, 'persona', 'me fale sobre python')\nmsgs = c.chamadas[-1]['messages']\nassert len(msgs) == 2 and msgs[0]['role'] == 'system' and msgs[1]['role'] == 'user', 'A lista deve ter system e depois user'"
+        },
+        {
+          "nome": "usa o modelo pedido",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nresponder_com_sistema(c, 'seja breve', 'oi')\n_verificar(c.chamadas[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -1532,6 +1592,10 @@
         {
           "nome": "maiúsculas com outra pergunta",
           "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(responder_anthropic_sistema(c, 'escreva em maiúsculas', 'qual a capital da frança?'), 'PARIS')"
+        },
+        {
+          "nome": "usa o modelo e o max_tokens pedidos",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\nresponder_anthropic_sistema(c, 'seja breve', 'oi')\n_verificar(c.chamadas[-1]['model'], 'mock-claude')\n_verificar(c.chamadas[-1]['max_tokens'], 256)"
         }
       ],
       "dicas": [
@@ -1580,6 +1644,10 @@
         {
           "nome": "devolve uma tupla de inteiros",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nr = tokens_usados(c, 'oi')\nassert isinstance(r, tuple) and len(r) == 2 and all(isinstance(x, int) for x in r), 'Retorne uma tupla (prompt_tokens, completion_tokens) de inteiros'"
+        },
+        {
+          "nome": "usa o modelo pedido",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\ntokens_usados(c, 'oi')\n_verificar(c.chamadas[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -1630,6 +1698,10 @@
         {
           "nome": "começando do zero",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nresposta, hist = conversar(c, [], 'quanto é 2+2?')\n_verificar(resposta, '4')\n_verificar(hist, [{'role': 'user', 'content': 'quanto é 2+2?'}, {'role': 'assistant', 'content': '4'}])"
+        },
+        {
+          "nome": "usa o modelo pedido",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nconversar(c, [], 'oi')\n_verificar(c.chamadas[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -1679,6 +1751,10 @@
         {
           "nome": "mesma pergunta, mesma resposta nos dois",
           "codigo": "from openai import OpenAI\nfrom anthropic import Anthropic\n_verificar(perguntar(OpenAI(), 'qual a capital da frança?'), 'Paris')\n_verificar(perguntar(Anthropic(), 'qual a capital da frança?'), 'Paris')"
+        },
+        {
+          "nome": "Anthropic recebe o max_tokens pedido",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\nperguntar(c, 'oi')\n_verificar(c.chamadas[-1]['max_tokens'], 1024)"
         }
       ],
       "dicas": [
@@ -1729,6 +1805,10 @@
         {
           "nome": "prefixo Arrr! na saudação",
           "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_verificar(falar_como_pirata(c, 'olá'), 'Arrr! Olá! Como posso ajudar?')"
+        },
+        {
+          "nome": "usa o modelo e o max_tokens pedidos",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\nfalar_como_pirata(c, 'oi')\n_verificar(c.chamadas[-1]['model'], 'mock-claude')\n_verificar(c.chamadas[-1]['max_tokens'], 256)"
         }
       ],
       "dicas": [
@@ -1822,6 +1902,10 @@
         {
           "nome": "preço zero, custo zero",
           "codigo": "from openai import OpenAI\nc = OpenAI()\ntexto, custo = perguntar_e_custo(c, 'olá', 0.0)\n_verificar(texto, 'Olá! Como posso ajudar?')\n_verificar(custo, 0.0)"
+        },
+        {
+          "nome": "usa o modelo pedido",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nperguntar_e_custo(c, 'oi', 0.5)\n_verificar(c.chamadas[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -1871,6 +1955,10 @@
         {
           "nome": "conta as chamadas mesmo com falha no meio",
           "codigo": "from openai import OpenAI\n_mocks.roteirizar_erros_llm(['rate_limit', None])\nc = OpenAI()\nperguntar_com_retry(c, 'qual a capital da frança?', 4)\n_verificar(len(c.chamadas), 2)"
+        },
+        {
+          "nome": "usa o modelo pedido",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nperguntar_com_retry(c, 'oi', 2)\n_verificar(c.chamadas[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -1920,6 +2008,10 @@
         {
           "nome": "de fato vieram dois blocos no cenário",
           "codigo": "from anthropic import Anthropic\n_mocks.roteirizar_erros_llm(['multi_blocos'])\nc = Anthropic()\nresp = c.messages.create(model='mock-claude', max_tokens=64, messages=[{'role': 'user', 'content': 'me fale sobre python'}])\nassert len(resp.content) >= 2, 'Com multi_blocos a resposta chega em vários blocos — por isso concatenar todos importa'"
+        },
+        {
+          "nome": "usa o modelo e o max_tokens pedidos",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\ntexto_completo(c, 'oi')\n_verificar(c.chamadas[-1]['model'], 'mock-claude')\n_verificar(c.chamadas[-1]['max_tokens'], 1024)"
         }
       ],
       "dicas": [
@@ -1969,6 +2061,10 @@
         {
           "nome": "system + user válidos respondem",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nmsgs = [{'role': 'system', 'content': 'seja breve'}, {'role': 'user', 'content': 'quanto é 2+2?'}]\n_verificar(enviar_validado(c, msgs), '4')"
+        },
+        {
+          "nome": "usa o modelo pedido",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nenviar_validado(c, [{'role': 'user', 'content': 'oi'}])\n_verificar(c.chamadas[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -2318,7 +2414,7 @@
       ],
       "titulo": "Lendo o tool_call",
       "explicacao_md": null,
-      "enunciado_md": "Quando o modelo pede uma ferramenta, o pedido vem em `resp.choices[0].message.tool_calls` — uma lista. Cada item tem `function.name` (o nome) e `function.arguments` (uma **string JSON**).\n\nEscreva `pedir_soma(cliente, a, b)` que:\n\n- manda `\"some {a} e {b}\"` ao modelo com a tool `somar` disponível\n- lê o **primeiro** tool_call\n- retorna a tupla `(nome_da_funcao, argumentos_dict)`, com os arguments já parseados\n\nEx.: `pedir_soma(cliente, 2, 3)` devolve `(\"somar\", {\"a\": 2, \"b\": 3})`.",
+      "enunciado_md": "Quando o modelo pede uma ferramenta, o pedido vem em `resp.choices[0].message.tool_calls` — uma lista. Cada item tem `function.name` (o nome) e `function.arguments` (uma **string JSON**).\n\nEscreva `pedir_soma(cliente, a, b)` que:\n\n- manda `\"some {a} e {b}\"` ao modelo com a tool `somar` disponível, com o schema completo (`type`, `function.name`, `function.parameters`)\n- lê o **primeiro** tool_call\n- retorna a tupla `(nome_da_funcao, argumentos_dict)`, com os arguments já parseados\n\nEx.: `pedir_soma(cliente, 2, 3)` devolve `(\"somar\", {\"a\": 2, \"b\": 3})`.",
       "starter_code": "import json\n\n\ndef pedir_soma(cliente, a, b):\n    # O tool_call carrega function.name e function.arguments (texto JSON) —\n    # devolva o nome e o dict já parseado.\n    ...\n",
       "solucao_referencia": "import json\n\n\ndef pedir_soma(cliente, a, b):\n    tools = [{\n        \"type\": \"function\",\n        \"function\": {\n            \"name\": \"somar\",\n            \"description\": \"Soma dois inteiros.\",\n            \"parameters\": {\n                \"type\": \"object\",\n                \"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"integer\"}},\n                \"required\": [\"a\", \"b\"],\n            },\n        },\n    }]\n    resp = cliente.chat.completions.create(\n        model=\"mock-4\",\n        messages=[{\"role\": \"user\", \"content\": f\"some {a} e {b}\"}],\n        tools=tools,\n    )\n    chamada = resp.choices[0].message.tool_calls[0]\n    return chamada.function.name, json.loads(chamada.function.arguments)\n",
       "testes_visiveis": [
@@ -2343,6 +2439,10 @@
         {
           "nome": "arguments parseados para dict",
           "codigo": "from openai import OpenAI\nassert isinstance(pedir_soma(OpenAI(), 1, 2)[1], dict), \"arguments vem como string JSON — parseie com json.loads\""
+        },
+        {
+          "nome": "a tool vai com o schema completo",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\npedir_soma(c, 2, 3)\ntool = c.chamadas[-1]['tools'][0]\n_verificar(tool['type'], 'function')\n_verificar(tool['function']['name'], 'somar')\n_verificar(tool['function']['parameters']['type'], 'object')\n_verificar(sorted(tool['function']['parameters']['properties']), ['a', 'b'])"
         }
       ],
       "dicas": [

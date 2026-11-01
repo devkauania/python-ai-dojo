@@ -292,6 +292,14 @@
         {
           "nome": "grande com verba só de mini",
           "codigo": "_verificar(escolher_modelo(2000, 0.09), 'recusado')"
+        },
+        {
+          "nome": "500 tokens ainda é prompt pequeno",
+          "codigo": "_verificar(escolher_modelo(500, 0.50), 'mock-mini')"
+        },
+        {
+          "nome": "501 tokens já é prompt grande",
+          "codigo": "_verificar(escolher_modelo(501, 0.05), 'recusado')"
         }
       ],
       "dicas": [
@@ -414,6 +422,10 @@
         {
           "nome": "max_tokens é int de verdade",
           "codigo": "assert isinstance(ler_max_tokens('300'), int), 'ler_max_tokens deve retornar int, não ' + type(ler_max_tokens('300')).__name__"
+        },
+        {
+          "nome": "as duas pontas e logo depois",
+          "codigo": "_verificar(ler_temperatura('0'), 0.0)\n_verificar(ler_temperatura('2.5'), 1.0)"
         }
       ],
       "dicas": [
@@ -1003,6 +1015,10 @@
         {
           "nome": "ordem preservada",
           "codigo": "_verificar(limpar_logs([' c ', ' a ', ' b ']), ['c', 'a', 'b'])"
+        },
+        {
+          "nome": "a lista recebida não muda",
+          "codigo": "linhas = [' ok ', '', 'fim ']\nr = limpar_logs(linhas)\n_verificar(r, ['ok', 'fim'])\n_verificar(linhas, [' ok ', '', 'fim '])\nassert r is not linhas, 'Devolva uma lista nova'"
         }
       ],
       "dicas": [
@@ -1246,6 +1262,10 @@
         {
           "nome": "texto vazio",
           "codigo": "_verificar(ultimas_palavras('', 3), '')"
+        },
+        {
+          "nome": "n = 1 devolve a última",
+          "codigo": "_verificar(ultimas_palavras('a b c', 1), 'c')"
         }
       ],
       "dicas": [

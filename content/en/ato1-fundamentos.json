@@ -292,6 +292,14 @@
         {
           "nome": "big with only a mini budget",
           "codigo": "_check(choose_model(2000, 0.09), 'refused')"
+        },
+        {
+          "nome": "500 tokens is still a small prompt",
+          "codigo": "_check(choose_model(500, 0.50), 'mock-mini')"
+        },
+        {
+          "nome": "501 tokens is already a big prompt",
+          "codigo": "_check(choose_model(501, 0.05), 'refused')"
         }
       ],
       "dicas": [
@@ -414,6 +422,10 @@
         {
           "nome": "max_tokens is a real int",
           "codigo": "assert isinstance(read_max_tokens('300'), int), 'read_max_tokens must return an int, not ' + type(read_max_tokens('300')).__name__"
+        },
+        {
+          "nome": "both ends and just past them",
+          "codigo": "_check(read_temperature('0'), 0.0)\n_check(read_temperature('2.5'), 1.0)"
         }
       ],
       "dicas": [
@@ -1003,6 +1015,10 @@
         {
           "nome": "order preserved",
           "codigo": "_check(clean_logs([' c ', ' a ', ' b ']), ['c', 'a', 'b'])"
+        },
+        {
+          "nome": "the list you received doesn't change",
+          "codigo": "lines = [' ok ', '', 'end ']\nr = clean_logs(lines)\n_check(r, ['ok', 'end'])\n_check(lines, [' ok ', '', 'end '])\nassert r is not lines, 'Return a new list'"
         }
       ],
       "dicas": [
@@ -1246,6 +1262,10 @@
         {
           "nome": "empty text",
           "codigo": "_check(last_words('', 3), '')"
+        },
+        {
+          "nome": "n = 1 returns the last one",
+          "codigo": "_check(last_words('a b c', 1), 'c')"
         }
       ],
       "dicas": [

@@ -531,6 +531,14 @@
         {
           "nome": "the 25% border: 2 is not less than 2",
           "codigo": "_check(chunk_no_crumbs('p01 p02 p03 p04 p05 p06 p07 p08 p09 p10 p11 p12 p13 p14 p15 p16 p17 p18', 8), ['p01 p02 p03 p04 p05 p06 p07 p08', 'p09 p10 p11 p12 p13 p14 p15 p16', 'p17 p18'])"
+        },
+        {
+          "nome": "a single word has no previous chunk",
+          "codigo": "_check(chunk_no_crumbs('a', 5), ['a'])"
+        },
+        {
+          "nome": "two pieces: the remainder joins the first",
+          "codigo": "_check(chunk_no_crumbs('a b c d e f', 5), ['a b c d e f'])"
         }
       ],
       "dicas": [
@@ -582,6 +590,14 @@
         {
           "nome": "everything fits in one chunk",
           "codigo": "_check(pack_sentences('good rag. good chunk', 10), ['good rag. good chunk'])"
+        },
+        {
+          "nome": "max_tokens = 1: one word per chunk",
+          "codigo": "_check(pack_sentences('hi. all good. yes', 1), ['hi', 'all', 'good', 'yes'])"
+        },
+        {
+          "nome": "after the giant, the count starts over from zero",
+          "codigo": "_check(pack_sentences('p q r. a b c d e. f g. h i. j', 4), ['p q r', 'a b c d', 'e', 'f g. h i', 'j'])"
         }
       ],
       "dicas": [
@@ -652,7 +668,7 @@
       ],
       "titulo": "Near or far?",
       "explicacao_md": null,
-      "enunciado_md": "To know whether two texts talk about the same thing, we measure the **cosine similarity** between their embeddings. Since Dojo vectors have norm 1, the cosine is just the **dot product** (`np.dot`), with no need to divide by any norm.\n\nWrite `similarity(a, b)` that returns the cosine between the embeddings of `a` and `b`, as a `float`. Close to `1.0` = very similar; close to `0` = unrelated.\n\nExample: `similarity(\"black cat\", \"brown cat\")` → a high number (they share \"cat\").",
+      "enunciado_md": "To know whether two texts talk about the same thing, we measure the **cosine similarity** between their embeddings. Since Dojo vectors have norm 1, the cosine is just the **dot product** (`np.dot`), with no need to divide by any norm.\n\nWrite `similarity(a, b)` that returns the cosine between the embeddings of `a` and `b`, as a Python `float`. Close to `1.0` = very similar; close to `0` = unrelated.\n\nExample: `similarity(\"black cat\", \"brown cat\")` → a high number (they share \"cat\").",
       "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(text):\n    return _client.embeddings.create(model=\"mock-embed\", input=text).data[0].embedding\n\n\ndef similarity(a, b):\n    # Norm-1 vectors skip the cosine's division: the dot product already IS the\n    # similarity. Embed both and return a Python float.\n    ...\n",
       "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(text):\n    return _client.embeddings.create(model=\"mock-embed\", input=text).data[0].embedding\n\n\ndef similarity(a, b):\n    return float(np.dot(embed(a), embed(b)))\n",
       "testes_visiveis": [
@@ -676,7 +692,7 @@
         },
         {
           "nome": "returns a Python float",
-          "codigo": "assert isinstance(similarity('x', 'y'), float), 'Convert the result with float(...); np.float64 confuses json'"
+          "codigo": "assert type(similarity('x', 'y')) is float, 'Convert the result with float(...): in lists and in repr, np.float64 shows up as np.float64(...)'"
         }
       ],
       "dicas": [
@@ -723,7 +739,7 @@
         },
         {
           "nome": "a tie returns the first",
-          "codigo": "_check(most_similar('hi', 'same', 'same'), 'same')"
+          "codigo": "_check(most_similar('hi', 'SAME', 'same'), 'SAME')"
         },
         {
           "nome": "always returns one of the two options",
@@ -779,6 +795,14 @@
         {
           "nome": "returns a real boolean",
           "codigo": "assert are_similar('a b', 'c d', 0.9) is True or are_similar('a b', 'c d', 0.9) is False, 'Return a real True/False'"
+        },
+        {
+          "nome": "other texts, below the threshold",
+          "codigo": "_check(are_similar('black cat', 'big dog', 0.5), False)"
+        },
+        {
+          "nome": "the same words in another order",
+          "codigo": "_check(are_similar('cat black', 'black cat', 0.1), True)"
         }
       ],
       "dicas": [
@@ -1007,7 +1031,7 @@
       ],
       "titulo": "Searching a prebuilt index",
       "explicacao_md": null,
-      "enunciado_md": "With the index ready, search becomes matrix math: `matrix @ q` computes the cosine of **every** document against the query at once (the rows and the query have norm 1). Then `np.argsort` sorts them and you take the top-k.\n\nWrite `search_index(matrix, texts, query, k)` that returns the `k` best as `(text, score)` tuples, in descending order of score. Use `np.argsort(-scores)` to rank.\n\nExample: with the index of `[\"brown cat\", \"database\", \"black cat sleeps\"]` and the query `\"black cat\"`, `k=2` → `[(\"black cat sleeps\", 0.91...), (\"brown cat\", 0.68...)]`.",
+      "enunciado_md": "With the index ready, search becomes matrix math: `matrix @ q` computes the cosine of **every** document against the query at once (the rows and the query have norm 1). Then `np.argsort` sorts them and you take the top-k.\n\nWrite `search_index(matrix, texts, query, k)` that returns the `k` best as `(text, score)` tuples, with `score` a Python `float`, in descending order of score. Use `np.argsort(-scores)` to rank.\n\nExample: with the index of `[\"brown cat\", \"database\", \"black cat sleeps\"]` and the query `\"black cat\"`, `k=2` → `[(\"black cat sleeps\", 0.91...), (\"brown cat\", 0.68...)]`.",
       "starter_code": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(text):\n    return _client.embeddings.create(model=\"mock-embed\", input=text).data[0].embedding\n\n\ndef search_index(matrix, texts, query, k):\n    # matrix @ query yields every score at once (norm 1 on both sides). The\n    # argsort of the negative ranks in descending order; its indices point\n    # into texts and scores.\n    ...\n",
       "solucao_referencia": "import numpy as np\nfrom openai import OpenAI\n\n_client = OpenAI()\n\n\ndef embed(text):\n    return _client.embeddings.create(model=\"mock-embed\", input=text).data[0].embedding\n\n\ndef search_index(matrix, texts, query, k):\n    q = np.array(embed(query))\n    scores = matrix @ q\n    order = np.argsort(-scores)[:k]\n    return [(texts[i], float(scores[i])) for i in order]\n",
       "testes_visiveis": [
@@ -1031,7 +1055,7 @@
         },
         {
           "nome": "the score is a Python float",
-          "codigo": "texts = ['black cat', 'big dog']\nm = np.array([_mocks.embed_text(t) for t in texts])\nr = search_index(m, texts, 'cat', 1)\nassert isinstance(r[0][1], float), 'Convert the score with float(...)'"
+          "codigo": "texts = ['black cat', 'big dog']\nm = np.array([_mocks.embed_text(t) for t in texts])\nr = search_index(m, texts, 'cat', 1)\nassert type(r[0][1]) is float, 'Convert the score with float(...): in lists and in repr, np.float64 shows up as np.float64(...)'"
         }
       ],
       "dicas": [
@@ -1083,6 +1107,10 @@
         {
           "nome": "the new row is the new text's embedding",
           "codigo": "m0 = np.array([_mocks.embed_text('old')])\nm1, _ts = add_to_index((m0, ['old']), 'new')\n_check(m1[1], _mocks.embed_text('new'))"
+        },
+        {
+          "nome": "the index you received doesn't change",
+          "codigo": "m0 = np.array([_mocks.embed_text('a')])\nts0 = ['a']\nm1, ts1 = add_to_index((m0, ts0), 'b')\n_check(ts0, ['a'])\n_check(m0.shape, (1, 16))\n_check(ts1, ['a', 'b'])"
         }
       ],
       "dicas": [
@@ -1189,6 +1217,18 @@
         {
           "nome": "a high threshold cuts everything",
           "codigo": "_check(search_with_threshold('black cat', ['brown cat'], 5, 0.99), [])"
+        },
+        {
+          "nome": "more documents above the threshold than k",
+          "codigo": "r = search_with_threshold('black cat', ['brown cat', 'black cat sleeps'], 1, 0.5)\n_check([t for t, _ in r], ['black cat sleeps'])"
+        },
+        {
+          "nome": "a score equal to the threshold gets in",
+          "codigo": "s = search_with_threshold('black cat', ['brown cat'], 1, -1.0)[0][1]\n_check([t for t, _ in search_with_threshold('black cat', ['brown cat'], 1, s)], ['brown cat'])"
+        },
+        {
+          "nome": "the score is the exact cosine",
+          "codigo": "r = search_with_threshold('black cat', ['brown cat'], 1, 0.0)\n_check(r[0][1], float(np.dot(_mocks.embed_text('brown cat'), _mocks.embed_text('black cat'))))"
         }
       ],
       "dicas": [
@@ -1301,6 +1341,14 @@
         {
           "nome": "no duplicates, it returns the best k",
           "codigo": "r = search_no_duplicates('black cat', ['black cat sleeps', 'brown cat', 'database'], 2, 0.95)\nassert len(r) == 2 and [t for t, _ in r] == ['black cat sleeps', 'brown cat'], 'With no duplicates, the result is the normal top-k'"
+        },
+        {
+          "nome": "an out-of-order corpus comes out ranked",
+          "codigo": "r = search_no_duplicates('black cat', ['brown cat', 'black cat sleeps'], 2, 0.95)\n_check([t for t, _ in r], ['black cat sleeps', 'brown cat'])\nassert r[0][1] > r[1][1], 'The results come out in descending order of score'"
+        },
+        {
+          "nome": "a similarity equal to the threshold isn't a duplicate",
+          "codigo": "s = search_no_duplicates('black cat sleeps', ['brown cat'], 1, 0.95)[0][1]\nr = search_no_duplicates('black cat', ['black cat sleeps', 'brown cat'], 5, s)\n_check([t for t, _ in r], ['black cat sleeps', 'brown cat'])"
         }
       ],
       "dicas": [
@@ -1351,6 +1399,10 @@
         {
           "nome": "it really used the API (one call recorded)",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nanswer_openai(c, 'hi')\n_check(len(c.calls), 1)"
+        },
+        {
+          "nome": "uses the requested model",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nanswer_openai(c, 'hi')\n_check(c.calls[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -1399,6 +1451,10 @@
         {
           "nome": "the text comes from content[0].text, not choices",
           "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_check(answer_anthropic(c, 'hello'), 'Hello! How can I help?')"
+        },
+        {
+          "nome": "uses the requested model and max_tokens",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\nanswer_anthropic(c, 'hi')\n_check(c.calls[-1]['model'], 'mock-claude')\n_check(c.calls[-1]['max_tokens'], 256)"
         }
       ],
       "dicas": [
@@ -1487,6 +1543,10 @@
         {
           "nome": "exactly two messages, in the right order",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nanswer_with_system(c, 'persona', 'tell me about python')\nmsgs = c.calls[-1]['messages']\nassert len(msgs) == 2 and msgs[0]['role'] == 'system' and msgs[1]['role'] == 'user', 'The list must have system and then user'"
+        },
+        {
+          "nome": "uses the requested model",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nanswer_with_system(c, 'be brief', 'hi')\n_check(c.calls[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -1532,6 +1592,10 @@
         {
           "nome": "uppercase with another question",
           "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_check(answer_anthropic_system(c, 'write in all caps', 'what is the capital of france?'), 'PARIS')"
+        },
+        {
+          "nome": "uses the requested model and max_tokens",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\nanswer_anthropic_system(c, 'be brief', 'hi')\n_check(c.calls[-1]['model'], 'mock-claude')\n_check(c.calls[-1]['max_tokens'], 256)"
         }
       ],
       "dicas": [
@@ -1580,6 +1644,10 @@
         {
           "nome": "returns a tuple of integers",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nr = tokens_used(c, 'hi')\nassert isinstance(r, tuple) and len(r) == 2 and all(isinstance(x, int) for x in r), 'Return a tuple (prompt_tokens, completion_tokens) of integers'"
+        },
+        {
+          "nome": "uses the requested model",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\ntokens_used(c, 'hi')\n_check(c.calls[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -1630,6 +1698,10 @@
         {
           "nome": "starting from scratch",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nanswer, hist = chat(c, [], 'what is 2+2?')\n_check(answer, '4')\n_check(hist, [{'role': 'user', 'content': 'what is 2+2?'}, {'role': 'assistant', 'content': '4'}])"
+        },
+        {
+          "nome": "uses the requested model",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nchat(c, [], 'hi')\n_check(c.calls[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -1679,6 +1751,10 @@
         {
           "nome": "same question, same answer on both",
           "codigo": "from openai import OpenAI\nfrom anthropic import Anthropic\n_check(ask(OpenAI(), 'what is the capital of france?'), 'Paris')\n_check(ask(Anthropic(), 'what is the capital of france?'), 'Paris')"
+        },
+        {
+          "nome": "Anthropic gets the requested max_tokens",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\nask(c, 'hi')\n_check(c.calls[-1]['max_tokens'], 1024)"
         }
       ],
       "dicas": [
@@ -1729,6 +1805,10 @@
         {
           "nome": "the Arrr! prefix on the greeting",
           "codigo": "from anthropic import Anthropic\nc = Anthropic()\n_check(talk_like_a_pirate(c, 'hello'), 'Arrr! Hello! How can I help?')"
+        },
+        {
+          "nome": "uses the requested model and max_tokens",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\ntalk_like_a_pirate(c, 'hi')\n_check(c.calls[-1]['model'], 'mock-claude')\n_check(c.calls[-1]['max_tokens'], 256)"
         }
       ],
       "dicas": [
@@ -1822,6 +1902,10 @@
         {
           "nome": "zero price, zero cost",
           "codigo": "from openai import OpenAI\nc = OpenAI()\ntext, cost = ask_with_cost(c, 'hello', 0.0)\n_check(text, 'Hello! How can I help?')\n_check(cost, 0.0)"
+        },
+        {
+          "nome": "uses the requested model",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nask_with_cost(c, 'hi', 0.5)\n_check(c.calls[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -1871,6 +1955,10 @@
         {
           "nome": "counts the calls even with a failure in the middle",
           "codigo": "from openai import OpenAI\n_mocks.script_llm_errors(['rate_limit', None])\nc = OpenAI()\nask_with_retry(c, 'what is the capital of france?', 4)\n_check(len(c.calls), 2)"
+        },
+        {
+          "nome": "uses the requested model",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nask_with_retry(c, 'hi', 2)\n_check(c.calls[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -1920,6 +2008,10 @@
         {
           "nome": "two blocks really came back in this scenario",
           "codigo": "from anthropic import Anthropic\n_mocks.script_llm_errors(['multi_block'])\nc = Anthropic()\nresp = c.messages.create(model='mock-claude', max_tokens=64, messages=[{'role': 'user', 'content': 'tell me about python'}])\nassert len(resp.content) >= 2, 'With multi_block the answer arrives in several blocks; that is why joining all of them matters'"
+        },
+        {
+          "nome": "uses the requested model and max_tokens",
+          "codigo": "from anthropic import Anthropic\nc = Anthropic()\nfull_text(c, 'hi')\n_check(c.calls[-1]['model'], 'mock-claude')\n_check(c.calls[-1]['max_tokens'], 1024)"
         }
       ],
       "dicas": [
@@ -1969,6 +2061,10 @@
         {
           "nome": "valid system + user get an answer",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nmsgs = [{'role': 'system', 'content': 'be brief'}, {'role': 'user', 'content': 'what is 2+2?'}]\n_check(send_validated(c, msgs), '4')"
+        },
+        {
+          "nome": "uses the requested model",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nsend_validated(c, [{'role': 'user', 'content': 'hi'}])\n_check(c.calls[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -2318,7 +2414,7 @@
       ],
       "titulo": "Reading the tool_call",
       "explicacao_md": null,
-      "enunciado_md": "When the model asks for a tool, the request comes in `resp.choices[0].message.tool_calls`, a list. Each item has `function.name` (the name) and `function.arguments` (a **JSON string**).\n\nWrite `request_sum(client, a, b)` that:\n\n- sends `\"add {a} and {b}\"` to the model with the `add` tool available\n- reads the **first** tool_call\n- returns the tuple `(function_name, arguments_dict)`, with the arguments already parsed\n\nE.g. `request_sum(client, 2, 3)` returns `(\"add\", {\"a\": 2, \"b\": 3})`.",
+      "enunciado_md": "When the model asks for a tool, the request comes in `resp.choices[0].message.tool_calls`, a list. Each item has `function.name` (the name) and `function.arguments` (a **JSON string**).\n\nWrite `request_sum(client, a, b)` that:\n\n- sends `\"add {a} and {b}\"` to the model with the `add` tool available, with its full schema (`type`, `function.name`, `function.parameters`)\n- reads the **first** tool_call\n- returns the tuple `(function_name, arguments_dict)`, with the arguments already parsed\n\nE.g. `request_sum(client, 2, 3)` returns `(\"add\", {\"a\": 2, \"b\": 3})`.",
       "starter_code": "import json\n\n\ndef request_sum(client, a, b):\n    # The tool_call carries function.name and function.arguments (JSON text):\n    # return the name and the already-parsed dict.\n    ...\n",
       "solucao_referencia": "import json\n\n\ndef request_sum(client, a, b):\n    tools = [{\n        \"type\": \"function\",\n        \"function\": {\n            \"name\": \"add\",\n            \"description\": \"Adds two integers.\",\n            \"parameters\": {\n                \"type\": \"object\",\n                \"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"integer\"}},\n                \"required\": [\"a\", \"b\"],\n            },\n        },\n    }]\n    resp = client.chat.completions.create(\n        model=\"mock-4\",\n        messages=[{\"role\": \"user\", \"content\": f\"add {a} and {b}\"}],\n        tools=tools,\n    )\n    call = resp.choices[0].message.tool_calls[0]\n    return call.function.name, json.loads(call.function.arguments)\n",
       "testes_visiveis": [
@@ -2343,6 +2439,10 @@
         {
           "nome": "arguments parsed into a dict",
           "codigo": "from openai import OpenAI\nassert isinstance(request_sum(OpenAI(), 1, 2)[1], dict), \"arguments comes as a JSON string: parse it with json.loads\""
+        },
+        {
+          "nome": "the tool goes with its full schema",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nrequest_sum(c, 2, 3)\ntool = c.calls[-1]['tools'][0]\n_check(tool['type'], 'function')\n_check(tool['function']['name'], 'add')\n_check(tool['function']['parameters']['type'], 'object')\n_check(sorted(tool['function']['parameters']['properties']), ['a', 'b'])"
         }
       ],
       "dicas": [

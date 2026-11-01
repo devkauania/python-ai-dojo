@@ -401,6 +401,10 @@
         {
           "nome": "stopwords really are discarded",
           "codigo": "_check(top3(['rag rag search', 'the rag and a search', 'search context'], ['the', 'and', 'a'], '.,!?;:'), ['rag', 'search', 'context'])"
+        },
+        {
+          "nome": "more than 3 distinct words",
+          "codigo": "_check(top3(['delta delta delta beta beta alpha gamma zeta'], [], '.,!?;:'), ['delta', 'beta', 'alpha'])"
         }
       ],
       "dicas": [
@@ -848,6 +852,14 @@
         {
           "nome": "an absent name is still MissingField",
           "codigo": "try:\n    parse_and_validate('{\"value\": 1}')\n    assert False, 'a missing name should raise MissingField'\nexcept MissingField as e:\n    assert 'name' in str(e), 'the error must mention \"name\", got: ' + str(e)"
+        },
+        {
+          "nome": "broken JSON is InvalidJson",
+          "codigo": "try:\n    parse_and_validate('{broken')\n    assert False, 'Broken JSON should raise InvalidJson'\nexcept InvalidJson:\n    pass"
+        },
+        {
+          "nome": "a missing value is MissingField",
+          "codigo": "try:\n    parse_and_validate('{\"name\": \"a\"}')\n    assert False, 'a missing value should raise MissingField'\nexcept MissingField as e:\n    assert 'value' in str(e), 'it must name value, got: ' + str(e)"
         }
       ],
       "dicas": [
@@ -1237,7 +1249,7 @@
       ],
       "testes_ocultos": [
         {
-          "nome": "a looping cursor stops and the dedupe saves the day",
+          "nome": "a looping cursor stops at the right page",
           "codigo": "_mocks.script_failures('/models', [200, 'loop'])\nmods = fetch_models_robust(10)\nids = [m['id'] for m in mods]\nassert len(ids) == len(set(ids)), 'No duplicates allowed — ids: ' + str(ids)\n_check(ids, ['m1', 'm2', 'm3', 'm4'])"
         },
         {
@@ -1247,6 +1259,10 @@
         {
           "nome": "an unexpected status raises RuntimeError",
           "codigo": "_mocks.script_failures('/models', [400])\ntry:\n    fetch_models_robust(5)\n    assert False, 'Status 400 should become a RuntimeError'\nexcept RuntimeError:\n    pass"
+        },
+        {
+          "nome": "an id that reappears on another page counts once",
+          "codigo": "_mocks.script_failures('/models', [200, 'repeat', 200])\nids = [m['id'] for m in fetch_models_robust(10)]\n_check(ids, ['m1', 'm2', 'm3', 'm4', 'm5'])"
         }
       ],
       "dicas": [
@@ -1503,6 +1519,10 @@
         {
           "nome": "the keys of each result",
           "codigo": "metadata = [{'text': 'hello world', 'doc': 'a', 'index': 0}]\nmatrix = np.array([_mocks.embed_text('hello world')])\nres = search(matrix, metadata, 'hello world', 1)\n_check(sorted(res[0].keys()), ['doc', 'score', 'text'])"
+        },
+        {
+          "nome": "the score is the exact cosine",
+          "codigo": "metadata = [{'text': 'python programming language', 'doc': 'a', 'index': 0}, {'text': 'rag search context', 'doc': 'b', 'index': 1}, {'text': 'cat sofa window', 'doc': 'c', 'index': 2}]\nmatrix = np.array([_mocks.embed_text(x['text']) for x in metadata])\nq = 'python programming language'\nres = search(matrix, metadata, q, 2)\n_check(res[1]['score'], float(np.dot(_mocks.embed_text(res[1]['text']), _mocks.embed_text(q))))"
         }
       ],
       "dicas": [
@@ -1657,6 +1677,10 @@
         {
           "nome": "every returned score respects the threshold",
           "codigo": "metadata = [{'text': 'python programming language', 'doc': 'a', 'index': 0}, {'text': 'cat sofa window', 'doc': 'b', 'index': 1}, {'text': 'rag search context', 'doc': 'c', 'index': 2}]\nmatrix = np.array([_mocks.embed_text(x['text']) for x in metadata])\nres = search(matrix, metadata, 'python programming language', 5, 0.2)\nassert all(r['score'] >= 0.2 for r in res), 'A score below the threshold must never appear'"
+        },
+        {
+          "nome": "a score equal to the threshold gets in, and it's the exact cosine",
+          "codigo": "metadata = [{'text': 'python programming language', 'doc': 'a', 'index': 0}, {'text': 'rag search context', 'doc': 'b', 'index': 1}, {'text': 'cat sofa window', 'doc': 'c', 'index': 2}]\nmatrix = np.array([_mocks.embed_text(x['text']) for x in metadata])\nq = 'python programming language'\neverything = search(matrix, metadata, q, 3, -1.0)\ncut = everything[1]['score']\n_check(cut, float(np.dot(_mocks.embed_text(everything[1]['text']), _mocks.embed_text(q))))\n_check([r['doc'] for r in search(matrix, metadata, q, 3, cut)], [everything[0]['doc'], everything[1]['doc']])"
         }
       ],
       "dicas": [
@@ -1762,6 +1786,10 @@
         {
           "nome": "a near-duplicate that isn't identical is discarded too",
           "codigo": "chunks = [{'text': 'the token price rose', 'doc': 'a', 'index': 0}, {'text': 'the token price rose fast', 'doc': 'b', 'index': 1}]\nmatrix, metadata = build_index_dedupe(chunks)\n_check([m['doc'] for m in metadata], ['a'])\n_check(matrix.shape, (1, 16))"
+        },
+        {
+          "nome": "the survivors' metadata comes back whole",
+          "codigo": "chunks = [{'text': 'cat sofa', 'doc': 'a', 'index': 7}, {'text': 'cat sofa', 'doc': 'b', 'index': 8}, {'text': 'rag search', 'doc': 'c', 'index': 9}]\n_, metadata = build_index_dedupe(chunks)\n_check(metadata, [{'text': 'cat sofa', 'doc': 'a', 'index': 7}, {'text': 'rag search', 'doc': 'c', 'index': 9}])"
         }
       ],
       "dicas": [
@@ -1815,6 +1843,14 @@
         {
           "nome": "only the relevant one passes the threshold",
           "codigo": "metadata = [{'text': 'python programming language', 'doc': 'a', 'index': 0}, {'text': 'cat sofa window', 'doc': 'b', 'index': 1}, {'text': 'rag search context', 'doc': 'c', 'index': 2}]\nmatrix = np.array([_mocks.embed_text(x['text']) for x in metadata])\nres = search(matrix, metadata, 'python programming language', 5, 0.9)\n_check([r['doc'] for r in res], ['a'])"
+        },
+        {
+          "nome": "a score equal to the threshold gets in, and it's the exact cosine",
+          "codigo": "metadata = [{'text': 'python programming language', 'doc': 'a', 'index': 0}, {'text': 'rag search context', 'doc': 'b', 'index': 1}, {'text': 'cat sofa window', 'doc': 'c', 'index': 2}]\nmatrix = np.array([_mocks.embed_text(x['text']) for x in metadata])\nq = 'python programming language'\neverything = search(matrix, metadata, q, 3, -1.0)\ncut = everything[1]['score']\n_check(cut, float(np.dot(_mocks.embed_text(everything[1]['text']), _mocks.embed_text(q))))\n_check([r['doc'] for r in search(matrix, metadata, q, 3, cut)], [everything[0]['doc'], everything[1]['doc']])"
+        },
+        {
+          "nome": "k limits the result",
+          "codigo": "metadata = [{'text': 'python programming language', 'doc': 'a', 'index': 0}, {'text': 'rag search context', 'doc': 'b', 'index': 1}, {'text': 'cat sofa window', 'doc': 'c', 'index': 2}]\nmatrix = np.array([_mocks.embed_text(x['text']) for x in metadata])\n_check(len(search(matrix, metadata, 'python programming language', 1, -1.0)), 1)\n_check(len(search(matrix, metadata, 'python programming language', 2, -1.0)), 2)"
         }
       ],
       "dicas": [
@@ -1873,6 +1909,14 @@
         {
           "nome": "the overlap links the chunks (step size - overlap)",
           "codigo": "_, metadata = load_index(['doc1.json'], 3, 1)\n_check(metadata[1]['text'], 'a versatile programming')"
+        },
+        {
+          "nome": "window, step and stop: the whole list of chunks",
+          "codigo": "matrix, metadata = load_index(['doc1.json'], 4, 2)\n_check([m['text'] for m in metadata], ['python is a versatile', 'a versatile programming language'])\n_check(matrix.shape, (2, 16))\n_check(matrix[1].tolist(), _mocks.embed_text('a versatile programming language'))"
+        },
+        {
+          "nome": "a chunk that ends on the last word stops the loop",
+          "codigo": "_, metadata = load_index(['doc1.json'], 3, 1)\n_check([m['text'] for m in metadata], ['python is a', 'a versatile programming', 'programming language'])"
         }
       ],
       "dicas": [
@@ -1930,6 +1974,10 @@
         {
           "nome": "returns a string",
           "codigo": "metadata = [{'text': 'hello world', 'doc': 'A'}]\nmatrix = np.array([_mocks.embed_text('hello world')])\ntext = answer_question(matrix, metadata, 'hello world', 1, OpenAI())\nassert isinstance(text, str), 'Return the response text (a string), not the whole object'"
+        },
+        {
+          "nome": "only the best k, in ranking order, on the requested model",
+          "codigo": "metadata = [{'text': 'cat sofa window', 'doc': 'A'}, {'text': 'python language', 'doc': 'B'}, {'text': 'rag search context', 'doc': 'C'}, {'text': 'python programming language', 'doc': 'D'}]\nmatrix = np.array([_mocks.embed_text(x['text']) for x in metadata])\ncli = OpenAI()\nanswer_question(matrix, metadata, 'python programming language', 2, cli)\n_check(cli.calls[-1]['messages'][-1]['content'].strip(), '[1] python programming language\\n[2] python language\\nQuestion: python programming language')\n_check(cli.calls[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -2032,6 +2080,14 @@
         {
           "nome": "a single document",
           "codigo": "_, metadata = load_index(['doc1.json'], 20, 5)\n_check(len(metadata), 1)\n_check(metadata[0]['doc'], 'Python')"
+        },
+        {
+          "nome": "window, step and stop: the whole list of chunks",
+          "codigo": "matrix, metadata = load_index(['doc1.json'], 4, 2)\n_check([m['text'] for m in metadata], ['python is a very', 'a very versatile programming', 'versatile programming language'])\n_check(matrix.shape, (3, 16))\n_check(matrix[2].tolist(), _mocks.embed_text('versatile programming language'))"
+        },
+        {
+          "nome": "a chunk that ends on the last word stops the loop",
+          "codigo": "_, metadata = load_index(['doc1.json'], 3, 1)\n_check([m['text'] for m in metadata], ['python is a', 'a very versatile', 'versatile programming language'])"
         }
       ],
       "dicas": [
@@ -2089,6 +2145,10 @@
         {
           "nome": "the prompt sent to Anthropic is RAG",
           "codigo": "import anthropic\nmetadata = [{'text': 'rag combines generation', 'doc': 'B'}]\nmatrix = np.array([_mocks.embed_text('rag combines generation')])\nac = anthropic.Anthropic()\nanswer_question(matrix, metadata, 'rag combines generation', 1, ac)\nsent = ac.calls[-1]['messages'][0]['content']\nassert '[1]' in sent and 'Question:' in sent, 'The prompt must be RAG — got: ' + repr(sent)"
+        },
+        {
+          "nome": "only the best k, in ranking order, on both providers",
+          "codigo": "import anthropic\nmetadata = [{'text': 'cat sofa window', 'doc': 'A'}, {'text': 'python language', 'doc': 'B'}, {'text': 'rag search context', 'doc': 'C'}, {'text': 'python programming language', 'doc': 'D'}]\nmatrix = np.array([_mocks.embed_text(x['text']) for x in metadata])\ncli = OpenAI()\nanswer_question(matrix, metadata, 'python programming language', 2, cli)\n_check(cli.calls[-1]['messages'][-1]['content'].strip(), '[1] python programming language\\n[2] python language\\nQuestion: python programming language')\n_check(cli.calls[-1]['model'], 'mock-4')\nac = anthropic.Anthropic()\nanswer_question(matrix, metadata, 'python programming language', 2, ac)\n_check(ac.calls[-1]['messages'][-1]['content'].strip(), '[1] python programming language\\n[2] python language\\nQuestion: python programming language')\n_check(ac.calls[-1]['model'], 'mock-claude')"
         }
       ],
       "dicas": [
@@ -2191,6 +2251,14 @@
         {
           "nome": "just one document",
           "codigo": "matrix, metadata = _run(load_index_async(['doc2.json'], 20, 5))\n_check(matrix.shape, (1, 16))\n_check(metadata[0]['doc'], 'RAG')"
+        },
+        {
+          "nome": "window, step and stop: the whole list of chunks",
+          "codigo": "matrix, metadata = _run(load_index_async(['doc1.json'], 4, 2))\n_check([m['text'] for m in metadata], ['python is a versatile', 'a versatile programming language'])\n_check(matrix.shape, (2, 16))\n_check(matrix[1].tolist(), _mocks.embed_text('a versatile programming language'))"
+        },
+        {
+          "nome": "a chunk that ends on the last word stops the loop",
+          "codigo": "_, metadata = _run(load_index_async(['doc1.json'], 3, 1))\n_check([m['text'] for m in metadata], ['python is a', 'a versatile programming', 'programming language'])"
         }
       ],
       "dicas": [
@@ -2248,6 +2316,10 @@
         {
           "nome": "a question without relevant context passes on \"I don't know\"",
           "codigo": "import re, json\nmetadata = [{'text': 'python programming language', 'doc': 'Dev'}, {'text': 'rag search context', 'doc': 'AI'}]\nmatrix = np.array([_mocks.embed_text(x['text']) for x in metadata])\ntext = answer_resilient(matrix, metadata, 'xyzzy blarg quux', 2, OpenAI(), 3)\ndata = json.loads(re.search(r'```json\\s*(\\{.*\\})\\s*```', text, re.DOTALL).group(1))\n_check(data['answer'], \"I don't know\")\n_check(data['sources'], [])"
+        },
+        {
+          "nome": "only the best k, in ranking order",
+          "codigo": "metadata = [{'text': 'cat sofa window', 'doc': 'A'}, {'text': 'python language', 'doc': 'B'}, {'text': 'rag search context', 'doc': 'C'}, {'text': 'python programming language', 'doc': 'D'}]\nmatrix = np.array([_mocks.embed_text(x['text']) for x in metadata])\ncli = OpenAI()\nanswer_resilient(matrix, metadata, 'python programming language', 2, cli, 3)\n_check(cli.calls[-1]['messages'][-1]['content'].strip(), '[1] python programming language\\n[2] python language\\nQuestion: python programming language')"
         }
       ],
       "dicas": [
@@ -2275,9 +2347,9 @@
       ],
       "titulo": "Stage 3 — A parser that tolerates the mess",
       "explicacao_md": null,
-      "enunciado_md": "The Final Boss ends on the toughest parser: real models return JSON with or without a fence, sometimes with sources as strings, sometimes just an `\"I don't know\"`. The parser must NOT break.\n\nWrite `parse_answer(text, k)`:\n\n- accept the JSON **with** a fence (````json ... ```` or ```` ... ````) or **without** one (plain JSON)\n- if nothing parses as JSON → return `{\"answer\": \"\", \"sources\": []}` (never raise an exception)\n- return `{\"answer\": <str>, \"sources\": <list of int>}`, keeping only sources `n` with `1 <= n <= k`; ignore source items that aren't integers\n- missing answer → `\"\"`\n\nExample: `parse_answer('{\"answer\": \"I don\\'t know\", \"sources\": []}', 3)` → `{\"answer\": \"I don't know\", \"sources\": []}` (without a fence, it works).\n\nIt's the last contract in the game. Close it the way you'd close production code: every edge case handled, not a single stray exception. ...The road that got you here? Acceptable. Fine — it was good. Now finish it.",
-      "starter_code": "import json\nimport re\n\ndef parse_answer(text, k):\n    \"\"\"A tolerant parser for the LLM's output.\n\n    - with a fence (```json ... ``` or ``` ... ```) or plain JSON\n    - invalid JSON -> {\"answer\": \"\", \"sources\": []} (without an exception)\n    - sources: keep only int n with 1 <= n <= k; ignore non-integers\n    - missing answer -> \"\"\n    \"\"\"\n    # The final parser tolerates EVERYTHING: a missing fence, a missing json tag,\n    # non-JSON garbage, a non-integer source, a missing field — each one handled\n    # exactly as the contract says.\n    ...\n",
-      "solucao_referencia": "import json\nimport re\n\ndef parse_answer(text, k):\n    m = re.search(r\"```(?:json)?\\s*(\\{.*\\})\\s*```\", text, re.DOTALL)\n    raw = m.group(1) if m else text.strip()\n    try:\n        data = json.loads(raw)\n    except (json.JSONDecodeError, ValueError):\n        return {\"answer\": \"\", \"sources\": []}\n    if not isinstance(data, dict):\n        return {\"answer\": \"\", \"sources\": []}\n    sources = []\n    for n in data.get(\"sources\", []):\n        if isinstance(n, bool):\n            continue\n        if isinstance(n, int) and 1 <= n <= k:\n            sources.append(n)\n    return {\"answer\": data.get(\"answer\", \"\"), \"sources\": sources}\n",
+      "enunciado_md": "The Final Boss ends on the toughest parser: real models return JSON with or without a fence, sometimes with sources as strings, sometimes just an `\"I don't know\"`. The parser must NOT break.\n\nWrite `parse_answer(text, k)`:\n\n- accept the JSON **with** a fence (````json ... ```` or ```` ... ````) or **without** one (plain JSON)\n- if nothing parses as JSON, or the JSON isn't an object → return `{\"answer\": \"\", \"sources\": []}` (never raise an exception)\n- return `{\"answer\": <str>, \"sources\": <list of int>}`, keeping only sources `n` with `1 <= n <= k`; ignore source items that aren't integers (`true` and `false` don't count)\n- missing or non-text answer → `\"\"`; missing or non-list `sources` → `[]`\n\nExample: `parse_answer('{\"answer\": \"I don\\'t know\", \"sources\": []}', 3)` → `{\"answer\": \"I don't know\", \"sources\": []}` (without a fence, it works).\n\nIt's the last contract in the game. Close it the way you'd close production code: every edge case handled, not a single stray exception. ...The road that got you here? Acceptable. Fine — it was good. Now finish it.",
+      "starter_code": "import json\nimport re\n\ndef parse_answer(text, k):\n    \"\"\"A tolerant parser for the LLM's output.\n\n    - with a fence (```json ... ``` or ``` ... ```) or plain JSON\n    - invalid JSON or a non-object -> {\"answer\": \"\", \"sources\": []} (without an exception)\n    - sources: keep only int n with 1 <= n <= k; ignore non-integers (and bool); no list -> []\n    - missing or non-text answer -> \"\"\n    \"\"\"\n    # The final parser tolerates EVERYTHING: a missing fence, a missing json tag,\n    # non-JSON garbage, a non-integer source, a missing field — each one handled\n    # exactly as the contract says.\n    ...\n",
+      "solucao_referencia": "import json\nimport re\n\ndef parse_answer(text, k):\n    m = re.search(r\"```(?:json)?\\s*(\\{.*\\})\\s*```\", text, re.DOTALL)\n    raw = m.group(1) if m else text.strip()\n    try:\n        data = json.loads(raw)\n    except (json.JSONDecodeError, ValueError):\n        return {\"answer\": \"\", \"sources\": []}\n    if not isinstance(data, dict):\n        return {\"answer\": \"\", \"sources\": []}\n    sources = []\n    raw_sources = data.get(\"sources\", [])\n    if isinstance(raw_sources, list):\n        for n in raw_sources:\n            if isinstance(n, bool):\n                continue\n            if isinstance(n, int) and 1 <= n <= k:\n                sources.append(n)\n    answer = data.get(\"answer\", \"\")\n    if not isinstance(answer, str):\n        answer = \"\"\n    return {\"answer\": answer, \"sources\": sources}\n",
       "testes_visiveis": [
         {
           "nome": "JSON without a fence works",
@@ -2304,6 +2376,22 @@
         {
           "nome": "a missing answer becomes an empty string",
           "codigo": "_check(parse_answer('```json\\n{\"sources\": [1]}\\n```', 2), {'answer': '', 'sources': [1]})"
+        },
+        {
+          "nome": "JSON that isn't an object doesn't break it",
+          "codigo": "_check(parse_answer('[1, 2]', 3), {'answer': '', 'sources': []})\n_check(parse_answer('42', 3), {'answer': '', 'sources': []})"
+        },
+        {
+          "nome": "booleans and out-of-range values aren't sources",
+          "codigo": "_check(parse_answer('{\"answer\": \"x\", \"sources\": [true, 0, 1, 4, false, 3]}', 3), {'answer': 'x', 'sources': [1, 3]})"
+        },
+        {
+          "nome": "sources that aren't a list become an empty list",
+          "codigo": "_check(parse_answer('{\"answer\": \"x\", \"sources\": null}', 3), {'answer': 'x', 'sources': []})\n_check(parse_answer('{\"answer\": \"x\", \"sources\": 2}', 3), {'answer': 'x', 'sources': []})\n_check(parse_answer('{\"answer\": \"x\"}', 3), {'answer': 'x', 'sources': []})"
+        },
+        {
+          "nome": "an answer that isn't text becomes an empty string",
+          "codigo": "_check(parse_answer('{\"answer\": 5, \"sources\": [1]}', 3), {'answer': '', 'sources': [1]})"
         }
       ],
       "dicas": [

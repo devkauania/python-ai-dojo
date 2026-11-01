@@ -401,6 +401,10 @@
         {
           "nome": "stopwords são realmente descartadas",
           "codigo": "_verificar(top3(['rag rag busca', 'o rag e a busca', 'busca contexto'], ['o', 'e', 'a'], '.,!?;:'), ['busca', 'rag', 'contexto'])"
+        },
+        {
+          "nome": "mais de 3 palavras distintas",
+          "codigo": "_verificar(top3(['delta delta delta beta beta alfa gama zeta'], [], '.,!?;:'), ['delta', 'beta', 'alfa'])"
         }
       ],
       "dicas": [
@@ -848,6 +852,14 @@
         {
           "nome": "nome ausente ainda é CampoFaltando",
           "codigo": "try:\n    parsear_e_validar('{\"valor\": 1}')\n    assert False, 'faltar nome deveria levantar CampoFaltando'\nexcept CampoFaltando as e:\n    assert 'nome' in str(e), 'deve nomear nome, veio: ' + str(e)"
+        },
+        {
+          "nome": "JSON quebrado é JsonInvalido",
+          "codigo": "try:\n    parsear_e_validar('{quebrado')\n    assert False, 'JSON quebrado deveria levantar JsonInvalido'\nexcept JsonInvalido:\n    pass"
+        },
+        {
+          "nome": "valor ausente é CampoFaltando",
+          "codigo": "try:\n    parsear_e_validar('{\"nome\": \"a\"}')\n    assert False, 'faltar valor deveria levantar CampoFaltando'\nexcept CampoFaltando as e:\n    assert 'valor' in str(e), 'deve nomear valor, veio: ' + str(e)"
         }
       ],
       "dicas": [
@@ -1237,7 +1249,7 @@
       ],
       "testes_ocultos": [
         {
-          "nome": "cursor em loop para e dedupe salva",
+          "nome": "cursor em loop para na página certa",
           "codigo": "_mocks.roteirizar_falhas('/modelos', [200, 'loop'])\nmods = baixar_modelos_robusto(10)\nids = [m['id'] for m in mods]\nassert len(ids) == len(set(ids)), 'Sem duplicados no loop — ids: ' + str(ids)\n_verificar(ids, ['m1', 'm2', 'm3', 'm4'])"
         },
         {
@@ -1247,6 +1259,10 @@
         {
           "nome": "status inesperado explode",
           "codigo": "_mocks.roteirizar_falhas('/modelos', [400])\ntry:\n    baixar_modelos_robusto(5)\n    assert False, 'Status 400 deveria virar RuntimeError'\nexcept RuntimeError:\n    pass"
+        },
+        {
+          "nome": "id que reaparece em outra página entra uma vez",
+          "codigo": "_mocks.roteirizar_falhas('/modelos', [200, 'repete', 200])\nids = [m['id'] for m in baixar_modelos_robusto(10)]\n_verificar(ids, ['m1', 'm2', 'm3', 'm4', 'm5'])"
         }
       ],
       "dicas": [
@@ -1503,6 +1519,10 @@
         {
           "nome": "as chaves de cada resultado",
           "codigo": "metadados = [{'texto': 'oi mundo', 'doc': 'a', 'indice': 0}]\nmatriz = np.array([_mocks.embed_texto('oi mundo')])\nres = buscar(matriz, metadados, 'oi mundo', 1)\n_verificar(sorted(res[0].keys()), ['doc', 'score', 'texto'])"
+        },
+        {
+          "nome": "o score é o cosseno exato",
+          "codigo": "metadados = [{'texto': 'python linguagem programacao', 'doc': 'a', 'indice': 0}, {'texto': 'rag busca contexto', 'doc': 'b', 'indice': 1}, {'texto': 'gato sofa janela', 'doc': 'c', 'indice': 2}]\nmatriz = np.array([_mocks.embed_texto(x['texto']) for x in metadados])\nq = 'python linguagem programacao'\nres = buscar(matriz, metadados, q, 2)\n_verificar(res[1]['score'], float(np.dot(_mocks.embed_texto(res[1]['texto']), _mocks.embed_texto(q))))"
         }
       ],
       "dicas": [
@@ -1657,6 +1677,10 @@
         {
           "nome": "todos os scores retornados respeitam o piso",
           "codigo": "metadados = [{'texto': 'python linguagem programacao', 'doc': 'a', 'indice': 0}, {'texto': 'gato sofa janela', 'doc': 'b', 'indice': 1}, {'texto': 'rag busca contexto', 'doc': 'c', 'indice': 2}]\nmatriz = np.array([_mocks.embed_texto(x['texto']) for x in metadados])\nres = buscar(matriz, metadados, 'python linguagem programacao', 5, 0.2)\nassert all(r['score'] >= 0.2 for r in res), 'Nenhum score abaixo do threshold pode aparecer'"
+        },
+        {
+          "nome": "score igual ao threshold entra, e é o cosseno exato",
+          "codigo": "metadados = [{'texto': 'python linguagem programacao', 'doc': 'a', 'indice': 0}, {'texto': 'rag busca contexto', 'doc': 'b', 'indice': 1}, {'texto': 'gato sofa janela', 'doc': 'c', 'indice': 2}]\nmatriz = np.array([_mocks.embed_texto(x['texto']) for x in metadados])\nq = 'python linguagem programacao'\ntodos = buscar(matriz, metadados, q, 3, -1.0)\ncorte = todos[1]['score']\n_verificar(corte, float(np.dot(_mocks.embed_texto(todos[1]['texto']), _mocks.embed_texto(q))))\n_verificar([r['doc'] for r in buscar(matriz, metadados, q, 3, corte)], [todos[0]['doc'], todos[1]['doc']])"
         }
       ],
       "dicas": [
@@ -1762,6 +1786,10 @@
         {
           "nome": "quase-duplicata não-idêntica também é descartada",
           "codigo": "chunks = [{'texto': 'preco do token subiu de novo', 'doc': 'a', 'indice': 0}, {'texto': 'preco do token subiu de novo hoje', 'doc': 'b', 'indice': 1}]\nmatriz, metadados = indexar_dedupe(chunks)\n_verificar([m['doc'] for m in metadados], ['a'])\n_verificar(matriz.shape, (1, 16))"
+        },
+        {
+          "nome": "os metadados sobreviventes voltam inteiros",
+          "codigo": "chunks = [{'texto': 'gato sofa', 'doc': 'a', 'indice': 7}, {'texto': 'gato sofa', 'doc': 'b', 'indice': 8}, {'texto': 'rag busca', 'doc': 'c', 'indice': 9}]\n_, metadados = indexar_dedupe(chunks)\n_verificar(metadados, [{'texto': 'gato sofa', 'doc': 'a', 'indice': 7}, {'texto': 'rag busca', 'doc': 'c', 'indice': 9}])"
         }
       ],
       "dicas": [
@@ -1815,6 +1843,14 @@
         {
           "nome": "só o relevante passa o piso",
           "codigo": "metadados = [{'texto': 'python linguagem programacao', 'doc': 'a', 'indice': 0}, {'texto': 'gato sofa janela', 'doc': 'b', 'indice': 1}, {'texto': 'rag busca contexto', 'doc': 'c', 'indice': 2}]\nmatriz = np.array([_mocks.embed_texto(x['texto']) for x in metadados])\nres = buscar(matriz, metadados, 'python linguagem programacao', 5, 0.9)\n_verificar([r['doc'] for r in res], ['a'])"
+        },
+        {
+          "nome": "score igual ao threshold entra, e é o cosseno exato",
+          "codigo": "metadados = [{'texto': 'python linguagem programacao', 'doc': 'a', 'indice': 0}, {'texto': 'rag busca contexto', 'doc': 'b', 'indice': 1}, {'texto': 'gato sofa janela', 'doc': 'c', 'indice': 2}]\nmatriz = np.array([_mocks.embed_texto(x['texto']) for x in metadados])\nq = 'python linguagem programacao'\ntodos = buscar(matriz, metadados, q, 3, -1.0)\ncorte = todos[1]['score']\n_verificar(corte, float(np.dot(_mocks.embed_texto(todos[1]['texto']), _mocks.embed_texto(q))))\n_verificar([r['doc'] for r in buscar(matriz, metadados, q, 3, corte)], [todos[0]['doc'], todos[1]['doc']])"
+        },
+        {
+          "nome": "k limita o resultado",
+          "codigo": "metadados = [{'texto': 'python linguagem programacao', 'doc': 'a', 'indice': 0}, {'texto': 'rag busca contexto', 'doc': 'b', 'indice': 1}, {'texto': 'gato sofa janela', 'doc': 'c', 'indice': 2}]\nmatriz = np.array([_mocks.embed_texto(x['texto']) for x in metadados])\n_verificar(len(buscar(matriz, metadados, 'python linguagem programacao', 1, -1.0)), 1)\n_verificar(len(buscar(matriz, metadados, 'python linguagem programacao', 2, -1.0)), 2)"
         }
       ],
       "dicas": [
@@ -1873,6 +1909,14 @@
         {
           "nome": "o overlap costura os chunks (passo tamanho - overlap)",
           "codigo": "_, metadados = carregar_indice(['doc1.json'], 3, 1)\n_verificar(metadados[1]['texto'], 'uma linguagem de')"
+        },
+        {
+          "nome": "janela, passo e parada: a lista inteira de chunks",
+          "codigo": "matriz, metadados = carregar_indice(['doc1.json'], 4, 2)\n_verificar([m['texto'] for m in metadados], ['python e uma linguagem', 'uma linguagem de programacao', 'de programacao versatil'])\n_verificar(matriz.shape, (3, 16))\n_verificar(matriz[2].tolist(), _mocks.embed_texto('de programacao versatil'))"
+        },
+        {
+          "nome": "chunk que termina na última palavra encerra",
+          "codigo": "_, metadados = carregar_indice(['doc1.json'], 3, 1)\n_verificar([m['texto'] for m in metadados], ['python e uma', 'uma linguagem de', 'de programacao versatil'])"
         }
       ],
       "dicas": [
@@ -1930,6 +1974,10 @@
         {
           "nome": "retorna uma string",
           "codigo": "metadados = [{'texto': 'oi mundo', 'doc': 'A'}]\nmatriz = np.array([_mocks.embed_texto('oi mundo')])\ntexto = responder(matriz, metadados, 'oi mundo', 1, OpenAI())\nassert isinstance(texto, str), 'Retorne o texto da resposta (string), não o objeto inteiro'"
+        },
+        {
+          "nome": "só os k melhores, na ordem do ranking, no modelo pedido",
+          "codigo": "metadados = [{'texto': 'gato sofa janela', 'doc': 'A'}, {'texto': 'python linguagem', 'doc': 'B'}, {'texto': 'rag busca contexto', 'doc': 'C'}, {'texto': 'python linguagem programacao', 'doc': 'D'}]\nmatriz = np.array([_mocks.embed_texto(x['texto']) for x in metadados])\ncli = OpenAI()\nresponder(matriz, metadados, 'python linguagem programacao', 2, cli)\n_verificar(cli.chamadas[-1]['messages'][-1]['content'].strip(), '[1] python linguagem programacao\\n[2] python linguagem\\nPergunta: python linguagem programacao')\n_verificar(cli.chamadas[-1]['model'], 'mock-4')"
         }
       ],
       "dicas": [
@@ -2032,6 +2080,14 @@
         {
           "nome": "um documento só",
           "codigo": "_, metadados = carregar_indice(['doc1.json'], 20, 5)\n_verificar(len(metadados), 1)\n_verificar(metadados[0]['doc'], 'Python')"
+        },
+        {
+          "nome": "janela, passo e parada: a lista inteira de chunks",
+          "codigo": "matriz, metadados = carregar_indice(['doc1.json'], 4, 2)\n_verificar([m['texto'] for m in metadados], ['python e uma linguagem', 'uma linguagem de programacao', 'de programacao muito versatil'])\n_verificar(matriz.shape, (3, 16))\n_verificar(matriz[2].tolist(), _mocks.embed_texto('de programacao muito versatil'))"
+        },
+        {
+          "nome": "chunk que termina na última palavra encerra",
+          "codigo": "_, metadados = carregar_indice(['doc1.json'], 3, 1)\n_verificar([m['texto'] for m in metadados], ['python e uma', 'uma linguagem de', 'de programacao muito', 'muito versatil'])"
         }
       ],
       "dicas": [
@@ -2089,6 +2145,10 @@
         {
           "nome": "o prompt enviado à Anthropic é RAG",
           "codigo": "import anthropic\nmetadados = [{'texto': 'rag combina geracao', 'doc': 'B'}]\nmatriz = np.array([_mocks.embed_texto('rag combina geracao')])\nac = anthropic.Anthropic()\nresponder(matriz, metadados, 'rag combina geracao', 1, ac)\nenviado = ac.chamadas[-1]['messages'][0]['content']\nassert '[1]' in enviado and 'Pergunta:' in enviado, 'O prompt deve ser RAG — veio: ' + repr(enviado)"
+        },
+        {
+          "nome": "só os k melhores, na ordem do ranking, nos dois provedores",
+          "codigo": "import anthropic\nmetadados = [{'texto': 'gato sofa janela', 'doc': 'A'}, {'texto': 'python linguagem', 'doc': 'B'}, {'texto': 'rag busca contexto', 'doc': 'C'}, {'texto': 'python linguagem programacao', 'doc': 'D'}]\nmatriz = np.array([_mocks.embed_texto(x['texto']) for x in metadados])\ncli = OpenAI()\nresponder(matriz, metadados, 'python linguagem programacao', 2, cli)\n_verificar(cli.chamadas[-1]['messages'][-1]['content'].strip(), '[1] python linguagem programacao\\n[2] python linguagem\\nPergunta: python linguagem programacao')\n_verificar(cli.chamadas[-1]['model'], 'mock-4')\nac = anthropic.Anthropic()\nresponder(matriz, metadados, 'python linguagem programacao', 2, ac)\n_verificar(ac.chamadas[-1]['messages'][-1]['content'].strip(), '[1] python linguagem programacao\\n[2] python linguagem\\nPergunta: python linguagem programacao')\n_verificar(ac.chamadas[-1]['model'], 'mock-claude')"
         }
       ],
       "dicas": [
@@ -2191,6 +2251,14 @@
         {
           "nome": "só um documento",
           "codigo": "matriz, metadados = _rodar(carregar_indice_async(['doc2.json'], 20, 5))\n_verificar(matriz.shape, (1, 16))\n_verificar(metadados[0]['doc'], 'RAG')"
+        },
+        {
+          "nome": "janela, passo e parada: a lista inteira de chunks",
+          "codigo": "matriz, metadados = _rodar(carregar_indice_async(['doc1.json'], 4, 2))\n_verificar([m['texto'] for m in metadados], ['python e uma linguagem', 'uma linguagem de programacao', 'de programacao versatil'])\n_verificar(matriz.shape, (3, 16))\n_verificar(matriz[2].tolist(), _mocks.embed_texto('de programacao versatil'))"
+        },
+        {
+          "nome": "chunk que termina na última palavra encerra",
+          "codigo": "_, metadados = _rodar(carregar_indice_async(['doc1.json'], 3, 1))\n_verificar([m['texto'] for m in metadados], ['python e uma', 'uma linguagem de', 'de programacao versatil'])"
         }
       ],
       "dicas": [
@@ -2248,6 +2316,10 @@
         {
           "nome": "pergunta sem contexto relevante propaga 'não sei'",
           "codigo": "import re, json\nmetadados = [{'texto': 'python linguagem programacao', 'doc': 'Dev'}, {'texto': 'rag busca contexto', 'doc': 'IA'}]\nmatriz = np.array([_mocks.embed_texto(x['texto']) for x in metadados])\ntexto = responder_resiliente(matriz, metadados, 'xyzzy blarg quux', 2, OpenAI(), 3)\ndados = json.loads(re.search(r'```json\\s*(\\{.*\\})\\s*```', texto, re.DOTALL).group(1))\n_verificar(dados['resposta'], 'não sei')\n_verificar(dados['fontes'], [])"
+        },
+        {
+          "nome": "só os k melhores, na ordem do ranking",
+          "codigo": "metadados = [{'texto': 'gato sofa janela', 'doc': 'A'}, {'texto': 'python linguagem', 'doc': 'B'}, {'texto': 'rag busca contexto', 'doc': 'C'}, {'texto': 'python linguagem programacao', 'doc': 'D'}]\nmatriz = np.array([_mocks.embed_texto(x['texto']) for x in metadados])\ncli = OpenAI()\nresponder_resiliente(matriz, metadados, 'python linguagem programacao', 2, cli, 3)\n_verificar(cli.chamadas[-1]['messages'][-1]['content'].strip(), '[1] python linguagem programacao\\n[2] python linguagem\\nPergunta: python linguagem programacao')"
         }
       ],
       "dicas": [
@@ -2275,9 +2347,9 @@
       ],
       "titulo": "Etapa 3 — Parser tolerante à bagunça",
       "explicacao_md": null,
-      "enunciado_md": "O boss final termina no parser mais duro: modelos reais devolvem JSON com ou sem cerca, às vezes com fontes como string, às vezes só um `\"não sei\"`. O parser NÃO pode quebrar.\n\nEscreva `parsear_resposta(texto, k)`:\n\n- aceite o JSON **com** cerca (````json ... ```` ou ```` ... ````) ou **sem** cerca (JSON puro)\n- se nada parsear como JSON → retorne `{\"resposta\": \"\", \"fontes\": []}` (nunca levante exceção)\n- retorne `{\"resposta\": <str>, \"fontes\": <lista de int>}`, mantendo só fontes `n` com `1 <= n <= k`; ignore itens de fonte que não sejam número inteiro\n- resposta ausente → `\"\"`\n\nExemplo: `parsear_resposta('{\"resposta\": \"não sei\", \"fontes\": []}', 3)` → `{\"resposta\": \"não sei\", \"fontes\": []}` (sem cerca, funciona).\n\nÉ o último contrato do jogo. Feche-o como quem fecha código de produção: cada borda com um destino, nenhuma exceção solta. ...Aceitável, o seu caminho até aqui. Tá. Foi bom. Agora termine.",
-      "starter_code": "import json\nimport re\n\ndef parsear_resposta(texto, k):\n    \"\"\"Parser tolerante da saida do LLM.\n\n    - com cerca (```json ... ``` ou ``` ... ```) ou JSON puro\n    - JSON invalido -> {\"resposta\": \"\", \"fontes\": []} (sem excecao)\n    - fontes: mantem so int n com 1 <= n <= k; ignora nao-inteiros\n    - resposta ausente -> \"\"\n    \"\"\"\n    # O parser final tolera TUDO: sem cerca, sem a tag json, lixo não-JSON,\n    # fonte não-inteira, campo ausente — cada um com um destino definido no contrato.\n    ...\n",
-      "solucao_referencia": "import json\nimport re\n\ndef parsear_resposta(texto, k):\n    m = re.search(r\"```(?:json)?\\s*(\\{.*\\})\\s*```\", texto, re.DOTALL)\n    bruto = m.group(1) if m else texto.strip()\n    try:\n        dados = json.loads(bruto)\n    except (json.JSONDecodeError, ValueError):\n        return {\"resposta\": \"\", \"fontes\": []}\n    if not isinstance(dados, dict):\n        return {\"resposta\": \"\", \"fontes\": []}\n    fontes = []\n    for n in dados.get(\"fontes\", []):\n        if isinstance(n, bool):\n            continue\n        if isinstance(n, int) and 1 <= n <= k:\n            fontes.append(n)\n    return {\"resposta\": dados.get(\"resposta\", \"\"), \"fontes\": fontes}\n",
+      "enunciado_md": "O boss final termina no parser mais duro: modelos reais devolvem JSON com ou sem cerca, às vezes com fontes como string, às vezes só um `\"não sei\"`. O parser NÃO pode quebrar.\n\nEscreva `parsear_resposta(texto, k)`:\n\n- aceite o JSON **com** cerca (````json ... ```` ou ```` ... ````) ou **sem** cerca (JSON puro)\n- se nada parsear como JSON, ou se o JSON não for um objeto → retorne `{\"resposta\": \"\", \"fontes\": []}` (nunca levante exceção)\n- retorne `{\"resposta\": <str>, \"fontes\": <lista de int>}`, mantendo só fontes `n` com `1 <= n <= k`; ignore itens de fonte que não sejam número inteiro (`true` e `false` não contam)\n- resposta ausente ou que não seja texto → `\"\"`; `fontes` ausente ou que não seja lista → `[]`\n\nExemplo: `parsear_resposta('{\"resposta\": \"não sei\", \"fontes\": []}', 3)` → `{\"resposta\": \"não sei\", \"fontes\": []}` (sem cerca, funciona).\n\nÉ o último contrato do jogo. Feche-o como quem fecha código de produção: cada borda com um destino, nenhuma exceção solta. ...Aceitável, o seu caminho até aqui. Tá. Foi bom. Agora termine.",
+      "starter_code": "import json\nimport re\n\ndef parsear_resposta(texto, k):\n    \"\"\"Parser tolerante da saida do LLM.\n\n    - com cerca (```json ... ``` ou ``` ... ```) ou JSON puro\n    - JSON invalido ou que nao seja objeto -> {\"resposta\": \"\", \"fontes\": []} (sem excecao)\n    - fontes: mantem so int n com 1 <= n <= k; ignora nao-inteiros (e bool); sem lista -> []\n    - resposta ausente ou que nao seja texto -> \"\"\n    \"\"\"\n    # O parser final tolera TUDO: sem cerca, sem a tag json, lixo não-JSON,\n    # fonte não-inteira, campo ausente — cada um com um destino definido no contrato.\n    ...\n",
+      "solucao_referencia": "import json\nimport re\n\ndef parsear_resposta(texto, k):\n    m = re.search(r\"```(?:json)?\\s*(\\{.*\\})\\s*```\", texto, re.DOTALL)\n    bruto = m.group(1) if m else texto.strip()\n    try:\n        dados = json.loads(bruto)\n    except (json.JSONDecodeError, ValueError):\n        return {\"resposta\": \"\", \"fontes\": []}\n    if not isinstance(dados, dict):\n        return {\"resposta\": \"\", \"fontes\": []}\n    fontes = []\n    brutas = dados.get(\"fontes\", [])\n    if isinstance(brutas, list):\n        for n in brutas:\n            if isinstance(n, bool):\n                continue\n            if isinstance(n, int) and 1 <= n <= k:\n                fontes.append(n)\n    resposta = dados.get(\"resposta\", \"\")\n    if not isinstance(resposta, str):\n        resposta = \"\"\n    return {\"resposta\": resposta, \"fontes\": fontes}\n",
       "testes_visiveis": [
         {
           "nome": "JSON sem cerca funciona",
@@ -2304,6 +2376,22 @@
         {
           "nome": "resposta ausente vira string vazia",
           "codigo": "_verificar(parsear_resposta('```json\\n{\"fontes\": [1]}\\n```', 2), {'resposta': '', 'fontes': [1]})"
+        },
+        {
+          "nome": "JSON que não é objeto não quebra",
+          "codigo": "_verificar(parsear_resposta('[1, 2]', 3), {'resposta': '', 'fontes': []})\n_verificar(parsear_resposta('42', 3), {'resposta': '', 'fontes': []})"
+        },
+        {
+          "nome": "booleano e fora da faixa não são fonte",
+          "codigo": "_verificar(parsear_resposta('{\"resposta\": \"x\", \"fontes\": [true, 0, 1, 4, false, 3]}', 3), {'resposta': 'x', 'fontes': [1, 3]})"
+        },
+        {
+          "nome": "fontes que não são lista viram lista vazia",
+          "codigo": "_verificar(parsear_resposta('{\"resposta\": \"x\", \"fontes\": null}', 3), {'resposta': 'x', 'fontes': []})\n_verificar(parsear_resposta('{\"resposta\": \"x\", \"fontes\": 2}', 3), {'resposta': 'x', 'fontes': []})\n_verificar(parsear_resposta('{\"resposta\": \"x\"}', 3), {'resposta': 'x', 'fontes': []})"
+        },
+        {
+          "nome": "resposta que não é texto vira string vazia",
+          "codigo": "_verificar(parsear_resposta('{\"resposta\": 5, \"fontes\": [1]}', 3), {'resposta': '', 'fontes': [1]})"
         }
       ],
       "dicas": [

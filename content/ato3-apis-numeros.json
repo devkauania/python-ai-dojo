@@ -1947,7 +1947,7 @@
       ],
       "titulo": "Medidor de alinhamento",
       "explicacao_md": null,
-      "enunciado_md": "O produto escalar multiplica dois vetores posição a posição e soma tudo: `1*4 + 2*5 + 3*6 = 32`. Em IA, ele é o medidor bruto de alinhamento entre dois embeddings — e o numerador do cosseno que você vai construir em breve.\n\nEscreva `produto_escalar(v, w)` que recebe duas listas do mesmo tamanho e retorna o produto escalar como `float`.\n\nExemplo: `produto_escalar([1, 2, 3], [4, 5, 6])` → `32.0`. Vetores perpendiculares dão zero: `produto_escalar([1, 0], [0, 1])` → `0.0`",
+      "enunciado_md": "O produto escalar multiplica dois vetores posição a posição e soma tudo: `1*4 + 2*5 + 3*6 = 32`. Em IA, ele é o medidor bruto de alinhamento entre dois embeddings — e o numerador do cosseno que você vai construir em breve.\n\nEscreva `produto_escalar(v, w)` que recebe duas listas do mesmo tamanho e retorna o produto escalar como `float` Python.\n\nExemplo: `produto_escalar([1, 2, 3], [4, 5, 6])` → `32.0`. Vetores perpendiculares dão zero: `produto_escalar([1, 0], [0, 1])` → `0.0`",
       "starter_code": "import numpy as np\n\ndef produto_escalar(v, w):\n    # O numpy tem a função pronta para isso (aceita as listas direto). O teste\n    # quer float PYTHON — converta o resultado antes de devolver.\n    ...\n",
       "solucao_referencia": "import numpy as np\n\ndef produto_escalar(v, w):\n    return float(np.dot(v, w))\n",
       "testes_visiveis": [
@@ -1971,7 +1971,7 @@
         },
         {
           "nome": "retorna float Python",
-          "codigo": "assert isinstance(produto_escalar([1.0, 2.0], [3.0, 4.0]), float), 'Converta com float(...) — np.float64 confunde json e formatação'"
+          "codigo": "assert type(produto_escalar([1.0, 2.0], [3.0, 4.0])) is float, 'Converta com float(...): em listas e no repr, np.float64 aparece como np.float64(...)'"
         }
       ],
       "dicas": [
@@ -1996,7 +1996,7 @@
       ],
       "titulo": "O comprimento do embedding",
       "explicacao_md": null,
-      "enunciado_md": "A **norma** é o comprimento do vetor — a distância da origem até a ponta. Ela é o denominador da similaridade de cosseno: sem ela, vetores \"compridos\" pareceriam mais importantes do que são.\n\nEscreva `norma(v)` que recebe uma lista de números e retorna a norma euclidiana como `float`.\n\nExemplo: `norma([3, 4])` → `5.0` (o triângulo 3-4-5 de sempre).",
+      "enunciado_md": "A **norma** é o comprimento do vetor — a distância da origem até a ponta. Ela é o denominador da similaridade de cosseno: sem ela, vetores \"compridos\" pareceriam mais importantes do que são.\n\nEscreva `norma(v)` que recebe uma lista de números e retorna a norma euclidiana como `float` Python.\n\nExemplo: `norma([3, 4])` → `5.0` (o triângulo 3-4-5 de sempre).",
       "starter_code": "import numpy as np\n\ndef norma(v):\n    # O comprimento do vetor mora no submódulo de álgebra linear do numpy.\n    # De novo: float Python na saída.\n    ...\n",
       "solucao_referencia": "import numpy as np\n\ndef norma(v):\n    return float(np.linalg.norm(v))\n",
       "testes_visiveis": [
@@ -2020,7 +2020,11 @@
         },
         {
           "nome": "retorna float Python",
-          "codigo": "assert isinstance(norma([2.0, 1.0]), float), 'Converta o resultado com float(...)'"
+          "codigo": "assert type(norma([2.0, 1.0])) is float, 'Converta o resultado com float(...): em listas e no repr, np.float64 aparece como np.float64(...)'"
+        },
+        {
+          "nome": "norma que não é inteira",
+          "codigo": "_verificar(norma([1, 1]), 1.4142135623730951)"
         }
       ],
       "dicas": [
@@ -2093,7 +2097,7 @@
       ],
       "titulo": "Conta da API",
       "explicacao_md": null,
-      "enunciado_md": "Você registrou o custo (US$) e a latência (ms) de cada chamada à API de um LLM. Hora de fechar a conta do dia.\n\nEscreva duas funções que recebem listas de números:\n\n- `custo_total(custos)` → soma de todos os valores, como `float`\n- `latencia_media(latencias)` → média dos valores, como `float`\n\nAs listas nunca chegam vazias neste tier.\n\nExemplo: `custo_total([0.1, 0.2, 0.3])` → `0.6`; `latencia_media([100, 200, 300])` → `200.0`",
+      "enunciado_md": "Você registrou o custo (US$) e a latência (ms) de cada chamada à API de um LLM. Hora de fechar a conta do dia.\n\nEscreva duas funções que recebem listas de números:\n\n- `custo_total(custos)` → soma de todos os valores, como `float` Python\n- `latencia_media(latencias)` → média dos valores, como `float` Python\n\nAs listas nunca chegam vazias neste tier.\n\nExemplo: `custo_total([0.1, 0.2, 0.3])` → `0.6`; `latencia_media([100, 200, 300])` → `200.0`",
       "starter_code": "import numpy as np\n\ndef custo_total(custos):\n    # Somar e tirar média são funções de uma chamada no numpy — só lembre do\n    # float(...) na saída.\n    ...\n\ndef latencia_media(latencias):\n    ...\n",
       "solucao_referencia": "import numpy as np\n\ndef custo_total(custos):\n    return float(np.sum(custos))\n\ndef latencia_media(latencias):\n    return float(np.mean(latencias))\n",
       "testes_visiveis": [
@@ -2117,7 +2121,11 @@
         },
         {
           "nome": "retorna float Python",
-          "codigo": "assert isinstance(custo_total([1.0]), float) and isinstance(latencia_media([1.0]), float), 'Converta os resultados com float(...)'"
+          "codigo": "assert type(custo_total([1.0])) is float and type(latencia_media([1.0])) is float, 'Converta os resultados com float(...): em listas e no repr, np.float64 aparece como np.float64(...)'"
+        },
+        {
+          "nome": "valores que não fecham em duas casas",
+          "codigo": "_verificar(custo_total([0.123, 0.456]), 0.579)\n_verificar(latencia_media([1, 2, 2]), 1.6666666666666667)"
         }
       ],
       "dicas": [
@@ -2143,7 +2151,7 @@
       ],
       "titulo": "Cosseno à mão",
       "explicacao_md": "No tier 2 você monta a operação central do RAG: a **similaridade de cosseno**.\n\nUm embedding é um vetor; textos parecidos viram vetores que apontam para a MESMA direção. O cosseno do ângulo entre eles mede isso numa escala interpretável: `1.0` = mesma direção, `0.0` = nada a ver, `-1.0` = opostos. O tamanho dos vetores não interfere — só a direção.\n\n```python\ncos = np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))\n```\n\nQuando você pergunta algo a um sistema RAG, é essa fração que decide quais documentos entram no prompt. Neste tier os dados são limpos — norma zero só aparece no tier 3.",
-      "enunciado_md": "Escreva `cosseno(a, b)` que recebe dois vetores (listas de números, mesmo tamanho) e retorna a similaridade de cosseno como `float`:\n\n```\ncosseno = dot(a, b) / (norma(a) * norma(b))\n```\n\nNeste tier nenhum vetor tem norma zero — o caso sujo fica para o tier 3.\n\nExemplos: `cosseno([1, 0], [1, 0])` → `1.0` (mesma direção); `cosseno([1, 0], [0, 1])` → `0.0` (nada a ver); `cosseno([1, 2], [2, 4])` → `1.0` (o tamanho não importa, só a direção).",
+      "enunciado_md": "Escreva `cosseno(a, b)` que recebe dois vetores (listas de números, mesmo tamanho) e retorna a similaridade de cosseno como `float` Python:\n\n```\ncosseno = dot(a, b) / (norma(a) * norma(b))\n```\n\nNeste tier nenhum vetor tem norma zero — o caso sujo fica para o tier 3.\n\nExemplos: `cosseno([1, 0], [1, 0])` → `1.0` (mesma direção); `cosseno([1, 0], [0, 1])` → `0.0` (nada a ver); `cosseno([1, 2], [2, 4])` → `1.0` (o tamanho não importa, só a direção).",
       "starter_code": "import numpy as np\n\ndef cosseno(a, b):\n    # A fração da aula: produto escalar em cima, produto das normas embaixo.\n    # Converta as listas primeiro e devolva float Python.\n    ...\n",
       "solucao_referencia": "import numpy as np\n\ndef cosseno(a, b):\n    a = np.array(a, dtype=float)\n    b = np.array(b, dtype=float)\n    return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))\n",
       "testes_visiveis": [
@@ -2171,7 +2179,7 @@
         },
         {
           "nome": "retorna float Python",
-          "codigo": "assert isinstance(cosseno([1, 1], [1, 0]), float), 'Converta o resultado com float(...)'"
+          "codigo": "assert type(cosseno([1, 1], [1, 0])) is float, 'Converta o resultado com float(...): em listas e no repr, np.float64 aparece como np.float64(...)'"
         }
       ],
       "dicas": [
@@ -2221,6 +2229,10 @@
         {
           "nome": "vetores 3D",
           "codigo": "_verificar(mais_relevante([1, 0, 0], [0, 1, 0], [1, 1, 0]), 'b')"
+        },
+        {
+          "nome": "só o cosseno de verdade escolhe este candidato",
+          "codigo": "_verificar(mais_relevante([1, 0], [5, 5], [1, 0.1]), 'b')"
         }
       ],
       "dicas": [
@@ -2320,6 +2332,10 @@
         {
           "nome": "int Python, não np.int64",
           "codigo": "assert type(indice_mais_parecido([[1, 0], [0, 1]], [0, 2])) is int, 'Converta com int(...) — np.int64 quebra json.dumps'"
+        },
+        {
+          "nome": "só o cosseno de verdade escolhe esta linha",
+          "codigo": "_verificar(indice_mais_parecido([[1, 1], [3, 1]], [1, 0]), 1)\n_verificar(indice_mais_parecido([[5, 5], [1, 0.1]], [1, 0]), 1)"
         }
       ],
       "dicas": [
@@ -2428,7 +2444,11 @@
         },
         {
           "nome": "retorna float Python sempre",
-          "codigo": "assert isinstance(cosseno_seguro([0, 0], [1, 1]), float) and isinstance(cosseno_seguro([1, 0], [1, 1]), float), 'Retorne sempre float Python — inclusive o 0.0 do caso de norma zero'"
+          "codigo": "assert type(cosseno_seguro([0, 0], [1, 1])) is float and type(cosseno_seguro([1, 0], [1, 1])) is float, 'Retorne sempre float Python, inclusive o 0.0 do caso de norma zero: em listas e no repr, np.float64 aparece como np.float64(...)'"
+        },
+        {
+          "nome": "vetores que não são colineares",
+          "codigo": "_verificar(cosseno_seguro([1, 0], [1, 1]), 0.7071067811865475)\n_verificar(cosseno_seguro([1, 2, 3], [3, 2, 1]), 0.7142857142857143)"
         }
       ],
       "dicas": [
@@ -2544,6 +2564,14 @@
         {
           "nome": "scores negativos também ranqueiam",
           "codigo": "_verificar(top_k([-0.5, -0.1, -0.9], 2), [1, 0])"
+        },
+        {
+          "nome": "k negativo numa lista maior que |k|",
+          "codigo": "_verificar(top_k([0.1, 0.9, 0.5], -2), [])\n_verificar(top_k([0.1, 0.9, 0.5], -1), [])"
+        },
+        {
+          "nome": "k = 1 devolve o melhor",
+          "codigo": "_verificar(top_k([0.1, 0.9, 0.5], 1), [1])"
         }
       ],
       "dicas": [
@@ -2887,6 +2915,10 @@
         {
           "nome": "1500 tokens = milhar e meio",
           "codigo": "logs = pd.DataFrame([{'modelo': 'm', 'tokens': 1500}]); precos = pd.DataFrame([{'modelo': 'm', 'preco_por_1k': 1.0}]); _verificar(custos_reais(logs, precos), [1.5])"
+        },
+        {
+          "nome": "retorna lista de verdade",
+          "codigo": "logs = pd.DataFrame([{'modelo': 'm', 'tokens': 1000}]); precos = pd.DataFrame([{'modelo': 'm', 'preco_por_1k': 1.0}])\nassert isinstance(custos_reais(logs, precos), list), 'Retorne uma lista: termine com .tolist()'"
         }
       ],
       "dicas": [
@@ -2935,6 +2967,10 @@
         {
           "nome": "outros limites",
           "codigo": "df = pd.DataFrame([{'modelo': 'p', 'custo': 2.0, 'latencia': 0.1}, {'modelo': 'q', 'custo': 0.5, 'latencia': 0.2}, {'modelo': 'r', 'custo': 3.0, 'latencia': 9.9}]); _verificar(chamadas_problema(df, 1.0, 1.0), ['p', 'r'])"
+        },
+        {
+          "nome": "exatamente no limite não estoura",
+          "codigo": "df = pd.DataFrame([{'modelo': 'a', 'custo': 1.0, 'latencia': 0.5}, {'modelo': 'b', 'custo': 0.5, 'latencia': 2.0}]); _verificar(chamadas_problema(df, 1.0, 2.0), [])"
         }
       ],
       "dicas": [
@@ -3090,6 +3126,10 @@
         {
           "nome": "ordem original preservada",
           "codigo": "logs = pd.DataFrame([{'modelo': 'b', 'tokens': 1000}, {'modelo': 'a', 'tokens': 1000}]); precos = pd.DataFrame([{'modelo': 'a', 'preco_por_1k': 2.0}, {'modelo': 'b', 'preco_por_1k': 4.0}]); _verificar(custos_sem_perder(logs, precos), [4.0, 2.0])"
+        },
+        {
+          "nome": "retorna lista de verdade",
+          "codigo": "logs = pd.DataFrame([{'modelo': 'm', 'tokens': 1000}]); precos = pd.DataFrame([{'modelo': 'm', 'preco_por_1k': 1.0}])\nassert isinstance(custos_sem_perder(logs, precos), list), 'Retorne uma lista: termine com .tolist()'"
         }
       ],
       "dicas": [

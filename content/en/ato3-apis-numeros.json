@@ -1947,7 +1947,7 @@
       ],
       "titulo": "Alignment meter",
       "explicacao_md": null,
-      "enunciado_md": "The dot product multiplies two vectors position by position and adds it all up: `1*4 + 2*5 + 3*6 = 32`. In AI, it's the raw meter of alignment between two embeddings — and the numerator of the cosine you'll build soon.\n\nWrite `dot_product(v, w)` that takes two lists of the same length and returns the dot product as a `float`.\n\nExample: `dot_product([1, 2, 3], [4, 5, 6])` → `32.0`. Perpendicular vectors give zero: `dot_product([1, 0], [0, 1])` → `0.0`",
+      "enunciado_md": "The dot product multiplies two vectors position by position and adds it all up: `1*4 + 2*5 + 3*6 = 32`. In AI, it's the raw meter of alignment between two embeddings — and the numerator of the cosine you'll build soon.\n\nWrite `dot_product(v, w)` that takes two lists of the same length and returns the dot product as a Python `float`.\n\nExample: `dot_product([1, 2, 3], [4, 5, 6])` → `32.0`. Perpendicular vectors give zero: `dot_product([1, 0], [0, 1])` → `0.0`",
       "starter_code": "import numpy as np\n\ndef dot_product(v, w):\n    # numpy has a ready-made function for this (it takes the lists directly). The test\n    # wants a PYTHON float — convert the result before returning it.\n    ...\n",
       "solucao_referencia": "import numpy as np\n\ndef dot_product(v, w):\n    return float(np.dot(v, w))\n",
       "testes_visiveis": [
@@ -1971,7 +1971,7 @@
         },
         {
           "nome": "returns a Python float",
-          "codigo": "assert isinstance(dot_product([1.0, 2.0], [3.0, 4.0]), float), 'Convert with float(...) — np.float64 trips up json and formatting'"
+          "codigo": "assert type(dot_product([1.0, 2.0], [3.0, 4.0])) is float, 'Convert with float(...): in lists and in repr, np.float64 shows up as np.float64(...)'"
         }
       ],
       "dicas": [
@@ -1996,7 +1996,7 @@
       ],
       "titulo": "The length of an embedding",
       "explicacao_md": null,
-      "enunciado_md": "The **norm** is the length of a vector — the distance from the origin to its tip. It's the denominator of cosine similarity: without it, \"long\" vectors would look more important than they are.\n\nWrite `norm(v)` that takes a list of numbers and returns the Euclidean norm as a `float`.\n\nExample: `norm([3, 4])` → `5.0` (the good old 3-4-5 triangle).",
+      "enunciado_md": "The **norm** is the length of a vector — the distance from the origin to its tip. It's the denominator of cosine similarity: without it, \"long\" vectors would look more important than they are.\n\nWrite `norm(v)` that takes a list of numbers and returns the Euclidean norm as a Python `float`.\n\nExample: `norm([3, 4])` → `5.0` (the good old 3-4-5 triangle).",
       "starter_code": "import numpy as np\n\ndef norm(v):\n    # The length of a vector lives in numpy's linear algebra submodule.\n    # Again: a Python float on the way out.\n    ...\n",
       "solucao_referencia": "import numpy as np\n\ndef norm(v):\n    return float(np.linalg.norm(v))\n",
       "testes_visiveis": [
@@ -2020,7 +2020,11 @@
         },
         {
           "nome": "returns a Python float",
-          "codigo": "assert isinstance(norm([2.0, 1.0]), float), 'Convert the result with float(...)'"
+          "codigo": "assert type(norm([2.0, 1.0])) is float, 'Convert the result with float(...): in lists and in repr, np.float64 shows up as np.float64(...)'"
+        },
+        {
+          "nome": "a norm that isn't a whole number",
+          "codigo": "_check(norm([1, 1]), 1.4142135623730951)"
         }
       ],
       "dicas": [
@@ -2093,7 +2097,7 @@
       ],
       "titulo": "The API bill",
       "explicacao_md": null,
-      "enunciado_md": "You logged the cost (USD) and the latency (ms) of every call to an LLM API. Time to close out the day's bill.\n\nWrite two functions that take lists of numbers:\n\n- `total_cost(costs)` → the sum of all the values, as a `float`\n- `average_latency(latencies)` → the mean of the values, as a `float`\n\nThe lists never arrive empty in this tier.\n\nExample: `total_cost([0.1, 0.2, 0.3])` → `0.6`; `average_latency([100, 200, 300])` → `200.0`",
+      "enunciado_md": "You logged the cost (USD) and the latency (ms) of every call to an LLM API. Time to close out the day's bill.\n\nWrite two functions that take lists of numbers:\n\n- `total_cost(costs)` → the sum of all the values, as a Python `float`\n- `average_latency(latencies)` → the mean of the values, as a Python `float`\n\nThe lists never arrive empty in this tier.\n\nExample: `total_cost([0.1, 0.2, 0.3])` → `0.6`; `average_latency([100, 200, 300])` → `200.0`",
       "starter_code": "import numpy as np\n\ndef total_cost(costs):\n    # Summing and averaging are one-call functions in numpy — just remember the\n    # float(...) on the way out.\n    ...\n\ndef average_latency(latencies):\n    ...\n",
       "solucao_referencia": "import numpy as np\n\ndef total_cost(costs):\n    return float(np.sum(costs))\n\ndef average_latency(latencies):\n    return float(np.mean(latencies))\n",
       "testes_visiveis": [
@@ -2117,7 +2121,11 @@
         },
         {
           "nome": "returns a Python float",
-          "codigo": "assert isinstance(total_cost([1.0]), float) and isinstance(average_latency([1.0]), float), 'Convert the results with float(...)'"
+          "codigo": "assert type(total_cost([1.0])) is float and type(average_latency([1.0])) is float, 'Convert the results with float(...): in lists and in repr, np.float64 shows up as np.float64(...)'"
+        },
+        {
+          "nome": "values that don't fit in two decimals",
+          "codigo": "_check(total_cost([0.123, 0.456]), 0.579)\n_check(average_latency([1, 2, 2]), 1.6666666666666667)"
         }
       ],
       "dicas": [
@@ -2143,7 +2151,7 @@
       ],
       "titulo": "Cosine by hand",
       "explicacao_md": "In tier 2 you build the core operation of RAG: **cosine similarity**.\n\nAn embedding is a vector; similar texts become vectors that point in the SAME direction. The cosine of the angle between them measures that on an interpretable scale: `1.0` = same direction, `0.0` = unrelated, `-1.0` = opposites. The length of the vectors doesn't interfere — only the direction.\n\n```python\ncos = np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))\n```\n\nWhen you ask a RAG system something, it's this fraction that decides which documents go into the prompt. In this tier the data is clean — a zero norm only shows up in tier 3.",
-      "enunciado_md": "Write `cosine(a, b)` that takes two vectors (lists of numbers, same length) and returns the cosine similarity as a `float`:\n\n```\ncosine = dot(a, b) / (norm(a) * norm(b))\n```\n\nIn this tier no vector has a zero norm — the dirty case is left for tier 3.\n\nExamples: `cosine([1, 0], [1, 0])` → `1.0` (same direction); `cosine([1, 0], [0, 1])` → `0.0` (unrelated); `cosine([1, 2], [2, 4])` → `1.0` (length doesn't matter, only direction).",
+      "enunciado_md": "Write `cosine(a, b)` that takes two vectors (lists of numbers, same length) and returns the cosine similarity as a Python `float`:\n\n```\ncosine = dot(a, b) / (norm(a) * norm(b))\n```\n\nIn this tier no vector has a zero norm — the dirty case is left for tier 3.\n\nExamples: `cosine([1, 0], [1, 0])` → `1.0` (same direction); `cosine([1, 0], [0, 1])` → `0.0` (unrelated); `cosine([1, 2], [2, 4])` → `1.0` (length doesn't matter, only direction).",
       "starter_code": "import numpy as np\n\ndef cosine(a, b):\n    # The fraction from the lesson: dot product on top, product of the norms below.\n    # Convert the lists first and return a Python float.\n    ...\n",
       "solucao_referencia": "import numpy as np\n\ndef cosine(a, b):\n    a = np.array(a, dtype=float)\n    b = np.array(b, dtype=float)\n    return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))\n",
       "testes_visiveis": [
@@ -2171,7 +2179,7 @@
         },
         {
           "nome": "returns a Python float",
-          "codigo": "assert isinstance(cosine([1, 1], [1, 0]), float), 'Convert the result with float(...)'"
+          "codigo": "assert type(cosine([1, 1], [1, 0])) is float, 'Convert the result with float(...): in lists and in repr, np.float64 shows up as np.float64(...)'"
         }
       ],
       "dicas": [
@@ -2221,6 +2229,10 @@
         {
           "nome": "3D vectors",
           "codigo": "_check(most_relevant([1, 0, 0], [0, 1, 0], [1, 1, 0]), 'b')"
+        },
+        {
+          "nome": "only the real cosine picks this candidate",
+          "codigo": "_check(most_relevant([1, 0], [5, 5], [1, 0.1]), 'b')"
         }
       ],
       "dicas": [
@@ -2320,6 +2332,10 @@
         {
           "nome": "a Python int, not np.int64",
           "codigo": "assert type(most_similar_index([[1, 0], [0, 1]], [0, 2])) is int, 'Convert with int(...) — np.int64 breaks json.dumps'"
+        },
+        {
+          "nome": "only the real cosine picks this row",
+          "codigo": "_check(most_similar_index([[1, 1], [3, 1]], [1, 0]), 1)\n_check(most_similar_index([[5, 5], [1, 0.1]], [1, 0]), 1)"
         }
       ],
       "dicas": [
@@ -2428,7 +2444,11 @@
         },
         {
           "nome": "always returns a Python float",
-          "codigo": "assert isinstance(safe_cosine([0, 0], [1, 1]), float) and isinstance(safe_cosine([1, 0], [1, 1]), float), 'Always return a Python float — including the 0.0 of the zero-norm case'"
+          "codigo": "assert type(safe_cosine([0, 0], [1, 1])) is float and type(safe_cosine([1, 0], [1, 1])) is float, 'Always return a Python float, including the 0.0 of the zero-norm case: in lists and in repr, np.float64 shows up as np.float64(...)'"
+        },
+        {
+          "nome": "vectors that aren't collinear",
+          "codigo": "_check(safe_cosine([1, 0], [1, 1]), 0.7071067811865475)\n_check(safe_cosine([1, 2, 3], [3, 2, 1]), 0.7142857142857143)"
         }
       ],
       "dicas": [
@@ -2544,6 +2564,14 @@
         {
           "nome": "negative scores rank too",
           "codigo": "_check(top_k([-0.5, -0.1, -0.9], 2), [1, 0])"
+        },
+        {
+          "nome": "a negative k on a list longer than |k|",
+          "codigo": "_check(top_k([0.1, 0.9, 0.5], -2), [])\n_check(top_k([0.1, 0.9, 0.5], -1), [])"
+        },
+        {
+          "nome": "k = 1 returns the best",
+          "codigo": "_check(top_k([0.1, 0.9, 0.5], 1), [1])"
         }
       ],
       "dicas": [
@@ -2887,6 +2915,10 @@
         {
           "nome": "1500 tokens = 1.5 thousand",
           "codigo": "logs = pd.DataFrame([{'model': 'm', 'tokens': 1500}]); prices = pd.DataFrame([{'model': 'm', 'price_per_1k': 1.0}]); _check(real_costs(logs, prices), [1.5])"
+        },
+        {
+          "nome": "returns a real list",
+          "codigo": "logs = pd.DataFrame([{'model': 'm', 'tokens': 1000}]); prices = pd.DataFrame([{'model': 'm', 'price_per_1k': 1.0}])\nassert isinstance(real_costs(logs, prices), list), 'Return a list: finish with .tolist()'"
         }
       ],
       "dicas": [
@@ -2935,6 +2967,10 @@
         {
           "nome": "other limits",
           "codigo": "df = pd.DataFrame([{'model': 'p', 'cost': 2.0, 'latency': 0.1}, {'model': 'q', 'cost': 0.5, 'latency': 0.2}, {'model': 'r', 'cost': 3.0, 'latency': 9.9}]); _check(problem_calls(df, 1.0, 1.0), ['p', 'r'])"
+        },
+        {
+          "nome": "exactly at the limit isn't over it",
+          "codigo": "df = pd.DataFrame([{'model': 'a', 'cost': 1.0, 'latency': 0.5}, {'model': 'b', 'cost': 0.5, 'latency': 2.0}]); _check(problem_calls(df, 1.0, 2.0), [])"
         }
       ],
       "dicas": [
@@ -3090,6 +3126,10 @@
         {
           "nome": "original order preserved",
           "codigo": "logs = pd.DataFrame([{'model': 'b', 'tokens': 1000}, {'model': 'a', 'tokens': 1000}]); prices = pd.DataFrame([{'model': 'a', 'price_per_1k': 2.0}, {'model': 'b', 'price_per_1k': 4.0}]); _check(costs_without_loss(logs, prices), [4.0, 2.0])"
+        },
+        {
+          "nome": "returns a real list",
+          "codigo": "logs = pd.DataFrame([{'model': 'm', 'tokens': 1000}]); prices = pd.DataFrame([{'model': 'm', 'price_per_1k': 1.0}])\nassert isinstance(costs_without_loss(logs, prices), list), 'Return a list: finish with .tolist()'"
         }
       ],
       "dicas": [

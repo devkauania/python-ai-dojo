@@ -32,7 +32,7 @@ export class PyBridge {
     if (this.worker) return this.prontoPromise;
     this.erroFatal = null;
     this.prontoPromise = new Promise((res) => (this.prontoResolve = res));
-    this.worker = new Worker("./js/pyworker.js?v=64", { type: "module" });
+    this.worker = new Worker("./js/pyworker.js?v=65", { type: "module" });
     this.worker.onmessage = (ev) => this._aoMensagem(ev.data || {});
     this.worker.onerror = (e) => {
       this._setFase("erro", String(e.message || t("py.erroWorker")));
