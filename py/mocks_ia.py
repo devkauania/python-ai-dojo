@@ -21,8 +21,11 @@ API pública (usada pelo runner e pelos testes via `_mocks`):
   roteirizar_falhas(caminho, respostas, retry_after=1)
                              -- força status por chamada numa rota; cada item é
                                 um status int (429/500/401/400...), 200 = passa
-                                normal, ou "loop" (/modelos devolve a MESMA
-                                página com o MESMO cursor — testa anti-loop)
+                                normal, "loop" (/modelos devolve a MESMA
+                                página com o MESMO cursor — testa anti-loop) ou
+                                "repete" (alias en "repeat": /modelos devolve a
+                                página pedida com o 1º modelo do catálogo a mais
+                                no início — testa dedupe por id)
   roteirizar_erros_llm(eventos)
                              -- eventos por chamada de LLM: None = normal,
                                 "rate_limit" = levanta RateLimitError,
@@ -74,6 +77,9 @@ GET  https://api.dojo.dev/modelos?cursor=C  -> paginado por cursor:
        c3 -> m5 mock-embed(embed, 0.02), proximo_cursor null
        cursor inválido -> 400
 qualquer outro host -> requests.exceptions.ConnectionError
+requests.Session() (get/post/request, .headers, with) e requests.request(metodo,
+url, ...) caem nas MESMAS rotas; argumentos reais extras (verify, allow_redirects...)
+são aceitos e ignorados.
 Versões async: `await requests.aget(...)` / `await requests.apost(...)`.
 Status forçados por roteirizar_falhas: 429 tem header Retry-After; 500 tem
 corpo NÃO-JSON "erro interno"; 401/400 têm corpo JSON {"erro": ...}.
@@ -676,6 +682,8 @@ def _fabricar_requests() -> types.ModuleType:
             return None
         if item == "loop":
             return "loop"
+        if item in ("repete", "repeat"):
+            return "repete"
         status = int(item)
         if status == 429:
             ra = _retry_after.get(caminho, 1)
@@ -715,6 +723,18 @@ def _fabricar_requests() -> types.ModuleType:
                     return Response(400, {_L("f_erro"): _L("v_cursor_invalido")}, url_final)
                 corpo = dict(pagina)
                 corpo[_L("f_proximo_cursor")] = cursor  # mesma página, mesmo cursor: loop!
+                return Response(200, corpo, url_final)
+            forcada = None
+        if forcada == "repete":
+            if caminho == _L("r_modelos"):
+                cursor = query.get("cursor")
+                paginas = _dados("modelos")
+                pagina = paginas.get(cursor if cursor else None)
+                if pagina is None:
+                    return Response(400, {_L("f_erro"): _L("v_cursor_invalido")}, url_final)
+                corpo = dict(pagina)
+                # um item que já saiu reaparece: a lista mudou entre as páginas
+                corpo[_L("f_modelos")] = paginas[None][_L("f_modelos")][:1] + corpo[_L("f_modelos")]
                 return Response(200, corpo, url_final)
             forcada = None
         if forcada is not None:
@@ -777,12 +797,45 @@ def _fabricar_requests() -> types.ModuleType:
 
         return Response(404, {erro: _L("v_rota_404")}, url_final)
 
-    def get(url, params=None, headers=None, timeout=None):
+    def get(url, params=None, headers=None, timeout=None, **_extras):
         return _rotear("GET", url, params=params, headers=headers)
 
-    def post(url, json=None, data=None, headers=None, timeout=None):
+    def post(url, json=None, data=None, headers=None, timeout=None, **_extras):
         corpo = json if json is not None else data
         return _rotear("POST", url, json_body=corpo, headers=headers)
+
+    def request(method, url, params=None, data=None, headers=None, timeout=None,
+                json=None, **_extras):
+        # o requests real aceita qualquer caixa no método
+        corpo = json if json is not None else data
+        return _rotear(str(method).upper(), url, params=params, json_body=corpo,
+                       headers=headers)
+
+    class Session:
+        """Sessão fiel ao uso comum: os headers da sessão valem em toda chamada."""
+
+        def __init__(self):
+            self.headers = {}
+
+        def request(self, method, url, headers=None, **extras):
+            juntos = dict(self.headers)
+            juntos.update(headers or {})
+            return request(method, url, headers=juntos, **extras)
+
+        def get(self, url, params=None, headers=None, **extras):
+            return self.request("GET", url, params=params, headers=headers, **extras)
+
+        def post(self, url, json=None, data=None, headers=None, **extras):
+            return self.request("POST", url, json=json, data=data, headers=headers, **extras)
+
+        def close(self):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_exc):
+            return False
 
     async def aget(url, params=None, headers=None, timeout=None):
         await asyncio.sleep(0)
@@ -794,6 +847,9 @@ def _fabricar_requests() -> types.ModuleType:
 
     mod.get = get
     mod.post = post
+    mod.request = request
+    mod.Session = Session
+    mod.session = Session
     mod.aget = aget
     mod.apost = apost
     mod.Response = Response
@@ -812,17 +868,24 @@ def _fabricar_requests() -> types.ModuleType:
 def _fabricar_openai() -> types.ModuleType:
     mod = types.ModuleType("openai")
 
+    # mesma hierarquia do SDK real: except APIError pega os erros de API
     class OpenAIError(Exception):
         pass
 
-    class RateLimitError(OpenAIError):
+    class APIError(OpenAIError):
         pass
 
-    class APIConnectionError(OpenAIError):
+    class APIStatusError(APIError):
+        status_code = None
+
+    class RateLimitError(APIStatusError):
+        status_code = 429
+
+    class APIConnectionError(APIError):
         pass
 
-    class BadRequestError(OpenAIError):
-        pass
+    class BadRequestError(APIStatusError):
+        status_code = 400
 
     class _Completions:
         def __init__(self, client):
@@ -911,6 +974,8 @@ def _fabricar_openai() -> types.ModuleType:
 
     mod.OpenAI = OpenAI
     mod.OpenAIError = OpenAIError
+    mod.APIError = APIError
+    mod.APIStatusError = APIStatusError
     mod.RateLimitError = RateLimitError
     mod.APIConnectionError = APIConnectionError
     mod.BadRequestError = BadRequestError
@@ -929,8 +994,11 @@ def _fabricar_anthropic() -> types.ModuleType:
     class APIError(AnthropicError):
         pass
 
-    class RateLimitError(AnthropicError):
-        pass
+    class APIStatusError(APIError):
+        status_code = None
+
+    class RateLimitError(APIStatusError):
+        status_code = 429
 
     class _Messages:
         def __init__(self, client):
@@ -983,6 +1051,7 @@ def _fabricar_anthropic() -> types.ModuleType:
     mod.Anthropic = Anthropic
     mod.AnthropicError = AnthropicError
     mod.APIError = APIError
+    mod.APIStatusError = APIStatusError
     mod.RateLimitError = RateLimitError
     return mod
 

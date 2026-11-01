@@ -212,13 +212,25 @@ def _despir(x):
 
 
 def _iguais(a, b) -> bool:
+    """Compara o OBTIDO (a) com o ESPERADO (b).
+
+    Números: esperado int exige int exato (3.0 não é 3, e 1000001 não é 1000000);
+    esperado float aceita float ou int dentro da tolerância 1e-6. Tipos que o
+    esperado não admite nunca são iguais: um objeto com __eq__ que sempre diz True
+    não engana a comparação contra número, texto ou coleção."""
     a, b = _despir(a), _despir(b)
     if isinstance(a, bool) or isinstance(b, bool):
         return isinstance(a, bool) and isinstance(b, bool) and a == b
-    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+    if isinstance(b, int):
+        return isinstance(a, int) and a == b
+    if isinstance(b, float):
+        if not isinstance(a, (int, float)):
+            return False
         return math.isclose(a, b, rel_tol=1e-6, abs_tol=1e-9)
-    if isinstance(a, str) or isinstance(b, str):
-        return a == b
+    if isinstance(b, str):
+        return isinstance(a, str) and a == b
+    if b is None:
+        return a is None
     if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
         if isinstance(a, tuple) != isinstance(b, tuple):
             return False
@@ -231,6 +243,8 @@ def _iguais(a, b) -> bool:
         return all(_iguais(a[k], b[k]) for k in a)
     if isinstance(a, (set, frozenset)) and isinstance(b, (set, frozenset)):
         return a == b
+    if isinstance(b, (list, tuple, dict, set, frozenset)):
+        return False
     return a == b
 
 
@@ -245,7 +259,7 @@ def _repr_curto(x) -> str:
 
 
 def _verificar(obtido, esperado, rotulo=None):
-    """Comparação com tolerância de float (1e-6) e diff para strings longas."""
+    """Comparação com tolerância de float (1e-6), int exato e diff para strings longas."""
     if _iguais(obtido, esperado):
         return
     diff = None
