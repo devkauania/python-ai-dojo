@@ -34,6 +34,8 @@ Regras de execução:
   KeyboardInterrupt aqui vira status "timeout".
 - Helpers visíveis SÓ nos testes: _verificar, _stdout, _mocks, _rodar, _lang
   (aliases en: _check = _verificar, _run = _rodar).
+- Testes podem usar np, pd e OpenAI sem importar: o runner resolve esses nomes para
+  o módulo real, não para o que o aluno importou (import pandas sem apelido passa).
 - Idioma: payload["lang"] ("pt" padrão | "en") vira LANG aqui e no mocks_ia;
   com "pt" TODA mensagem é byte-idêntica à versão monolíngue (verify pt 273/273).
 """
@@ -42,6 +44,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import difflib
+import importlib
 import io
 import json
 import math
@@ -434,6 +437,32 @@ def _executar_codigo(codigo_compilado, ns, saida):
         exec(codigo_compilado, ns)
 
 
+_NOMES_DOS_TESTES = {"np": ("numpy", None), "pd": ("pandas", None), "OpenAI": ("openai", "OpenAI")}
+
+
+def _nomes_lidos(codigo) -> set:
+    """Todos os nomes que um code object lê, inclusive em funções e lambdas internas."""
+    nomes = set(codigo.co_names)
+    for constante in codigo.co_consts:
+        if hasattr(constante, "co_names"):
+            nomes |= _nomes_lidos(constante)
+    return nomes
+
+
+def _prover_nomes_do_teste(codigo_teste, ns, modo_entradas):
+    """Os testes não emprestam o import do aluno. Fora do modo entradas, ns é uma
+    cópia: trocar o nome aqui não mexe nos globais das funções do aluno."""
+    for nome in _nomes_lidos(codigo_teste) & _NOMES_DOS_TESTES.keys():
+        if modo_entradas and nome in ns:
+            continue
+        modulo, atributo = _NOMES_DOS_TESTES[nome]
+        try:
+            objeto = importlib.import_module(modulo)
+            ns[nome] = getattr(objeto, atributo) if atributo else objeto
+        except (ImportError, AttributeError):
+            pass  # exercício sem esse pacote: o teste dá o erro de sempre
+
+
 def _rodar_teste(teste, ns_base, codigo_compilado, stdout_base, resultado_testes,
                  oculto, modo_entradas):
     nome = teste.get("nome", "teste")
@@ -461,6 +490,7 @@ def _rodar_teste(teste, ns_base, codigo_compilado, stdout_base, resultado_testes
         ns["_check"] = _verificar
         ns["_run"] = _rodar
         codigo_teste = compile(teste.get("codigo", ""), f"<teste: {nome}>", "exec")
+        _prover_nomes_do_teste(codigo_teste, ns, modo_entradas)
         with contextlib.redirect_stdout(saida_local), contextlib.redirect_stderr(saida_local):
             exec(codigo_teste, ns)
         entrada_teste["passou"] = True

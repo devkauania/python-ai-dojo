@@ -18,6 +18,11 @@ API pública (usada pelo runner e pelos testes via `_mocks`):
   relogio() -> float         -- segundos virtuais decorridos
   avancar_relogio(s)         -- avança o relógio virtual
   historico_http             -- lista de chamadas HTTP feitas (dicts)
+  pico_paralelo() -> int     -- maior número de aget/apost em andamento ao mesmo
+                                tempo desde o último reset (em sequência dá 1;
+                                com gather dá o total de chamadas)
+  roteirizar_paginas(total)  -- /usuarios passa a ter `total` páginas: as sobrando
+                                vêm vazias e as novas trazem um usuário "ExtraN"
   roteirizar_falhas(caminho, respostas, retry_after=1)
                              -- força status por chamada numa rota; cada item é
                                 um status int (429/500/401/400...), 200 = passa
@@ -25,10 +30,15 @@ API pública (usada pelo runner e pelos testes via `_mocks`):
                                 página com o MESMO cursor — testa anti-loop) ou
                                 "repete" (alias en "repeat": /modelos devolve a
                                 página pedida com o 1º modelo do catálogo a mais
-                                no início — testa dedupe por id)
+                                no início — testa dedupe por id) ou "avanca"
+                                (alias en "advance": /modelos devolve um modelo
+                                novo e um cursor novo — a paginação que nunca
+                                termina, para testar o teto de páginas)
   roteirizar_erros_llm(eventos)
                              -- eventos por chamada de LLM: None = normal,
                                 "rate_limit" = levanta RateLimitError,
+                                "bad_request" = levanta BadRequestError (400:
+                                não adianta repetir),
                                 "args_invalidos" = tool_call com JSON quebrado,
                                 "multi_blocos" = resposta Anthropic em 2 blocos,
                                 "vetor_zero" = embeddings.create devolve vetor
@@ -46,8 +56,9 @@ API pública (usada pelo runner e pelos testes via `_mocks`):
                                 A API pública (_mocks.*, chaves de
                                 historico_http) é a MESMA nos dois idiomas;
                                 o en ganha ALIASES: http_history, clock,
-                                advance_clock, script_failures,
-                                script_llm_errors, embed_text, client.calls,
+                                advance_clock, script_failures, script_pages,
+                                script_llm_errors, embed_text, peak_parallel,
+                                client.calls,
                                 os eventos invalid_args/multi_block/zero_vector e, nos
                                 registros http, method/path/clock.
 
@@ -79,7 +90,8 @@ GET  https://api.dojo.dev/modelos?cursor=C  -> paginado por cursor:
 qualquer outro host -> requests.exceptions.ConnectionError
 requests.Session() (get/post/request, .headers, with) e requests.request(metodo,
 url, ...) caem nas MESMAS rotas; argumentos reais extras (verify, allow_redirects...)
-são aceitos e ignorados.
+são aceitos e ignorados. Cabeçalhos não diferenciam maiúsculas (nos dois sentidos),
+como no requests real.
 Versões async: `await requests.aget(...)` / `await requests.apost(...)`.
 Status forçados por roteirizar_falhas: 429 tem header Retry-After; 500 tem
 corpo NÃO-JSON "erro interno"; 401/400 têm corpo JSON {"erro": ...}.
@@ -111,6 +123,8 @@ resposta = tabela de palavras-chave sobre a pergunta, senão as 12 primeiras
 palavras do melhor contexto.
 Continuação de ferramenta: se a última mensagem tem role "tool", responde
 "O resultado é {conteúdo}."
+`content` e `system` também aceitam a forma real em blocos
+([{"type": "text", "text": ...}]): o mock lê o texto e o spy guarda só o texto.
 
 =====================================================================
 TABELA DE FERRAMENTAS (tool_calls) — com `tools=`, última mensagem user:
@@ -149,6 +163,9 @@ historico_http: list[dict] = []
 _roteiros: dict[str, list] = {}
 _retry_after: dict[str, int] = {}
 _erros_llm: list = []
+_total_paginas: int | None = None
+_async_em_andamento = 0
+_async_pico = 0
 
 # ---------------------------------------------------------------------------
 # Idioma dos mocks. "pt" reproduz byte a byte o comportamento monolíngue.
@@ -164,7 +181,7 @@ _IDIOMAS = {
         "p_pagina": "pagina",
         # campos
         "f_erro": "erro", "f_dados": "dados", "f_pagina": "pagina",
-        "f_total_paginas": "total_paginas", "f_segredo": "segredo",
+        "f_total_paginas": "total_paginas", "f_segredo": "segredo", "f_nome": "nome",
         "f_recebido": "recebido", "f_metodo": "metodo", "f_senha": "senha",
         "f_modelos": "modelos", "f_proximo_cursor": "proximo_cursor",
         "f_resposta": "resposta", "f_fontes": "fontes",
@@ -182,6 +199,7 @@ _IDIOMAS = {
         "e_json": "O corpo da resposta não é JSON válido: {trecho}",
         "e_http": "{status} Erro para a url: {url}",
         "e_rate_limit": "Erro 429: limite de requisições excedido (mock). Tente de novo.",
+        "e_bad_request": "Erro 400: requisição inválida (mock). Repetir não adianta.",
         # LLM
         "llm_capital_br": "capital do brasil", "llm_capital_fr": "capital da frança",
         "llm_saudacoes": {"olá", "ola", "oi"}, "llm_ola": "Olá! Como posso ajudar?",
@@ -201,7 +219,7 @@ _IDIOMAS = {
         "r_echo": "/echo", "r_login": "/login", "r_modelos": "/models",
         "p_pagina": "page",
         "f_erro": "error", "f_dados": "data", "f_pagina": "page",
-        "f_total_paginas": "total_pages", "f_segredo": "secret",
+        "f_total_paginas": "total_pages", "f_segredo": "secret", "f_nome": "name",
         "f_recebido": "received", "f_metodo": "method", "f_senha": "password",
         "f_modelos": "models", "f_proximo_cursor": "next_cursor",
         "f_resposta": "answer", "f_fontes": "sources",
@@ -217,6 +235,7 @@ _IDIOMAS = {
         "e_json": "The response body is not valid JSON: {trecho}",
         "e_http": "{status} Error for url: {url}",
         "e_rate_limit": "Error 429: request limit exceeded (mock). Try again.",
+        "e_bad_request": "Error 400: bad request (mock). Retrying won't help.",
         "llm_capital_br": "capital of brazil", "llm_capital_fr": "capital of france",
         "llm_saudacoes": {"hello", "hi", "hey"}, "llm_ola": "Hello! How can I help?",
         "llm_python": "Python is a programming language.",
@@ -292,8 +311,11 @@ def desinstalar_relogio() -> None:
 
 def reset_estado() -> None:
     """Zera relógio virtual, roteiros de falha e históricos (entre testes)."""
-    global _relogio_virtual, _erros_llm
+    global _relogio_virtual, _erros_llm, _total_paginas, _async_em_andamento, _async_pico
     _relogio_virtual = 0.0
+    _total_paginas = None
+    _async_em_andamento = 0
+    _async_pico = 0
     _roteiros.clear()
     _retry_after.clear()
     _erros_llm = []
@@ -304,6 +326,17 @@ def roteirizar_falhas(caminho: str, respostas: list, retry_after: int = 1) -> No
     """Força respostas numa rota, na ordem. 200 = comportamento normal."""
     _roteiros[caminho] = list(respostas)
     _retry_after[caminho] = retry_after
+
+
+def roteirizar_paginas(total: int) -> None:
+    """Faz /usuarios ter `total` páginas, para quem leu total_paginas da resposta."""
+    global _total_paginas
+    _total_paginas = total
+
+
+def pico_paralelo() -> int:
+    """Maior número de aget/apost em andamento juntos desde o último reset."""
+    return _async_pico
 
 
 # nomes en dos eventos (conteúdo en) -> nome canônico pt usado internamente
@@ -354,6 +387,8 @@ clock = relogio
 advance_clock = avancar_relogio
 script_failures = roteirizar_falhas
 script_llm_errors = roteirizar_erros_llm
+script_pages = roteirizar_paginas
+peak_parallel = pico_paralelo
 embed_text = embed_texto
 
 
@@ -362,8 +397,34 @@ def _sha8(obj) -> str:
     return hashlib.sha1(bruto.encode("utf-8")).hexdigest()[:8]
 
 
+def _texto_de(conteudo):
+    """O texto de um `content` ou `system`: string, ou a forma real em blocos
+    [{"type": "text", "text": ...}]. Qualquer outra coisa -> None."""
+    if isinstance(conteudo, str):
+        return conteudo
+    if isinstance(conteudo, (list, tuple)):
+        partes = [b["text"] for b in conteudo
+                  if isinstance(b, dict) and b.get("type") == "text" and isinstance(b.get("text"), str)]
+        if partes or not conteudo:
+            return " ".join(partes)
+    return None
+
+
+def _mensagem_registrada(m):
+    """Cópia da mensagem para o spy: quem mandou blocos aparece igual a quem mandou texto."""
+    if not isinstance(m, dict):
+        return m
+    copia = dict(m)
+    if isinstance(m.get("content"), (list, tuple)):
+        texto = _texto_de(m["content"])
+        if texto is not None:
+            copia["content"] = texto
+    return copia
+
+
 def _contar_palavras(texto) -> int:
-    if not isinstance(texto, str):
+    texto = _texto_de(texto)
+    if texto is None:
         return 0
     return len(texto.split())
 
@@ -445,8 +506,8 @@ def _responder(mensagens: list, system) -> tuple[str, bool]:
     """Resposta determinística. Retorna (texto, truncado_flag=False aqui)."""
     ultima_user = ""
     for m in mensagens:
-        if isinstance(m, dict) and m.get("role") == "user" and isinstance(m.get("content"), str):
-            ultima_user = m["content"]
+        if isinstance(m, dict) and m.get("role") == "user" and _texto_de(m.get("content")) is not None:
+            ultima_user = _texto_de(m["content"])
     # continuação de ferramenta: a conversa termina num resultado de tool
     if mensagens and isinstance(mensagens[-1], dict) and mensagens[-1].get("role") == "tool":
         return _L("llm_resultado").format(
@@ -461,7 +522,7 @@ def _responder(mensagens: list, system) -> tuple[str, bool]:
     if resposta is None:
         resposta = _L("llm_disse").format(texto=ultima_user)
 
-    s = (system or "").casefold()
+    s = (_texto_de(system) or "").casefold()
     if any(p in s for p in _L("llm_pirata")):
         resposta = "Arrr! " + resposta
     if any(p in s for p in _L("llm_maiusculas")):
@@ -491,8 +552,8 @@ def _detectar_tool_calls(mensagens: list, tools) -> list | None:
             continue
     ultima_user = ""
     for m in mensagens:
-        if isinstance(m, dict) and m.get("role") == "user" and isinstance(m.get("content"), str):
-            ultima_user = m["content"]
+        if isinstance(m, dict) and m.get("role") == "user" and _texto_de(m.get("content")) is not None:
+            ultima_user = _texto_de(m["content"])
     if mensagens and isinstance(mensagens[-1], dict) and mensagens[-1].get("role") == "tool":
         return None  # segunda rodada: responde texto
     t = ultima_user.casefold()
@@ -530,6 +591,61 @@ class _Obj:
 
     def __eq__(self, outro):
         return isinstance(outro, _Obj) and self.__dict__ == outro.__dict__
+
+    def model_dump(self, **_extras):
+        """Como no pydantic dos SDKs reais: dicts e listas puros, recursivo."""
+        def puro(v):
+            if isinstance(v, _Obj):
+                return v.model_dump()
+            if isinstance(v, (list, tuple)):
+                return [puro(x) for x in v]
+            return v
+        return {k: puro(v) for k, v in self.__dict__.items()}
+
+    def model_dump_json(self, **_extras):
+        return _json.dumps(self.model_dump(), ensure_ascii=False)
+
+
+class _Cabecalhos(dict):
+    """Dict de cabeçalhos HTTP: a caixa da chave não importa, como no requests real.
+    Guarda a grafia de quem escreveu primeiro."""
+
+    def __init__(self, inicial=None):
+        super().__init__()
+        self.update(inicial or {})
+
+    def _real(self, chave):
+        if isinstance(chave, str):
+            alvo = chave.casefold()
+            for k in self:
+                if isinstance(k, str) and k.casefold() == alvo:
+                    return k
+        return chave
+
+    def __getitem__(self, chave):
+        return super().__getitem__(self._real(chave))
+
+    def __setitem__(self, chave, valor):
+        super().__setitem__(self._real(chave), valor)
+
+    def __delitem__(self, chave):
+        super().__delitem__(self._real(chave))
+
+    def __contains__(self, chave):
+        return super().__contains__(self._real(chave))
+
+    def get(self, chave, padrao=None):
+        return super().get(self._real(chave), padrao)
+
+    def setdefault(self, chave, padrao=None):
+        return super().setdefault(self._real(chave), padrao)
+
+    def pop(self, chave, *padrao):
+        return super().pop(self._real(chave), *padrao)
+
+    def update(self, outro=(), **kw):
+        for k, v in dict(outro, **kw).items():
+            self[k] = v
 
 
 # ---------------------------------------------------------------------------
@@ -630,7 +746,7 @@ def _fabricar_requests() -> types.ModuleType:
         def __init__(self, status_code, corpo, url, headers=None):
             self.status_code = status_code
             self.url = url
-            self.headers = headers or {}
+            self.headers = _Cabecalhos(headers)
             if isinstance(corpo, str):
                 self.text = corpo
                 self._json = None
@@ -684,6 +800,8 @@ def _fabricar_requests() -> types.ModuleType:
             return "loop"
         if item in ("repete", "repeat"):
             return "repete"
+        if item in ("avanca", "advance"):
+            return "avanca"
         status = int(item)
         if status == 429:
             ra = _retry_after.get(caminho, 1)
@@ -702,7 +820,7 @@ def _fabricar_requests() -> types.ModuleType:
         caminho = partes.path
         registro = {
             "metodo": metodo, "url": url_final, "caminho": caminho,
-            "params": dict(query), "json": json_body, "headers": dict(headers or {}),
+            "params": dict(query), "json": json_body, "headers": _Cabecalhos(headers),
             "relogio": relogio(),
         }
         if IDIOMA == "en":
@@ -737,6 +855,13 @@ def _fabricar_requests() -> types.ModuleType:
                 corpo[_L("f_modelos")] = paginas[None][_L("f_modelos")][:1] + corpo[_L("f_modelos")]
                 return Response(200, corpo, url_final)
             forcada = None
+        if forcada == "avanca":
+            if caminho == _L("r_modelos"):
+                n = len(historico_http)
+                novo = dict(_dados("modelos")[None][_L("f_modelos")][0], id=f"x{n}")
+                return Response(200, {_L("f_modelos"): [novo],
+                                      _L("f_proximo_cursor"): f"x{n}"}, url_final)
+            forcada = None
         if forcada is not None:
             return forcada
 
@@ -752,9 +877,18 @@ def _fabricar_requests() -> types.ModuleType:
                 return Response(400, {erro: _L("v_pagina_invalida")}, url_final)
             if n < 1:
                 return Response(400, {erro: _L("v_pagina_invalida")}, url_final)
-            dados = _dados("usuarios").get(n, [])
+            tabela = _dados("usuarios")
+            total = len(tabela) if _total_paginas is None else _total_paginas
+            if n > total:
+                dados = []
+            elif n in tabela:
+                dados = tabela[n]
+            else:  # página a mais, só com roteirizar_paginas
+                extra = dict(tabela[1][0], id=100 + n)
+                extra[_L("f_nome")] = f"Extra{n}"
+                dados = [extra]
             return Response(200, {_L("f_dados"): dados, _L("f_pagina"): n,
-                                  _L("f_total_paginas"): 3}, url_final)
+                                  _L("f_total_paginas"): total}, url_final)
 
         if metodo == "GET" and caminho.startswith(_L("r_produtos")):
             bruto = caminho[len(_L("r_produtos")):]
@@ -768,7 +902,7 @@ def _fabricar_requests() -> types.ModuleType:
             return Response(200, produto, url_final)
 
         if metodo == "GET" and caminho == _L("r_segredo"):
-            auth = (headers or {}).get("Authorization", "")
+            auth = _Cabecalhos(headers).get("Authorization", "")
             if auth == "Bearer tk_dojo_001":
                 return Response(200, {_L("f_segredo"): _L("v_segredo")}, url_final)
             return Response(401, {erro: _L("v_nao_autorizado")}, url_final)
@@ -815,10 +949,10 @@ def _fabricar_requests() -> types.ModuleType:
         """Sessão fiel ao uso comum: os headers da sessão valem em toda chamada."""
 
         def __init__(self):
-            self.headers = {}
+            self.headers = _Cabecalhos()
 
         def request(self, method, url, headers=None, **extras):
-            juntos = dict(self.headers)
+            juntos = _Cabecalhos(self.headers)
             juntos.update(headers or {})
             return request(method, url, headers=juntos, **extras)
 
@@ -837,13 +971,23 @@ def _fabricar_requests() -> types.ModuleType:
         def __exit__(self, *_exc):
             return False
 
+    async def _contando_pico(chamada):
+        # Quem disparou junto entra aqui antes de qualquer um terminar: é o que
+        # distingue gather de um for com await, já que o sleep(0) não custa relógio.
+        global _async_em_andamento, _async_pico
+        _async_em_andamento += 1
+        _async_pico = max(_async_pico, _async_em_andamento)
+        try:
+            await asyncio.sleep(0)
+            return chamada()
+        finally:
+            _async_em_andamento -= 1
+
     async def aget(url, params=None, headers=None, timeout=None):
-        await asyncio.sleep(0)
-        return get(url, params=params, headers=headers, timeout=timeout)
+        return await _contando_pico(lambda: get(url, params=params, headers=headers, timeout=timeout))
 
     async def apost(url, json=None, data=None, headers=None, timeout=None):
-        await asyncio.sleep(0)
-        return post(url, json=json, data=data, headers=headers, timeout=timeout)
+        return await _contando_pico(lambda: post(url, json=json, data=data, headers=headers, timeout=timeout))
 
     mod.get = get
     mod.post = post
@@ -894,7 +1038,7 @@ def _fabricar_openai() -> types.ModuleType:
         def create(self, *, model, messages, temperature=None, max_tokens=None,
                    tools=None, tool_choice=None, **kwargs):
             registro = {"api": "chat.completions.create", "model": model,
-                        "messages": [dict(m) if isinstance(m, dict) else m for m in messages],
+                        "messages": [_mensagem_registrada(m) for m in messages],
                         "temperature": temperature, "max_tokens": max_tokens,
                         "tools": tools, "tool_choice": tool_choice}
             registro.update(kwargs)
@@ -903,6 +1047,8 @@ def _fabricar_openai() -> types.ModuleType:
             evento = _proximo_erro_llm()
             if evento == "rate_limit":
                 raise RateLimitError(_L("e_rate_limit"))
+            if evento == "bad_request":
+                raise BadRequestError(_L("e_bad_request"))
 
             prompt_tokens = sum(_contar_palavras(m.get("content")) for m in messages
                                 if isinstance(m, dict))
@@ -953,6 +1099,8 @@ def _fabricar_openai() -> types.ModuleType:
             evento = _proximo_erro_llm()
             if evento == "rate_limit":
                 raise RateLimitError(_L("e_rate_limit"))
+            if evento == "bad_request":
+                raise BadRequestError(_L("e_bad_request"))
             textos = [input] if isinstance(input, str) else list(input)
             if evento == "vetor_zero":  # norma zero: testa o cosseno blindado
                 data = [_Obj(embedding=[0.0] * 16, index=i, object="embedding")
@@ -971,6 +1119,11 @@ def _fabricar_openai() -> types.ModuleType:
             self.calls = self.chamadas  # alias en (MESMA lista)
             self.chat = _Chat(self)
             self.embeddings = _EmbeddingsAPI(self)
+
+        def with_options(self, **_opcoes):
+            # no SDK real é uma cópia com outro timeout: aqui as opções não mudam
+            # nada, e o mesmo objeto mantém o spy de chamadas
+            return self
 
     mod.OpenAI = OpenAI
     mod.OpenAIError = OpenAIError
@@ -1000,6 +1153,9 @@ def _fabricar_anthropic() -> types.ModuleType:
     class RateLimitError(APIStatusError):
         status_code = 429
 
+    class BadRequestError(APIStatusError):
+        status_code = 400
+
     class _Messages:
         def __init__(self, client):
             self._client = client
@@ -1010,7 +1166,7 @@ def _fabricar_anthropic() -> types.ModuleType:
             # fiel à API real da Anthropic.
             registro = {"api": "messages.create", "model": model,
                         "max_tokens": max_tokens,
-                        "messages": [dict(m) if isinstance(m, dict) else m for m in messages],
+                        "messages": [_mensagem_registrada(m) for m in messages],
                         "system": system, "temperature": temperature}
             registro.update(kwargs)
             self._client.chamadas.append(registro)
@@ -1018,6 +1174,8 @@ def _fabricar_anthropic() -> types.ModuleType:
             evento = _proximo_erro_llm()
             if evento == "rate_limit":
                 raise RateLimitError(_L("e_rate_limit"))
+            if evento == "bad_request":
+                raise BadRequestError(_L("e_bad_request"))
 
             texto, _ = _responder(messages, system)
             texto, truncou = _truncar(texto, max_tokens)
@@ -1048,11 +1206,15 @@ def _fabricar_anthropic() -> types.ModuleType:
             self.calls = self.chamadas  # alias en (MESMA lista)
             self.messages = _Messages(self)
 
+        def with_options(self, **_opcoes):
+            return self  # como em OpenAI.with_options
+
     mod.Anthropic = Anthropic
     mod.AnthropicError = AnthropicError
     mod.APIError = APIError
     mod.APIStatusError = APIStatusError
     mod.RateLimitError = RateLimitError
+    mod.BadRequestError = BadRequestError
     return mod
 
 

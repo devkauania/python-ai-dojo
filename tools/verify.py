@@ -415,6 +415,134 @@ def validar_comparacao():
     return erros
 
 
+def validar_mocks():
+    """O contrato dos mocks e do runner que os exercícios não cobrem um a um."""
+    caminho_py = os.path.join(RAIZ, "py")
+    if caminho_py not in sys.path:
+        sys.path.insert(0, caminho_py)
+    import mocks_ia  # noqa: PLC0415
+    import runner  # noqa: PLC0415
+
+    erros = []
+
+    def checa(condicao, texto):
+        if not condicao:
+            erros.append(f"[MOCKS] {texto}")
+
+    mocks_ia.definir_idioma("pt")
+    mocks_ia.instalar(["requests", "openai", "anthropic"])
+    try:
+        import anthropic  # noqa: PLC0415
+        import openai  # noqa: PLC0415
+        import requests  # noqa: PLC0415
+
+        # cabeçalhos sem diferença de caixa, nos dois sentidos
+        mocks_ia.roteirizar_falhas("/status", [429], retry_after=7)
+        h = requests.get("https://api.dojo.dev/status").headers
+        checa(h["retry-after"] == "7" and h.get("RETRY-AFTER") == "7" and "retry-AFTER" in h,
+              "Retry-After deve valer em qualquer caixa")
+        checa(requests.get("https://api.dojo.dev/segredo",
+                           headers={"authorization": "Bearer tk_dojo_001"}).status_code == 200,
+              "Authorization em minúsculas deve autenticar")
+        s = requests.Session()
+        s.headers["AUTHORIZATION"] = "Bearer tk_dojo_001"
+        checa(s.get("https://api.dojo.dev/segredo").status_code == 200,
+              "headers da Session valem em qualquer caixa")
+
+        # hierarquia real dos erros: 400 é erro de API, mas não é rate limit
+        for mod in (openai, anthropic):
+            checa(issubclass(mod.BadRequestError, mod.APIStatusError)
+                  and issubclass(mod.RateLimitError, mod.APIStatusError)
+                  and not issubclass(mod.BadRequestError, mod.RateLimitError),
+                  f"{mod.__name__}: hierarquia de erros difere do SDK real")
+
+        # content em blocos, spy em texto, with_options e model_dump
+        cli = openai.OpenAI()
+        blocos = [{"type": "text", "text": "qual a capital do brasil?"}]
+        r = cli.with_options(timeout=5).chat.completions.create(
+            model="mock-4", messages=[{"role": "user", "content": blocos}])
+        checa(r.choices[0].message.content == "Brasília", "content em blocos: OpenAI não leu o texto")
+        checa(cli.chamadas[-1]["messages"][0]["content"] == "qual a capital do brasil?",
+              "o spy guarda o content como texto")
+        checa(r.model_dump()["choices"][0]["message"]["content"] == "Brasília"
+              and json.loads(r.model_dump_json())["model"] == "mock-4",
+              "model_dump e model_dump_json devem espelhar o objeto")
+        ac = anthropic.Anthropic()
+        r = ac.with_options(max_retries=0).messages.create(
+            model="mock-claude", max_tokens=9, system=[{"type": "text", "text": "fale como pirata"}],
+            messages=[{"role": "user", "content": blocos}])
+        checa(r.content[0].text == "Arrr! Brasília", "content e system em blocos: Anthropic não leu o texto")
+
+        # bad_request: 400 sem retry, nos dois clientes
+        mocks_ia.reset_estado()
+        mocks_ia.roteirizar_erros_llm(["bad_request", "bad_request"])
+        for chamada, tipo in ((lambda: cli.chat.completions.create(model="m", messages=[]), openai.BadRequestError),
+                              (lambda: ac.messages.create(model="m", max_tokens=1, messages=[]), anthropic.BadRequestError)):
+            try:
+                chamada()
+                checa(False, "evento bad_request deveria levantar")
+            except tipo:
+                pass
+
+        # roteiros de paginação
+        mocks_ia.reset_estado()
+        mocks_ia.roteirizar_paginas(4)
+        corpo = requests.get("https://api.dojo.dev/usuarios", params={"pagina": 4}).json()
+        checa(corpo["total_paginas"] == 4 and len(corpo["dados"]) == 1, "roteirizar_paginas(4): falta a página 4")
+        mocks_ia.reset_estado()
+        mocks_ia.roteirizar_paginas(2)
+        corpo = requests.get("https://api.dojo.dev/usuarios", params={"pagina": 3}).json()
+        checa(corpo["total_paginas"] == 2 and corpo["dados"] == [], "roteirizar_paginas(2): página 3 deveria vir vazia")
+        mocks_ia.reset_estado()
+        checa(requests.get("https://api.dojo.dev/usuarios").json()["total_paginas"] == 3,
+              "reset_estado deve voltar às 3 páginas")
+        mocks_ia.roteirizar_falhas("/modelos", ["avanca", "avanca"])
+        c1 = requests.get("https://api.dojo.dev/modelos").json()
+        c2 = requests.get("https://api.dojo.dev/modelos", params={"cursor": c1["proximo_cursor"]}).json()
+        checa(c1["proximo_cursor"] and c1["proximo_cursor"] != c2["proximo_cursor"]
+              and c1["modelos"][0]["id"] != c2["modelos"][0]["id"],
+              "'avanca' deve devolver página e cursor novos a cada chamada")
+
+        # pico de chamadas async: em sequência é 1, em paralelo é o total
+        import asyncio  # noqa: PLC0415
+
+        async def em_sequencia():
+            for _ in range(3):
+                await requests.aget("https://api.dojo.dev/status")
+
+        async def em_paralelo():
+            await asyncio.gather(*[requests.aget("https://api.dojo.dev/status") for _ in range(3)])
+
+        mocks_ia.reset_estado()
+        runner._rodar(em_sequencia())
+        checa(mocks_ia.pico_paralelo() == 1, f"em sequência o pico é 1, veio {mocks_ia.pico_paralelo()}")
+        mocks_ia.reset_estado()
+        checa(mocks_ia.pico_paralelo() == 0, "reset_estado zera o pico")
+        runner._rodar(em_paralelo())
+        checa(mocks_ia.pico_paralelo() == 3, f"em paralelo o pico é 3, veio {mocks_ia.pico_paralelo()}")
+    finally:
+        mocks_ia.desinstalar()
+
+    # os aliases en apontam para os mesmos objetos
+    checa(mocks_ia.peak_parallel is mocks_ia.pico_paralelo and mocks_ia.script_pages is mocks_ia.roteirizar_paginas,
+          "faltam os aliases en dos helpers novos")
+
+    # teste que usa np/pd/OpenAI não depende do nome que o aluno importou
+    payload = json.dumps({"codigo": "import numpy\nimport pandas\nimport openai\nf = 1\n", "mocks": ["openai"], "testes_visiveis": [
+        {"nome": "np", "codigo": "assert np.array([1]).sum() == 1"},
+        {"nome": "pd", "codigo": "assert len(pd.DataFrame({'a': [1]})) == 1"},
+        {"nome": "OpenAI", "codigo": "assert (lambda: OpenAI())().chamadas == []"},
+    ]})
+    r = json.loads(runner.executar_json(payload))
+    checa(r["status"] == "ok", f"testes não devem emprestar imports do aluno: {r['testes']}")
+    payload = json.dumps({"codigo": "np = 'meu'\nf = lambda: np\n", "testes_visiveis": [
+        {"nome": "np", "codigo": "assert np.array([1]).sum() == 1 and f() == 'meu'"},
+    ]})
+    r = json.loads(runner.executar_json(payload))
+    checa(r["status"] == "ok", f"o nome do aluno continua dele, o do teste é o módulo: {r['testes']}")
+    return erros
+
+
 def executar_exercicios(exercicios):
     """Roda solução (deve passar) + starter (deve falhar) + porta de mutação de
     cada exercício. Retorna (ok, falhas). Compartilhado com tools/verify_fragment.py."""
@@ -507,7 +635,7 @@ def main():
 
     ok, falhas_exec = executar_exercicios(exercicios)
 
-    erros_comparacao = validar_comparacao()
+    erros_comparacao = validar_comparacao() + validar_mocks()
     for e in erros_comparacao:
         print(f"[FALHA] {e}")
 

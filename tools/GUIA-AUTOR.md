@@ -50,12 +50,19 @@ curto, descritivo, e nos ocultos não pode entregar a resposta.
   - `assert cond, "mensagem em PT-BR"` — para checagens de tipo/propriedade.
   - `_stdout` — o que o código do aluno imprimiu (string).
   - `_mocks` — o módulo de mocks: `_mocks.roteirizar_falhas(rota, [429, 200], retry_after=2)`
-    (itens especiais em `/modelos`: `"loop"` repete página e cursor; `"repete"` traz um id já visto),
-    `_mocks.roteirizar_erros_llm(['rate_limit', None])` (eventos: `rate_limit`,
+    (itens especiais em `/modelos`: `"loop"` repete página e cursor; `"repete"` traz um id já visto;
+    `"avanca"` traz modelo e cursor novos, a paginação que nunca termina),
+    `_mocks.roteirizar_paginas(4)` (`/usuarios` com outro total de páginas),
+    `_mocks.pico_paralelo()` (quantos `aget`/`apost` estiveram em andamento juntos: 1 em sequência,
+    o total com `gather`),
+    `_mocks.roteirizar_erros_llm(['rate_limit', None])` (eventos: `rate_limit`, `bad_request`,
     `args_invalidos`, `multi_blocos`, `vetor_zero` = embedding de norma zero), `_mocks.relogio()`
     (segundos virtuais — `time.sleep` e `asyncio.sleep` avançam esse relógio sem
     esperar de verdade), `_mocks.historico_http` (lista de chamadas),
     `_mocks.embed_texto(texto)` (o mesmo embedding dos clientes).
+  - `np`, `pd` e `OpenAI` — o runner resolve esses nomes no teste para o módulo real.
+    Não dependa do que o aluno importou: `import pandas`, sem apelido, é resposta certa.
+    Qualquer outro módulo, importe dentro do próprio teste.
   - `_rodar(coro)` — roda corrotina até o fim (event loop com relógio virtual).
     Ex.: `_verificar(_rodar(minha_func()), esperado)`. NUNCA use `asyncio.run`.
 - O estado dos mocks (relógio, roteiros, histórico) é RESETADO antes de cada

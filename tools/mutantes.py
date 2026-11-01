@@ -178,6 +178,10 @@ MUTANTES = {
 }
 
 _NORMA = "(np.linalg.norm(embed(t)) * np.linalg.norm(q))"
+BLOCOS = [(r'"content": ([^}\n]+)\}', r'"content": [{"type": "text", "text": \1}]}')]
+SEM_APELIDO_PD = [(r"import pandas as pd", "import pandas"), (r"\bpd\.", "pandas.")]
+SEM_APELIDO_NP = [(r"import numpy as np", "import numpy"), (r"\bnp\.", "numpy.")]
+RETRY_AFTER_MINUSCULO = [(r'"Retry-After"', '"retry-after"')]
 
 ALTERNATIVAS = {
     # API real que o mock precisa cobrir
@@ -187,14 +191,11 @@ ALTERNATIVAS = {
         ("com timeout e verify", [(r'\)\n(\s+)(\w+) = resp\.json\(\)', r', timeout=5, verify=True)\n\1\2 = resp.json()')]),
     ],
     "ato4-llm-t3-01": [
-        ("except da classe base APIError", [(r"from openai import RateLimitError", "from openai import APIError as RateLimitError")]),
-        ("except da classe base APIStatusError", [(r"from openai import RateLimitError", "from openai import APIStatusError as RateLimitError")]),
-        ("except da classe base OpenAIError", [(r"from openai import RateLimitError", "from openai import OpenAIError as RateLimitError")]),
+        ("importa os nomes reais do SDK", [(r"from openai import RateLimitError",
+                                            "from openai import RateLimitError, APIError, APIStatusError, OpenAIError, APIConnectionError")]),
+        ("retenta também a queda de conexão", [(r"except RateLimitError as", "except (RateLimitError, __import__('openai').APIConnectionError) as")]),
     ],
-    "ato4-llm-t1-01": [("argumentos reais a mais", [(r'model="mock-4",', 'model="mock-4", temperature=0.2, top_p=1, seed=1,')])],
     # os testes novos não podem exigir um único jeito de escrever
-    "ato4-boss5-t1-02": [("ranking com sorted", [(TOPK, r"\1 = sorted(range(len(\2)), key=lambda j: -\2[j])")])],
-    "ato4-boss5-t2-02": [("ranking com sorted", [(TOPK, r"\1 = sorted(range(len(\2)), key=lambda j: -\2[j])")])],
     "ato4-boss5-t3-02": [("ranking com sorted", [(TOPK, r"\1 = sorted(range(len(\2)), key=lambda j: -\2[j])")])],
     "ato4-boss5-t3-03": [
         ("type(n) is int no lugar do filtro de bool",
@@ -214,6 +215,30 @@ ALTERNATIVAS = {
         ]),
     ],
     "ato3-pandas-t2-02": [("subclasse de list", [(r"return \((.+)\)\.tolist\(\)", "class L(list):\n        pass\n    return L((\\1).tolist())")])],
+    # content em blocos: o formato real das duas APIs, com o texto igual
+    "ato4-llm-t1-01": [("argumentos reais a mais", [(r'model="mock-4",', 'model="mock-4", temperature=0.2, top_p=1, seed=1,')]),
+                       ("content em blocos", BLOCOS),
+                       ("client.with_options(...)", [(r"client\.chat", "client.with_options(timeout=5, max_retries=0).chat")])],
+    "ato4-llm-t2-03": [("content em blocos", BLOCOS)],
+    "ato4-boss5-t2-02": [("ranking com sorted", [(TOPK, r"\1 = sorted(range(len(\2)), key=lambda j: -\2[j])")]),
+                         ("content em blocos", BLOCOS)],
+    # import de outro jeito: os testes não podem depender do nome que o aluno escolheu
+    "ato3-pandas-t1-01": [("import pandas, sem o apelido", SEM_APELIDO_PD)],
+    "ato3-numpy-t1-02": [("import numpy, sem o apelido", SEM_APELIDO_NP)],
+    "ato4-boss4-t1-03": [("import numpy, sem o apelido", SEM_APELIDO_NP)],
+    "ato4-boss5-t1-02": [("ranking com sorted", [(TOPK, r"\1 = sorted(range(len(\2)), key=lambda j: -\2[j])")]),
+                         ("import openai, sem o from", [(r"from openai import OpenAI", "import openai"), (r"\bOpenAI\(\)", "openai.OpenAI()")])],
+    # cabeçalho HTTP não diferencia maiúsculas no requests real
+    "ato3-resiliencia-t2-02": [("headers em minúsculas", RETRY_AFTER_MINUSCULO)],
+    "ato3-resiliencia-t2-04": [("headers em minúsculas", RETRY_AFTER_MINUSCULO)],
+    "ato3-boss3-t2-02": [("headers em minúsculas", RETRY_AFTER_MINUSCULO)],
+    "ato3-boss3-t3-01": [("headers em minúsculas", RETRY_AFTER_MINUSCULO)],
+    "ato3-boss3-t3-02": [("headers em minúsculas", RETRY_AFTER_MINUSCULO)],
+    "ato4-boss4-t1-02": [("data[0].model_dump()", [(r"resp\.data\[0\]\.embedding", 'resp.data[0].model_dump()["embedding"]')])],
+    # paralelo de outro jeito: quem dispara junto continua aprovado
+    "ato3-assincrono-t2-02": [
+        ("create_task + await em ordem", [(r"await asyncio\.gather\(\*\[(\w+\(\w+\)) for (\w+) in (\w+)\]\)", r"[await t for t in [asyncio.ensure_future(\1) for \2 in \3]]")]),
+    ],
 }
 
 # (obtido, esperado, igual?) — a comparação do runner, sem depender de exercício.
