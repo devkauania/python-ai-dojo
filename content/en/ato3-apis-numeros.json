@@ -274,6 +274,14 @@
         {
           "nome": "the end of the list comes from the last pages",
           "codigo": "_check(collect_names()[2:], ['Carla', 'Davi', 'Elisa'])"
+        },
+        {
+          "nome": "the total comes from the response: with 4 pages",
+          "codigo": "_mocks.script_pages(4)\n_check(collect_names(), ['Ana', 'Bruno', 'Carla', 'Davi', 'Elisa', 'Extra4'])\n_check(len(_mocks.http_history), 4)"
+        },
+        {
+          "nome": "the total comes from the response: with 2 pages",
+          "codigo": "_mocks.script_pages(2)\n_check(collect_names(), ['Ana', 'Bruno', 'Carla', 'Davi'])\n_check(len(_mocks.http_history), 2)"
         }
       ],
       "dicas": [
@@ -603,6 +611,18 @@
         {
           "nome": "page_limit=1 protects even without a repeated cursor",
           "codigo": "try:\n    list_models(page_limit=1)\n    assert False, 'With page_limit=1 and more pages ahead, it should raise RuntimeError'\nexcept RuntimeError:\n    pass"
+        },
+        {
+          "nome": "a limit equal to the number of pages still finishes",
+          "codigo": "_check(list_models(page_limit=3), ['mock-4-mini', 'mock-4', 'mock-claude-haiku', 'mock-claude', 'mock-embed'])"
+        },
+        {
+          "nome": "a limit one page short raises",
+          "codigo": "try:\n    list_models(page_limit=2)\n    assert False, 'The catalog has 3 pages: page_limit=2 should raise RuntimeError'\nexcept RuntimeError:\n    pass\n_check(len(_mocks.http_history), 2)"
+        },
+        {
+          "nome": "the default limit is 10 pages",
+          "codigo": "_mocks.script_failures('/models', ['advance'] * 30)\ntry:\n    list_models()\n    assert False, 'Endless pagination should raise RuntimeError'\nexcept RuntimeError:\n    pass\n_check(len(_mocks.http_history), 10)"
         }
       ],
       "dicas": [
@@ -1515,6 +1535,10 @@
         {
           "nome": "the end of the list comes from pages 2 and 3",
           "codigo": "_check(_run(collect_names_parallel())[2:], ['Carla', 'Davi', 'Elisa'])"
+        },
+        {
+          "nome": "the requests go out together",
+          "codigo": "_run(collect_names_parallel())\nassert _mocks.peak_parallel() >= 2, 'The calls went out one at a time: fire them all together with asyncio.gather'"
         }
       ],
       "dicas": [
@@ -1564,6 +1588,10 @@
         {
           "nome": "one GET per id",
           "codigo": "_run(prices_async([3, 2, 1]))\nassert len(_mocks.http_history) == 3, 'There must be exactly 3 GETs, one per id — you made ' + str(len(_mocks.http_history))\npaths = sorted(c['path'] for c in _mocks.http_history)\nassert paths == ['/products/1', '/products/2', '/products/3'], 'Each id becomes a GET /products/<id> — paths: ' + str(paths)"
+        },
+        {
+          "nome": "the requests go out together",
+          "codigo": "_run(prices_async([1, 2, 3]))\nassert _mocks.peak_parallel() >= 2, 'The calls went out one at a time: fire them all together with asyncio.gather'"
         }
       ],
       "dicas": [
@@ -1614,6 +1642,10 @@
         {
           "nome": "each prompt goes in the right body",
           "codigo": "_run(echo_batch(['classify the log', 'extract entities']))\nbodies = [c['json'] for c in _mocks.http_history]\nassert {'prompt': 'classify the log'} in bodies and {'prompt': 'extract entities'} in bodies, 'Each prompt must go in the body as {\"prompt\": <text>} — bodies: ' + str(bodies)"
+        },
+        {
+          "nome": "the POSTs go out together",
+          "codigo": "_run(echo_batch(['a', 'b', 'c']))\nassert _mocks.peak_parallel() >= 2, 'The calls went out one at a time: fire them all together with asyncio.gather'"
         }
       ],
       "dicas": [
@@ -1717,6 +1749,10 @@
         {
           "nome": "only failures doesn't blow up the function",
           "codigo": "_check(_run(probe_routes(['/timeout'])), {'bodies': [], 'failures': 1})"
+        },
+        {
+          "nome": "the routes are queried together",
+          "codigo": "_run(probe_routes(['/status', '/products/1', '/timeout']))\nassert _mocks.peak_parallel() >= 2, 'The calls went out one at a time: fire them all together with asyncio.gather'"
         }
       ],
       "dicas": [
@@ -1898,7 +1934,7 @@
       ],
       "titulo": "Arithmetic without a for",
       "explicacao_md": null,
-      "enunciado_md": "Arrays do math all at once: `v * 2` multiplies every element; `v + w` adds position by position. That's how AI libraries process millions of numbers without a single `for`.\n\nWrite two functions that take **lists** and return arrays:\n\n- `double(v)` → each element multiplied by 2\n- `add(v, w)` → element-wise sum (same length guaranteed)\n\nExample: `double([1, 2, 3])` → `array([2., 4., 6.])`; `add([1, 2], [10, 20])` → `array([11., 22.])`",
+      "enunciado_md": "Arrays do math all at once: `v * 2` multiplies every element; `v + w` adds position by position. That's how AI libraries process millions of numbers without a single `for`.\n\nWrite two functions that take **lists** and return **float** arrays, even when the list holds integers:\n\n- `double(v)` → each element multiplied by 2\n- `add(v, w)` → element-wise sum (same length guaranteed)\n\nExample: `double([1, 2, 3])` → `array([2., 4., 6.])`; `add([1, 2], [10, 20])` → `array([11., 22.])`",
       "starter_code": "import numpy as np\n\ndef double(v):\n    # Convert to an array and operate on the WHOLE array at once — that's the beauty of\n    # numpy: no for at all.\n    ...\n\ndef add(v, w):\n    # Two arrays add up position by position with a simple +.\n    ...\n",
       "solucao_referencia": "import numpy as np\n\ndef double(v):\n    return np.array(v, dtype=float) * 2\n\ndef add(v, w):\n    return np.array(v, dtype=float) + np.array(w, dtype=float)\n",
       "testes_visiveis": [
@@ -1923,6 +1959,10 @@
         {
           "nome": "the return value is an array, not a list",
           "codigo": "assert isinstance(double([1.0]), np.ndarray) and isinstance(add([1.0], [2.0]), np.ndarray), 'Both functions must return an np.array'"
+        },
+        {
+          "nome": "a list of integers becomes a float array",
+          "codigo": "for r in (double([1, 2, 3]), add([1, 2], [10, 20])):\n    assert r.dtype.kind == 'f', 'The example shows array([2., 4., 6.]): the array holds floats, got ' + str(r.dtype)"
         }
       ],
       "dicas": [
@@ -2504,6 +2544,10 @@
         {
           "nome": "no nan escapes",
           "codigo": "import math\nassert all(not math.isnan(float(s)) for s in batch_similarities([[0, 0], [0, 0]], [0, 0])), 'No score may be nan — handle the division by zero'"
+        },
+        {
+          "nome": "a query whose norm isn't 1",
+          "codigo": "_check(batch_similarities([[1, 0], [1, 1], [3, 4]], [2, 0]), [1.0, 0.7071067811865475, 0.6])"
         }
       ],
       "dicas": [
@@ -2572,6 +2616,10 @@
         {
           "nome": "k = 1 returns the best",
           "codigo": "_check(top_k([0.1, 0.9, 0.5], 1), [1])"
+        },
+        {
+          "nome": "many ties keep index order",
+          "codigo": "s = [0.5, 0.9, 0.1, 0.9, 0.5] * 12\n_check(top_k(s, 40), sorted(range(60), key=lambda i: -s[i])[:40])"
         }
       ],
       "dicas": [
@@ -3077,6 +3125,10 @@
         {
           "nome": "json-safe types (Python int and float)",
           "codigo": "r = audit_costs(pd.DataFrame({'cost': [1.0, float('nan')]}))\nassert type(r['calls']) is int and type(r['missing_cost']) is int, 'calls and missing_cost must be Python ints — np.int64 breaks json.dumps'\nassert type(r['average_cost']) is float, 'average_cost must be a Python float — convert with float(...)'"
+        },
+        {
+          "nome": "the mean is pulled up by the high value, the median isn't",
+          "codigo": "df = pd.DataFrame({'cost': [1.0, 2.0, 9.0, float('nan')]}); _check(audit_costs(df), {'calls': 4, 'missing_cost': 1, 'average_cost': 4.0})"
         }
       ],
       "dicas": [
@@ -3130,6 +3182,10 @@
         {
           "nome": "returns a real list",
           "codigo": "logs = pd.DataFrame([{'model': 'm', 'tokens': 1000}]); prices = pd.DataFrame([{'model': 'm', 'price_per_1k': 1.0}])\nassert isinstance(costs_without_loss(logs, prices), list), 'Return a list: finish with .tolist()'"
+        },
+        {
+          "nome": "token counts that aren't a multiple of 1000",
+          "codigo": "logs = pd.DataFrame([{'model': 'a', 'tokens': 1500}, {'model': 'a', 'tokens': 250}]); prices = pd.DataFrame([{'model': 'a', 'price_per_1k': 0.5}]); _check(costs_without_loss(logs, prices), [0.75, 0.125])"
         }
       ],
       "dicas": [

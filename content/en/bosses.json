@@ -99,6 +99,10 @@
         {
           "nome": "stopwords really are removed",
           "codigo": "r = top3(['model the model a network', 'network network'], ['the', 'a'])\nassert 'the' not in r and 'a' not in r, 'stopwords must not appear in the result'\n_check(r, ['network', 'model'])"
+        },
+        {
+          "nome": "double spaces, tabs and newlines all separate words",
+          "codigo": "_check(top3(['rag  rag\\tsearch', 'context\\nrag  search'], []), ['rag', 'search', 'context'])"
         }
       ],
       "dicas": [
@@ -196,6 +200,10 @@
         {
           "nome": "punctuation doesn't inflate the count",
           "codigo": "r = stats(['a, b, c!'], '.,!?;:')\n_check(r['avg_words'], 3.0)\n_check(r['suspicious'], 0)"
+        },
+        {
+          "nome": "double spaces, tabs and newlines all separate words",
+          "codigo": "_check(stats(['a\\tb\\nc  d'], '.,!?;:'), {'total': 1, 'avg_words': 4.0, 'suspicious': 0})"
         }
       ],
       "dicas": [
@@ -347,6 +355,10 @@
         {
           "nome": "a marks-only prompt is suspicious",
           "codigo": "r = stats([';;;', 'one two three'], '.,!?;:')\n_check(r['suspicious'], 1)\n_check(r['total'], 2)"
+        },
+        {
+          "nome": "double spaces, tabs and newlines all separate words",
+          "codigo": "_check(stats(['a\\tb\\nc  d'], '.,!?;:'), {'total': 1, 'avg_words': 4.0, 'suspicious': 0})"
         }
       ],
       "dicas": [
@@ -405,6 +417,10 @@
         {
           "nome": "more than 3 distinct words",
           "codigo": "_check(top3(['delta delta delta beta beta alpha gamma zeta'], [], '.,!?;:'), ['delta', 'beta', 'alpha'])"
+        },
+        {
+          "nome": "a stopword in the middle doesn't drop the rest of the prompt",
+          "codigo": "_check(top3(['the rag rag rag', 'search'], ['the'], '.,!?;:'), ['rag', 'search'])"
         }
       ],
       "dicas": [
@@ -557,6 +573,10 @@
         {
           "nome": "a missing field names the field",
           "codigo": "try:\n    parse_and_validate('{\"name\": \"x\", \"tags\": []}')\n    assert False, 'a missing value should raise MissingField'\nexcept MissingField as e:\n    assert 'value' in str(e), 'the exception must name the missing field, got: ' + str(e)"
+        },
+        {
+          "nome": "only malformed JSON becomes InvalidJson",
+          "codigo": "try:\n    parse_and_validate(123)\nexcept InvalidJson:\n    assert False, 'InvalidJson is for malformed JSON: catch json.JSONDecodeError and let the rest propagate'\nexcept Exception:\n    pass"
         }
       ],
       "dicas": [
@@ -704,6 +724,10 @@
         {
           "nome": "broken JSON is InvalidJson, not MissingField",
           "codigo": "try:\n    parse_and_validate('this is not json')\n    assert False, 'invalid text should raise InvalidJson'\nexcept InvalidJson:\n    pass"
+        },
+        {
+          "nome": "only malformed JSON becomes InvalidJson",
+          "codigo": "try:\n    parse_and_validate(123)\nexcept InvalidJson:\n    assert False, 'InvalidJson is for malformed JSON: catch json.JSONDecodeError and let the rest propagate'\nexcept Exception:\n    pass"
         }
       ],
       "dicas": [
@@ -860,6 +884,10 @@
         {
           "nome": "a missing value is MissingField",
           "codigo": "try:\n    parse_and_validate('{\"name\": \"a\"}')\n    assert False, 'a missing value should raise MissingField'\nexcept MissingField as e:\n    assert 'value' in str(e), 'it must name value, got: ' + str(e)"
+        },
+        {
+          "nome": "only malformed JSON becomes InvalidJson",
+          "codigo": "try:\n    parse_and_validate(123)\nexcept InvalidJson:\n    assert False, 'InvalidJson is for malformed JSON: catch json.JSONDecodeError and let the rest propagate'\nexcept Exception:\n    pass"
         }
       ],
       "dicas": [
@@ -1058,6 +1086,10 @@
         {
           "nome": "returns a real dict",
           "codigo": "r = avg_cost_by_family([{'family': 'z', 'cost_per_1k': 5.0}])\nassert isinstance(r, dict), 'Call .to_dict() at the end — got ' + type(r).__name__"
+        },
+        {
+          "nome": "mean of three skewed values",
+          "codigo": "models = [{'family': 'x', 'cost_per_1k': 1.0}, {'family': 'x', 'cost_per_1k': 2.0}, {'family': 'x', 'cost_per_1k': 9.0}, {'family': 'y', 'cost_per_1k': 3.0}]\n_check(avg_cost_by_family(models), {'x': 4.0, 'y': 3.0})"
         }
       ],
       "dicas": [
@@ -1108,6 +1140,10 @@
         {
           "nome": "the page for cursor c3",
           "codigo": "_check([m['name'] for m in _run(fetch_models_async(['c3']))], ['mock-embed'])"
+        },
+        {
+          "nome": "the pages go out together",
+          "codigo": "_run(fetch_models_async([None, 'c2', 'c3']))\nassert _mocks.peak_parallel() >= 2, 'The calls went out one at a time: fire them all together with asyncio.gather'"
         }
       ],
       "dicas": [
@@ -1208,6 +1244,10 @@
         {
           "nome": "returns a dict",
           "codigo": "r = avg_cost_by_vendor([{'family': 'a', 'cost_per_1k': 1.0}], [{'family': 'a', 'vendor': 'Y'}])\nassert isinstance(r, dict), 'Call .to_dict()'"
+        },
+        {
+          "nome": "mean of three skewed values",
+          "codigo": "models = [{'family': 'a', 'cost_per_1k': 1.0}, {'family': 'a', 'cost_per_1k': 2.0}, {'family': 'b', 'cost_per_1k': 9.0}]\nfamilies = [{'family': 'a', 'vendor': 'X'}, {'family': 'b', 'vendor': 'X'}]\n_check(avg_cost_by_vendor(models, families), {'X': 4.0})"
         }
       ],
       "dicas": [
@@ -1263,6 +1303,18 @@
         {
           "nome": "an id that reappears on another page counts once",
           "codigo": "_mocks.script_failures('/models', [200, 'repeat', 200])\nids = [m['id'] for m in fetch_models_robust(10)]\n_check(ids, ['m1', 'm2', 'm3', 'm4', 'm5'])"
+        },
+        {
+          "nome": "a limit equal to the number of pages still finishes",
+          "codigo": "_check([m['name'] for m in fetch_models_robust(10, 3)], ['mock-4-mini', 'mock-4', 'mock-claude-haiku', 'mock-claude', 'mock-embed'])"
+        },
+        {
+          "nome": "a limit below the catalog size raises RuntimeError",
+          "codigo": "for limit in (1, 2):\n    _mocks.http_history.clear()\n    try:\n        fetch_models_robust(10, limit)\n        assert False, 'The catalog has 3 pages: limit ' + str(limit) + ' should raise RuntimeError'\n    except RuntimeError:\n        pass\n    _check(len(_mocks.http_history), limit)"
+        },
+        {
+          "nome": "the default limit is 10 pages",
+          "codigo": "_mocks.script_failures('/models', ['advance'] * 30)\ntry:\n    fetch_models_robust(100)\n    assert False, 'Endless pagination should raise RuntimeError'\nexcept RuntimeError:\n    pass\n_check(len(_mocks.http_history), 10)"
         }
       ],
       "dicas": [
@@ -1369,6 +1421,10 @@
         {
           "nome": "not a single model vanishes in the merge",
           "codigo": "models = [{'family': 'a', 'cost_per_1k': 1.0}, {'family': 'b', 'cost_per_1k': 2.0}, {'family': 'c', 'cost_per_1k': 3.0}]\nfamilies = [{'family': 'a', 'vendor': 'X'}]\nr = avg_cost_by_vendor(models, families)\nassert sum(1 for _ in r) >= 1 and 'unknown' in r, 'Models without a vendor go into unknown — got ' + str(r)"
+        },
+        {
+          "nome": "mean of three skewed values, known and unknown",
+          "codigo": "models = [{'family': 'a', 'cost_per_1k': 1.0}, {'family': 'a', 'cost_per_1k': 2.0}, {'family': 'a', 'cost_per_1k': 9.0}, {'family': 'n', 'cost_per_1k': 1.0}, {'family': 'n', 'cost_per_1k': 2.0}, {'family': 'n', 'cost_per_1k': 12.0}]\nfamilies = [{'family': 'a', 'vendor': 'X'}]\n_check(avg_cost_by_vendor(models, families), {'X': 4.0, 'unknown': 5.0})"
         }
       ],
       "dicas": [
@@ -1419,6 +1475,10 @@
         {
           "nome": "the index doesn't reset between documents",
           "codigo": "docs = [{'name': 'p', 'text': 'a b'}, {'name': 'q', 'text': 'c d'}, {'name': 'r', 'text': 'e f'}]\n_check([c['index'] for c in chunk_documents(docs, 2, 0)], [0, 1, 2])"
+        },
+        {
+          "nome": "double spaces, tabs and newlines all separate words",
+          "codigo": "_check(chunk_documents([{'name': 'x', 'text': 'a  b\\tc\\nd'}], 2, 0), [{'text': 'a b', 'doc': 'x', 'index': 0}, {'text': 'c d', 'doc': 'x', 'index': 1}])"
         }
       ],
       "dicas": [
@@ -1467,6 +1527,10 @@
         {
           "nome": "order preserved row by row",
           "codigo": "chunks = [{'text': 'alpha', 'doc': 'a', 'index': 0}, {'text': 'beta', 'doc': 'a', 'index': 1}]\nmatrix, _ = build_index(chunks)\n_check(matrix[1].tolist(), _mocks.embed_text('beta'))"
+        },
+        {
+          "nome": "returns a tuple",
+          "codigo": "r = build_index([{'text': 'hi', 'doc': 'a', 'index': 0}])\nassert isinstance(r, tuple), 'The task asks for the tuple (matrix, metadata) — got ' + type(r).__name__"
         }
       ],
       "dicas": [
@@ -1523,6 +1587,10 @@
         {
           "nome": "the score is the exact cosine",
           "codigo": "metadata = [{'text': 'python programming language', 'doc': 'a', 'index': 0}, {'text': 'rag search context', 'doc': 'b', 'index': 1}, {'text': 'cat sofa window', 'doc': 'c', 'index': 2}]\nmatrix = np.array([_mocks.embed_text(x['text']) for x in metadata])\nq = 'python programming language'\nres = search(matrix, metadata, q, 2)\n_check(res[1]['score'], float(np.dot(_mocks.embed_text(res[1]['text']), _mocks.embed_text(q))))"
+        },
+        {
+          "nome": "many ties: the lowest index comes first",
+          "codigo": "texts = ['rag search', 'cat sofa', 'python language', 'cat sofa', 'rag search'] * 12\nmetadata = [{'text': t, 'doc': i, 'index': i} for i, t in enumerate(texts)]\nmatrix = np.array([_mocks.embed_text(t) for t in texts])\nq = _mocks.embed_text('rag search')\nscores = [float(np.dot(_mocks.embed_text(t), q)) for t in texts]\n_check([r['doc'] for r in search(matrix, metadata, 'rag search', 40)], sorted(range(60), key=lambda i: -round(scores[i], 9))[:40])"
         }
       ],
       "dicas": [
@@ -1576,6 +1644,10 @@
         {
           "nome": "consumed only once",
           "codigo": "g = chunks_lazy([{'name': 'a', 'text': 'p q'}], 2, 0)\n_check(list(g), [{'text': 'p q', 'doc': 'a', 'index': 0}])\n_check(list(g), [])"
+        },
+        {
+          "nome": "double spaces, tabs and newlines all separate words",
+          "codigo": "_check(list(chunks_lazy([{'name': 'x', 'text': 'a  b\\tc\\nd'}], 2, 0)), [{'text': 'a b', 'doc': 'x', 'index': 0}, {'text': 'c d', 'doc': 'x', 'index': 1}])"
         }
       ],
       "dicas": [
@@ -1625,6 +1697,10 @@
         {
           "nome": "the matrix is an np.array",
           "codigo": "matrix, _ = build_index([{'text': 'hi', 'doc': 'a', 'index': 0}])\nassert isinstance(matrix, np.ndarray), 'The matrix must be an np.array'"
+        },
+        {
+          "nome": "returns a tuple",
+          "codigo": "r = build_index([{'text': 'hi', 'doc': 'a', 'index': 0}])\nassert isinstance(r, tuple), 'The task asks for the tuple (matrix, metadata) — got ' + type(r).__name__"
         }
       ],
       "dicas": [
@@ -1790,6 +1866,14 @@
         {
           "nome": "the survivors' metadata comes back whole",
           "codigo": "chunks = [{'text': 'cat sofa', 'doc': 'a', 'index': 7}, {'text': 'cat sofa', 'doc': 'b', 'index': 8}, {'text': 'rag search', 'doc': 'c', 'index': 9}]\n_, metadata = build_index_dedupe(chunks)\n_check(metadata, [{'text': 'cat sofa', 'doc': 'a', 'index': 7}, {'text': 'rag search', 'doc': 'c', 'index': 9}])"
+        },
+        {
+          "nome": "each matrix row is the embedding of its metadata",
+          "codigo": "chunks = [{'text': 'python language', 'doc': 'a', 'index': 0}, {'text': 'cat sofa', 'doc': 'b', 'index': 1}, {'text': 'cat sofa', 'doc': 'c', 'index': 2}, {'text': 'rag search context', 'doc': 'd', 'index': 3}]\nmatrix, metadata = build_index_dedupe(chunks)\n_check([m['doc'] for m in metadata], ['a', 'b', 'd'])\nfor i, m in enumerate(metadata):\n    _check(matrix[i].tolist(), _mocks.embed_text(m['text']))"
+        },
+        {
+          "nome": "a cosine equal to the limit is not a duplicate",
+          "codigo": "_mocks.script_llm_errors(['zero_vector', 'zero_vector'])\nchunks = [{'text': 'a', 'doc': 'a', 'index': 0}, {'text': 'b', 'doc': 'b', 'index': 1}]\n_, metadata = build_index_dedupe(chunks, 0.0)\nassert [m['doc'] for m in metadata] == ['a', 'b'], 'Only a cosine GREATER than the limit is a duplicate: with cosine 0.0 and limit 0.0 both stay'"
         }
       ],
       "dicas": [
@@ -1917,6 +2001,14 @@
         {
           "nome": "a chunk that ends on the last word stops the loop",
           "codigo": "_, metadata = load_index(['doc1.json'], 3, 1)\n_check([m['text'] for m in metadata], ['python is a', 'a versatile programming', 'programming language'])"
+        },
+        {
+          "nome": "returns a tuple",
+          "codigo": "r = load_index(['doc2.json'], 20, 5)\nassert isinstance(r, tuple), 'The task asks for the tuple (matrix, metadata) — got ' + type(r).__name__"
+        },
+        {
+          "nome": "double spaces, tabs and newlines all separate words",
+          "codigo": "import json\nwith open('messy_doc.json', 'w', encoding='utf-8') as f:\n    json.dump({'title': 'Messy', 'text': 'one  two\\tthree\\nfour'}, f)\n_, metadata = load_index(['messy_doc.json'], 2, 0)\n_check([m['text'] for m in metadata], ['one two', 'three four'])"
         }
       ],
       "dicas": [
@@ -2088,6 +2180,10 @@
         {
           "nome": "a chunk that ends on the last word stops the loop",
           "codigo": "_, metadata = load_index(['doc1.json'], 3, 1)\n_check([m['text'] for m in metadata], ['python is a', 'a very versatile', 'versatile programming language'])"
+        },
+        {
+          "nome": "double spaces, tabs and newlines all separate words",
+          "codigo": "import json\nwith open('messy_doc.json', 'w', encoding='utf-8') as f:\n    json.dump({'title': 'Messy', 'text': 'one  two\\tthree\\nfour'}, f)\n_, metadata = load_index(['messy_doc.json'], 2, 0)\n_check([m['text'] for m in metadata], ['one two', 'three four'])"
         }
       ],
       "dicas": [
@@ -2201,6 +2297,10 @@
         {
           "nome": "empty sources stay empty",
           "codigo": "_check(parse_answer('```json\\n{\"answer\": \"I don\\'t know\", \"sources\": []}\\n```', 2), {'answer': \"I don't know\", 'sources': []})"
+        },
+        {
+          "nome": "text before the fence",
+          "codigo": "_check(parse_answer('Here is the answer:\\n```json\\n{\"answer\": \"ok\", \"sources\": [1]}\\n```', 2), {'answer': 'ok', 'sources': [1]})"
         }
       ],
       "dicas": [
@@ -2259,6 +2359,14 @@
         {
           "nome": "a chunk that ends on the last word stops the loop",
           "codigo": "_, metadata = _run(load_index_async(['doc1.json'], 3, 1))\n_check([m['text'] for m in metadata], ['python is a', 'a versatile programming', 'programming language'])"
+        },
+        {
+          "nome": "the embeddings go out together",
+          "codigo": "import asyncio\ng = load_index_async.__globals__\noriginal = g['aembed']\nactive = [0]\npeak = [0]\nasync def probe(text):\n    active[0] += 1\n    peak[0] = max(peak[0], active[0])\n    try:\n        await asyncio.sleep(0)\n        return await original(text)\n    finally:\n        active[0] -= 1\ng['aembed'] = probe\ntry:\n    _run(load_index_async(['doc1.json'], 3, 1))\nfinally:\n    g['aembed'] = original\nassert peak[0] >= 2, 'The embeddings went out one at a time: fire them all together with asyncio.gather'"
+        },
+        {
+          "nome": "double spaces, tabs and newlines all separate words",
+          "codigo": "import json\nwith open('messy_doc.json', 'w', encoding='utf-8') as f:\n    json.dump({'title': 'Messy', 'text': 'one  two\\tthree\\nfour'}, f)\n_, metadata = _run(load_index_async(['messy_doc.json'], 2, 0))\n_check([m['text'] for m in metadata], ['one two', 'three four'])"
         }
       ],
       "dicas": [
@@ -2320,6 +2428,18 @@
         {
           "nome": "only the best k, in ranking order",
           "codigo": "metadata = [{'text': 'cat sofa window', 'doc': 'A'}, {'text': 'python language', 'doc': 'B'}, {'text': 'rag search context', 'doc': 'C'}, {'text': 'python programming language', 'doc': 'D'}]\nmatrix = np.array([_mocks.embed_text(x['text']) for x in metadata])\ncli = OpenAI()\nanswer_resilient(matrix, metadata, 'python programming language', 2, cli, 3)\n_check(cli.calls[-1]['messages'][-1]['content'].strip(), '[1] python programming language\\n[2] python language\\nQuestion: python programming language')"
+        },
+        {
+          "nome": "a 400 error doesn't get another attempt",
+          "codigo": "from openai import BadRequestError\nmetadata = [{'text': 'python language', 'doc': 'A'}]\nmatrix = np.array([_mocks.embed_text('python language')])\n_mocks.script_llm_errors([None, 'bad_request', None])\ncli = OpenAI()\ntry:\n    answer_resilient(matrix, metadata, 'python language', 1, cli, 3)\n    assert False, 'Only RateLimitError gets another attempt: the 400 error must propagate'\nexcept BadRequestError:\n    pass\n_check(len(cli.calls), 1)"
+        },
+        {
+          "nome": "the model's text comes back unchanged",
+          "codigo": "import re, json\nmetadata = [{'text': 'the capital of brazil sits on a plateau', 'doc': 'A'}]\nmatrix = np.array([_mocks.embed_text(metadata[0]['text'])])\ntext = answer_resilient(matrix, metadata, 'what is the capital of brazil', 1, OpenAI(), 3)\ndata = json.loads(re.search(r'```json\\s*(\\{.*\\})\\s*```', text, re.DOTALL).group(1))\n_check(data['answer'], 'Brasília')"
+        },
+        {
+          "nome": "the budget is max_attempts calls",
+          "codigo": "metadata = [{'text': 'python language', 'doc': 'A'}]\nmatrix = np.array([_mocks.embed_text('python language')])\n_mocks.script_llm_errors([None, 'rate_limit', 'rate_limit', None])\ncli = OpenAI()\nassert isinstance(answer_resilient(matrix, metadata, 'python language', 1, cli, 3), str), 'The 3rd attempt works: the text should come back'\n_check(len(cli.calls), 3)\n_mocks.script_llm_errors([None] + ['rate_limit'] * 5)\ncli = OpenAI()\ntry:\n    answer_resilient(matrix, metadata, 'python language', 1, cli, 3)\n    assert False, 'With rate_limit on every attempt, the error should propagate'\nexcept Exception as e:\n    assert type(e).__name__ == 'RateLimitError', 'It should propagate RateLimitError — got ' + type(e).__name__\n_check(len(cli.calls), 3)"
         }
       ],
       "dicas": [
@@ -2392,6 +2512,10 @@
         {
           "nome": "an answer that isn't text becomes an empty string",
           "codigo": "_check(parse_answer('{\"answer\": 5, \"sources\": [1]}', 3), {'answer': '', 'sources': [1]})"
+        },
+        {
+          "nome": "text before the fence",
+          "codigo": "_check(parse_answer('Here is the answer:\\n```\\n{\"answer\": \"ok\", \"sources\": [1]}\\n```', 2), {'answer': 'ok', 'sources': [1]})"
         }
       ],
       "dicas": [

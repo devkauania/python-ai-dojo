@@ -421,6 +421,10 @@
         {
           "nome": "text with no period at all",
           "codigo": "_check(split_sentences('no period here at all', 10), ['no period here at all'])"
+        },
+        {
+          "nome": "after closing a chunk, the next one keeps accumulating",
+          "codigo": "_check(split_sentences('a b c d. e f. g. h', 5), ['a b c d', 'e f. g. h'])"
         }
       ],
       "dicas": [
@@ -539,6 +543,10 @@
         {
           "nome": "two pieces: the remainder joins the first",
           "codigo": "_check(chunk_no_crumbs('a b c d e f', 5), ['a b c d e f'])"
+        },
+        {
+          "nome": "double spaces, tabs and newlines all separate words",
+          "codigo": "_check(chunk_no_crumbs('a  b\\tc\\nd', 2), ['a b', 'c d'])"
         }
       ],
       "dicas": [
@@ -598,6 +606,10 @@
         {
           "nome": "after the giant, the count starts over from zero",
           "codigo": "_check(pack_sentences('p q r. a b c d e. f g. h i. j', 4), ['p q r', 'a b c d', 'e', 'f g. h i', 'j'])"
+        },
+        {
+          "nome": "after closing a chunk, the next one keeps accumulating",
+          "codigo": "_check(pack_sentences('a b c d. e f. g. h', 5), ['a b c d', 'e f. g. h'])"
         }
       ],
       "dicas": [
@@ -1004,6 +1016,10 @@
         {
           "nome": "the list of texts keeps its order",
           "codigo": "_check(build_index(['z', 'a', 'm'])[1], ['z', 'a', 'm'])"
+        },
+        {
+          "nome": "returns a tuple",
+          "codigo": "r = build_index(['hi'])\nassert isinstance(r, tuple), 'The task asks for the tuple (matrix, texts) — got ' + type(r).__name__"
         }
       ],
       "dicas": [
@@ -1285,6 +1301,10 @@
         {
           "nome": "k limits how many indices come out",
           "codigo": "corpus = ['network error', 'another topic', 'network error', 'serious failure']\nassert len(stable_search('error', corpus, 2)) == 2, 'k limits how many indices come out'"
+        },
+        {
+          "nome": "many ties keep corpus order",
+          "codigo": "corpus = ['network error', 'serious failure', 'another topic', 'serious failure', 'network error'] * 12\nq = _mocks.embed_text('error')\nscores = [float(np.dot(_mocks.embed_text(t), q)) for t in corpus]\n_check(stable_search('error', corpus, 40), sorted(range(60), key=lambda i: -scores[i])[:40])"
         }
       ],
       "dicas": [
@@ -1702,6 +1722,10 @@
         {
           "nome": "uses the requested model",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nchat(c, [], 'hi')\n_check(c.calls[-1]['model'], 'mock-4')"
+        },
+        {
+          "nome": "returns a tuple",
+          "codigo": "from openai import OpenAI\nr = chat(OpenAI(), [], 'hi')\nassert isinstance(r, tuple), 'The task asks for the tuple (answer, new_history) — got ' + type(r).__name__"
         }
       ],
       "dicas": [
@@ -1959,6 +1983,10 @@
         {
           "nome": "uses the requested model",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nask_with_retry(c, 'hi', 2)\n_check(c.calls[-1]['model'], 'mock-4')"
+        },
+        {
+          "nome": "a 400 error doesn't get another attempt",
+          "codigo": "from openai import OpenAI, BadRequestError\n_mocks.script_llm_errors(['bad_request', None])\nc = OpenAI()\ntry:\n    ask_with_retry(c, 'hi', 3)\n    assert False, 'Only RateLimitError gets another attempt: the 400 error must propagate'\nexcept BadRequestError:\n    pass\n_check(len(c.calls), 1)"
         }
       ],
       "dicas": [
@@ -2065,6 +2093,10 @@
         {
           "nome": "uses the requested model",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nsend_validated(c, [{'role': 'user', 'content': 'hi'}])\n_check(c.calls[-1]['model'], 'mock-4')"
+        },
+        {
+          "nome": "a history with assistant is valid",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nmsgs = [{'role': 'user', 'content': 'hi'}, {'role': 'assistant', 'content': 'Hello!'}, {'role': 'user', 'content': 'what is 2+2?'}]\n_check(send_validated(c, msgs), '4')\n_check(len(c.calls), 1)"
         }
       ],
       "dicas": [
@@ -2543,6 +2575,10 @@
         {
           "nome": "no failure: no retry (2 calls)",
           "codigo": "from openai import OpenAI\nc = OpenAI()\n_check(resilient_add(c, 6, 6), \"The result is 12.\")\nassert len(c.calls) == 2, \"With no failure, the loop has only 2 calls; only ask again in the except\""
+        },
+        {
+          "nome": "only ValueError gets a new request",
+          "codigo": "from types import SimpleNamespace as NS\nclass Client:\n    def __init__(self):\n        self.requests = 0\n        self.chat = NS(completions=NS(create=self.create))\n    def with_options(self, **_):\n        return self\n    def create(self, **kwargs):\n        self.requests += 1\n        call = NS(id='c1', type='function', function=NS(name='add', arguments=None))\n        return NS(choices=[NS(message=NS(role='assistant', content=None, tool_calls=[call]), finish_reason='tool_calls')])\nc = Client()\ntry:\n    resilient_add(c, 1, 2)\nexcept Exception:\n    pass\nassert c.requests == 1, 'arguments=None raises TypeError, not ValueError: ask again only when parsing fails with ValueError'"
         }
       ],
       "dicas": [
@@ -2643,6 +2679,10 @@
         {
           "nome": "the right name on the missing field",
           "codigo": "try:\n    field_or_error('{\"name\": \"Ana\"}', \"age\")\n    assert False, \"It should have raised MissingField for age\"\nexcept MissingField as e:\n    assert e.field == \"age\", \"The missing field's name must be 'age'\""
+        },
+        {
+          "nome": "text before the fence",
+          "codigo": "_check(field_or_error('Sure! Here it is:\\n```json\\n{\"a\": 1}\\n```\\nSee you', 'a'), 1)"
         }
       ],
       "dicas": [

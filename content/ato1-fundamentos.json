@@ -1322,6 +1322,10 @@
         {
           "nome": "sem ponto, último caractere conta",
           "codigo": "_verificar(primeira_frase('Sem ponto'), 'Sem ponto')"
+        },
+        {
+          "nome": "tab e quebra de linha nas pontas também saem",
+          "codigo": "_verificar(primeira_frase('\\tOi\\n. resto'), 'Oi')\n_verificar(primeira_frase('\\tSem ponto\\n'), 'Sem ponto')"
         }
       ],
       "dicas": [

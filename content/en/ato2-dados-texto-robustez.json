@@ -280,6 +280,10 @@
         {
           "nome": "mixed case with accents",
           "codigo": "_check(clean_prompts(['WrItE A CAFÉ MeNU']), ['write a café menu'])"
+        },
+        {
+          "nome": "tabs and newlines at the ends come off too",
+          "codigo": "_check(clean_prompts(['\\tHi \\n']), ['hi'])"
         }
       ],
       "dicas": [
@@ -439,6 +443,14 @@
         {
           "nome": "returns a real boolean",
           "codigo": "assert valid_batch([]) is True, 'Return a real True/False (all already gives you that)' "
+        },
+        {
+          "nome": "each allowed role passes on its own",
+          "codigo": "for role in ('system', 'user', 'assistant'):\n    _check(valid_batch([{'role': role, 'content': 'x'}]), True)"
+        },
+        {
+          "nome": "content with only tabs and newlines fails",
+          "codigo": "_check(valid_batch([{'role': 'user', 'content': '\\t\\n'}]), False)"
         }
       ],
       "dicas": [
@@ -658,6 +670,10 @@
         {
           "nome": "a float in text isn't an int",
           "codigo": "_check(to_int('3.14', 99), 99)"
+        },
+        {
+          "nome": "only ValueError becomes the default",
+          "codigo": "try:\n    r = to_int(None, 0)\nexcept Exception:\n    r = 'propagated'\nassert r == 'propagated', \"int(None) raises TypeError, which isn't the error asked for: catch only ValueError\""
         }
       ],
       "dicas": [
@@ -705,6 +721,10 @@
         {
           "nome": "wrong key in a full dict",
           "codigo": "_check(response_field({'a': 1, 'b': 2}, 'c'), '<missing>')"
+        },
+        {
+          "nome": "only KeyError becomes <missing>",
+          "codigo": "try:\n    r = response_field(None, 'text')\nexcept Exception:\n    r = 'propagated'\nassert r == 'propagated', \"If the response isn't even a dict, the error is a different one: catch only KeyError\""
         }
       ],
       "dicas": [
@@ -846,6 +866,10 @@
         {
           "nome": "zero total with traffic",
           "codigo": "_check(average_cost(0, 5), 0.0)"
+        },
+        {
+          "nome": "only ZeroDivisionError becomes 0.0",
+          "codigo": "try:\n    r = average_cost('x', 2)\nexcept Exception:\n    r = 'propagated'\nassert r == 'propagated', \"A total that isn't a number is a different error: catch only ZeroDivisionError\""
         }
       ],
       "dicas": [
@@ -898,6 +922,10 @@
         {
           "nome": "exactly 200 still passes",
           "codigo": "_check(validate_prompt('a' * 200), 'a' * 200)"
+        },
+        {
+          "nome": "tabs and newlines at the ends come off too",
+          "codigo": "_check(validate_prompt('\\tSummarize\\n'), 'Summarize')\ntry:\n    validate_prompt('\\t\\n')\n    assert False, 'A prompt of only tabs and newlines should raise InvalidInput'\nexcept InvalidInput as e:\n    _check(str(e), 'empty prompt')"
         }
       ],
       "dicas": [
@@ -946,6 +974,10 @@
         {
           "nome": "order preserved in both lists",
           "codigo": "_check(convert_batch(['b', '3', 'a', '4']), ([3.0, 4.0], ['b', 'a']))"
+        },
+        {
+          "nome": "only ValueError counts as a failure",
+          "codigo": "try:\n    r = convert_batch(['1', None])\nexcept Exception:\n    r = 'propagated'\nassert r == 'propagated', \"float(None) raises TypeError, which isn't the error asked for: catch only ValueError\""
         }
       ],
       "dicas": [
@@ -1755,6 +1787,10 @@
         {
           "nome": "the returned defaults are a copy, not the shared object",
           "codigo": "_c = load_config('missing.json')\n_c['temperature'] = 99\n_check(load_config('missing.json'), {'model': 'mock-mini', 'temperature': 0.7, 'max_tokens': 256})"
+        },
+        {
+          "nome": "only a missing file becomes the defaults",
+          "codigo": "try:\n    r = load_config('.')\nexcept Exception:\n    r = 'propagated'\nassert r == 'propagated', \"A directory exists but won't open: only a missing file becomes the defaults, catch FileNotFoundError\""
         }
       ],
       "dicas": [
@@ -2103,6 +2139,10 @@
         {
           "nome": "returns just the name, without the rest of the line",
           "codigo": "_check(find_model('x mock-7 y'), 'mock-7')"
+        },
+        {
+          "nome": "mock- with no name after it isn't a model",
+          "codigo": "_check(find_model('error mock- then mock-4'), 'mock-4')"
         }
       ],
       "dicas": [
@@ -2159,6 +2199,10 @@
         {
           "nome": "another /10 earlier doesn't steal the score (it needs the Score: anchor)",
           "codigo": "_check(extract_score('Used 3/10 examples. Score: 6/10'), 6)"
+        },
+        {
+          "nome": "a field with no number isn't the score",
+          "codigo": "_check(extract_score('Score: /10 cut off. Score: 7/10'), 7)"
         }
       ],
       "dicas": [
@@ -2210,6 +2254,10 @@
         {
           "nome": "the value stops at the first space (\\S+, not .+)",
           "codigo": "_check(extract_fields('model: mini turbo'), {'model': 'mini'})"
+        },
+        {
+          "nome": "a line with no key or no value is left out",
+          "codigo": "_check(extract_fields(': loose\\nmodel: mini\\nempty:'), {'model': 'mini'})"
         }
       ],
       "dicas": [
@@ -2305,6 +2353,10 @@
         {
           "nome": "surrounding text doesn't get in the way",
           "codigo": "_check(extract_verdict('Analysis complete. Verdict: rejected. End.'), 'rejected')"
+        },
+        {
+          "nome": "a field with no word isn't the verdict",
+          "codigo": "_check(extract_verdict('Verdict: ... Verdict: approved'), 'approved')"
         }
       ],
       "dicas": [
@@ -2429,6 +2481,10 @@
         {
           "nome": "without a digit before the dot (.5) is corrupted",
           "codigo": "_check(extract_costs('cost=.5 cost=2.0'), [2.0])"
+        },
+        {
+          "nome": "several digits before the point",
+          "codigo": "_check(extract_costs('cost=12.5 cost=100.25'), [12.5, 100.25])"
         }
       ],
       "dicas": [
@@ -3023,6 +3079,10 @@
         {
           "nome": "from_dict respects an explicit temperature of 0.0",
           "codigo": "_check(GenerationConfig.from_dict({'model': 'm', 'temperature': 0.0}).temperature, 0.0)"
+        },
+        {
+          "nome": "max_tokens = 1 is valid",
+          "codigo": "_check(GenerationConfig('m', 1.0, 1).max_tokens, 1)"
         }
       ],
       "dicas": [

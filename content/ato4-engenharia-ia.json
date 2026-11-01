@@ -421,6 +421,10 @@
         {
           "nome": "texto sem nenhum ponto",
           "codigo": "_verificar(dividir_sentencas('sem ponto nenhum aqui', 10), ['sem ponto nenhum aqui'])"
+        },
+        {
+          "nome": "depois de fechar um chunk, o seguinte volta a acumular",
+          "codigo": "_verificar(dividir_sentencas('a b c d. e f. g. h', 5), ['a b c d', 'e f. g. h'])"
         }
       ],
       "dicas": [
@@ -539,6 +543,10 @@
         {
           "nome": "dois pedaços: o resto junta ao primeiro",
           "codigo": "_verificar(chunk_sem_farelo('a b c d e f', 5), ['a b c d e f'])"
+        },
+        {
+          "nome": "espaço duplo, tab e quebra de linha separam palavras",
+          "codigo": "_verificar(chunk_sem_farelo('a  b\\tc\\nd', 2), ['a b', 'c d'])"
         }
       ],
       "dicas": [
@@ -598,6 +606,10 @@
         {
           "nome": "depois da gigante o acúmulo recomeça do zero",
           "codigo": "_verificar(empacotar_sentencas('p q r. a b c d e. f g. h i. j', 4), ['p q r', 'a b c d', 'e', 'f g. h i', 'j'])"
+        },
+        {
+          "nome": "depois de fechar um chunk, o seguinte volta a acumular",
+          "codigo": "_verificar(empacotar_sentencas('a b c d. e f. g. h', 5), ['a b c d', 'e f. g. h'])"
         }
       ],
       "dicas": [
@@ -1004,6 +1016,10 @@
         {
           "nome": "a lista de textos preserva a ordem",
           "codigo": "_verificar(construir_indice(['z', 'a', 'm'])[1], ['z', 'a', 'm'])"
+        },
+        {
+          "nome": "devolve uma tupla",
+          "codigo": "r = construir_indice(['oi'])\nassert isinstance(r, tuple), 'O enunciado pede a tupla (matriz, textos) — veio ' + type(r).__name__"
         }
       ],
       "dicas": [
@@ -1285,6 +1301,10 @@
         {
           "nome": "k limita a quantidade de índices",
           "codigo": "corpus = ['erro de rede', 'outro assunto', 'erro de rede', 'falha grave']\nassert len(buscar_estavel('erro', corpus, 2)) == 2, 'k limita quantos índices saem'"
+        },
+        {
+          "nome": "muitos empates mantêm a ordem do corpus",
+          "codigo": "corpus = ['erro de rede', 'falha grave', 'outro assunto', 'falha grave', 'erro de rede'] * 12\nq = _mocks.embed_texto('erro')\nscores = [float(np.dot(_mocks.embed_texto(t), q)) for t in corpus]\n_verificar(buscar_estavel('erro', corpus, 40), sorted(range(60), key=lambda i: -scores[i])[:40])"
         }
       ],
       "dicas": [
@@ -1702,6 +1722,10 @@
         {
           "nome": "usa o modelo pedido",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nconversar(c, [], 'oi')\n_verificar(c.chamadas[-1]['model'], 'mock-4')"
+        },
+        {
+          "nome": "devolve uma tupla",
+          "codigo": "from openai import OpenAI\nr = conversar(OpenAI(), [], 'oi')\nassert isinstance(r, tuple), 'O enunciado pede a tupla (resposta, novo_historico) — veio ' + type(r).__name__"
         }
       ],
       "dicas": [
@@ -1959,6 +1983,10 @@
         {
           "nome": "usa o modelo pedido",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nperguntar_com_retry(c, 'oi', 2)\n_verificar(c.chamadas[-1]['model'], 'mock-4')"
+        },
+        {
+          "nome": "erro 400 não ganha nova tentativa",
+          "codigo": "from openai import OpenAI, BadRequestError\n_mocks.roteirizar_erros_llm(['bad_request', None])\nc = OpenAI()\ntry:\n    perguntar_com_retry(c, 'oi', 3)\n    assert False, 'Só RateLimitError ganha nova tentativa: o erro 400 deve propagar'\nexcept BadRequestError:\n    pass\n_verificar(len(c.chamadas), 1)"
         }
       ],
       "dicas": [
@@ -2065,6 +2093,10 @@
         {
           "nome": "usa o modelo pedido",
           "codigo": "from openai import OpenAI\nc = OpenAI()\nenviar_validado(c, [{'role': 'user', 'content': 'oi'}])\n_verificar(c.chamadas[-1]['model'], 'mock-4')"
+        },
+        {
+          "nome": "histórico com assistant é válido",
+          "codigo": "from openai import OpenAI\nc = OpenAI()\nmsgs = [{'role': 'user', 'content': 'oi'}, {'role': 'assistant', 'content': 'Olá!'}, {'role': 'user', 'content': 'quanto é 2+2?'}]\n_verificar(enviar_validado(c, msgs), '4')\n_verificar(len(c.chamadas), 1)"
         }
       ],
       "dicas": [
@@ -2543,6 +2575,10 @@
         {
           "nome": "sem falha: não re-pede (2 chamadas)",
           "codigo": "from openai import OpenAI\nc = OpenAI()\n_verificar(somar_resiliente(c, 6, 6), \"O resultado é 12.\")\nassert len(c.chamadas) == 2, \"Sem falha, o loop tem só 2 chamadas — re-peça apenas no except\""
+        },
+        {
+          "nome": "só ValueError ganha novo pedido",
+          "codigo": "from types import SimpleNamespace as NS\nclass Cliente:\n    def __init__(self):\n        self.pedidos = 0\n        self.chat = NS(completions=NS(create=self.create))\n    def with_options(self, **_):\n        return self\n    def create(self, **kwargs):\n        self.pedidos += 1\n        chamada = NS(id='c1', type='function', function=NS(name='somar', arguments=None))\n        return NS(choices=[NS(message=NS(role='assistant', content=None, tool_calls=[chamada]), finish_reason='tool_calls')])\nc = Cliente()\ntry:\n    somar_resiliente(c, 1, 2)\nexcept Exception:\n    pass\nassert c.pedidos == 1, 'arguments=None levanta TypeError, não ValueError: re-peça só quando o parse falhar com ValueError'"
         }
       ],
       "dicas": [
@@ -2643,6 +2679,10 @@
         {
           "nome": "nome correto no campo faltando",
           "codigo": "try:\n    campo_ou_erro('{\"nome\": \"Ana\"}', \"idade\")\n    assert False, \"Deveria ter levantado CampoFaltando para idade\"\nexcept CampoFaltando as e:\n    assert e.campo == \"idade\", \"O nome do campo faltando deve ser 'idade'\""
+        },
+        {
+          "nome": "texto antes da cerca",
+          "codigo": "_verificar(campo_ou_erro('Claro! Aqui está:\\n```json\\n{\"a\": 1}\\n```\\nAté mais', 'a'), 1)"
         }
       ],
       "dicas": [

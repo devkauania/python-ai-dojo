@@ -274,6 +274,14 @@
         {
           "nome": "o fim da lista vem das últimas páginas",
           "codigo": "_verificar(coletar_nomes()[2:], ['Carla', 'Davi', 'Elisa'])"
+        },
+        {
+          "nome": "o total vem da resposta: com 4 páginas",
+          "codigo": "_mocks.roteirizar_paginas(4)\n_verificar(coletar_nomes(), ['Ana', 'Bruno', 'Carla', 'Davi', 'Elisa', 'Extra4'])\n_verificar(len(_mocks.historico_http), 4)"
+        },
+        {
+          "nome": "o total vem da resposta: com 2 páginas",
+          "codigo": "_mocks.roteirizar_paginas(2)\n_verificar(coletar_nomes(), ['Ana', 'Bruno', 'Carla', 'Davi'])\n_verificar(len(_mocks.historico_http), 2)"
         }
       ],
       "dicas": [
@@ -603,6 +611,18 @@
         {
           "nome": "limite_paginas=1 protege mesmo sem cursor repetido",
           "codigo": "try:\n    listar_modelos(limite_paginas=1)\n    assert False, 'Com limite_paginas=1 e mais páginas pela frente, deveria levantar RuntimeError'\nexcept RuntimeError:\n    pass"
+        },
+        {
+          "nome": "limite igual ao número de páginas ainda termina",
+          "codigo": "_verificar(listar_modelos(limite_paginas=3), ['mock-4-mini', 'mock-4', 'mock-claude-haiku', 'mock-claude', 'mock-embed'])"
+        },
+        {
+          "nome": "limite uma página abaixo levanta",
+          "codigo": "try:\n    listar_modelos(limite_paginas=2)\n    assert False, 'O catálogo tem 3 páginas: com limite_paginas=2 deveria levantar RuntimeError'\nexcept RuntimeError:\n    pass\n_verificar(len(_mocks.historico_http), 2)"
+        },
+        {
+          "nome": "o limite padrão é de 10 páginas",
+          "codigo": "_mocks.roteirizar_falhas('/modelos', ['avanca'] * 30)\ntry:\n    listar_modelos()\n    assert False, 'Uma paginação sem fim deveria levantar RuntimeError'\nexcept RuntimeError:\n    pass\n_verificar(len(_mocks.historico_http), 10)"
         }
       ],
       "dicas": [
@@ -1515,6 +1535,10 @@
         {
           "nome": "o fim da lista vem das páginas 2 e 3",
           "codigo": "_verificar(_rodar(coletar_nomes_paralelo())[2:], ['Carla', 'Davi', 'Elisa'])"
+        },
+        {
+          "nome": "as buscas saem juntas",
+          "codigo": "_rodar(coletar_nomes_paralelo())\nassert _mocks.pico_paralelo() >= 2, 'As chamadas saíram uma por vez: dispare todas juntas com asyncio.gather'"
         }
       ],
       "dicas": [
@@ -1564,6 +1588,10 @@
         {
           "nome": "um GET por id",
           "codigo": "_rodar(precos_async([3, 2, 1]))\nassert len(_mocks.historico_http) == 3, 'Devem ser exatamente 3 GETs, um por id — foram ' + str(len(_mocks.historico_http))\ncaminhos = sorted(c['caminho'] for c in _mocks.historico_http)\nassert caminhos == ['/produtos/1', '/produtos/2', '/produtos/3'], 'Cada id vira um GET /produtos/<id> — caminhos: ' + str(caminhos)"
+        },
+        {
+          "nome": "as buscas saem juntas",
+          "codigo": "_rodar(precos_async([1, 2, 3]))\nassert _mocks.pico_paralelo() >= 2, 'As chamadas saíram uma por vez: dispare todas juntas com asyncio.gather'"
         }
       ],
       "dicas": [
@@ -1614,6 +1642,10 @@
         {
           "nome": "cada prompt vai no corpo certo",
           "codigo": "_rodar(ecoar_lote(['classifique o log', 'extraia entidades']))\ncorpos = [c['json'] for c in _mocks.historico_http]\nassert {'prompt': 'classifique o log'} in corpos and {'prompt': 'extraia entidades'} in corpos, 'Cada prompt deve ir no corpo como {\"prompt\": <texto>} — corpos: ' + str(corpos)"
+        },
+        {
+          "nome": "os POSTs saem juntos",
+          "codigo": "_rodar(ecoar_lote(['a', 'b', 'c']))\nassert _mocks.pico_paralelo() >= 2, 'As chamadas saíram uma por vez: dispare todas juntas com asyncio.gather'"
         }
       ],
       "dicas": [
@@ -1717,6 +1749,10 @@
         {
           "nome": "só falhas não explode a função",
           "codigo": "_verificar(_rodar(sondar_rotas(['/timeout'])), {'corpos': [], 'falhas': 1})"
+        },
+        {
+          "nome": "as rotas são consultadas juntas",
+          "codigo": "_rodar(sondar_rotas(['/status', '/produtos/1', '/timeout']))\nassert _mocks.pico_paralelo() >= 2, 'As chamadas saíram uma por vez: dispare todas juntas com asyncio.gather'"
         }
       ],
       "dicas": [
@@ -1898,7 +1934,7 @@
       ],
       "titulo": "Aritmética sem for",
       "explicacao_md": null,
-      "enunciado_md": "Arrays fazem matemática de uma vez só: `v * 2` multiplica todos os elementos; `v + w` soma posição a posição. É assim que bibliotecas de IA processam milhões de números sem um único `for`.\n\nEscreva duas funções que recebem **listas** e retornam arrays:\n\n- `dobrar(v)` → cada elemento multiplicado por 2\n- `somar(v, w)` → soma elemento a elemento (mesmo tamanho garantido)\n\nExemplo: `dobrar([1, 2, 3])` → `array([2., 4., 6.])`; `somar([1, 2], [10, 20])` → `array([11., 22.])`",
+      "enunciado_md": "Arrays fazem matemática de uma vez só: `v * 2` multiplica todos os elementos; `v + w` soma posição a posição. É assim que bibliotecas de IA processam milhões de números sem um único `for`.\n\nEscreva duas funções que recebem **listas** e retornam arrays de **float**, mesmo quando a lista traz inteiros:\n\n- `dobrar(v)` → cada elemento multiplicado por 2\n- `somar(v, w)` → soma elemento a elemento (mesmo tamanho garantido)\n\nExemplo: `dobrar([1, 2, 3])` → `array([2., 4., 6.])`; `somar([1, 2], [10, 20])` → `array([11., 22.])`",
       "starter_code": "import numpy as np\n\ndef dobrar(v):\n    # Converta para array e opere no array INTEIRO de uma vez — é a graça do\n    # numpy: nada de for.\n    ...\n\ndef somar(v, w):\n    # Dois arrays se somam posição a posição com um + simples.\n    ...\n",
       "solucao_referencia": "import numpy as np\n\ndef dobrar(v):\n    return np.array(v, dtype=float) * 2\n\ndef somar(v, w):\n    return np.array(v, dtype=float) + np.array(w, dtype=float)\n",
       "testes_visiveis": [
@@ -1923,6 +1959,10 @@
         {
           "nome": "o retorno é array, não lista",
           "codigo": "assert isinstance(dobrar([1.0]), np.ndarray) and isinstance(somar([1.0], [2.0]), np.ndarray), 'As duas funções devem retornar np.array'"
+        },
+        {
+          "nome": "lista de inteiros vira array de float",
+          "codigo": "for r in (dobrar([1, 2, 3]), somar([1, 2], [10, 20])):\n    assert r.dtype.kind == 'f', 'O exemplo mostra array([2., 4., 6.]): o array é de float, veio ' + str(r.dtype)"
         }
       ],
       "dicas": [
@@ -2504,6 +2544,10 @@
         {
           "nome": "nenhum nan escapa",
           "codigo": "import math\nassert all(not math.isnan(float(s)) for s in similaridades_lote([[0, 0], [0, 0]], [0, 0])), 'Nenhum score pode ser nan — trate a divisão por zero'"
+        },
+        {
+          "nome": "consulta que não tem norma 1",
+          "codigo": "_verificar(similaridades_lote([[1, 0], [1, 1], [3, 4]], [2, 0]), [1.0, 0.7071067811865475, 0.6])"
         }
       ],
       "dicas": [
@@ -2572,6 +2616,10 @@
         {
           "nome": "k = 1 devolve o melhor",
           "codigo": "_verificar(top_k([0.1, 0.9, 0.5], 1), [1])"
+        },
+        {
+          "nome": "muitos empates mantêm a ordem do índice",
+          "codigo": "s = [0.5, 0.9, 0.1, 0.9, 0.5] * 12\n_verificar(top_k(s, 40), sorted(range(60), key=lambda i: -s[i])[:40])"
         }
       ],
       "dicas": [
@@ -3077,6 +3125,10 @@
         {
           "nome": "tipos json-safe (int e float Python)",
           "codigo": "r = auditar_custos(pd.DataFrame({'custo': [1.0, float('nan')]}))\nassert type(r['chamadas']) is int and type(r['sem_custo']) is int, 'chamadas e sem_custo devem ser int Python — np.int64 quebra json.dumps'\nassert type(r['custo_medio']) is float, 'custo_medio deve ser float Python — converta com float(...)'"
+        },
+        {
+          "nome": "a média puxa para o valor alto, a mediana não",
+          "codigo": "df = pd.DataFrame({'custo': [1.0, 2.0, 9.0, float('nan')]}); _verificar(auditar_custos(df), {'chamadas': 4, 'sem_custo': 1, 'custo_medio': 4.0})"
         }
       ],
       "dicas": [
@@ -3130,6 +3182,10 @@
         {
           "nome": "retorna lista de verdade",
           "codigo": "logs = pd.DataFrame([{'modelo': 'm', 'tokens': 1000}]); precos = pd.DataFrame([{'modelo': 'm', 'preco_por_1k': 1.0}])\nassert isinstance(custos_sem_perder(logs, precos), list), 'Retorne uma lista: termine com .tolist()'"
+        },
+        {
+          "nome": "tokens que não são múltiplo de 1000",
+          "codigo": "logs = pd.DataFrame([{'modelo': 'a', 'tokens': 1500}, {'modelo': 'a', 'tokens': 250}]); precos = pd.DataFrame([{'modelo': 'a', 'preco_por_1k': 0.5}]); _verificar(custos_sem_perder(logs, precos), [0.75, 0.125])"
         }
       ],
       "dicas": [

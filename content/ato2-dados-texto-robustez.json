@@ -280,6 +280,10 @@
         {
           "nome": "caixa mista com acento",
           "codigo": "_verificar(limpar_prompts(['GeRe UM tíTULO']), ['gere um título'])"
+        },
+        {
+          "nome": "tab e quebra de linha nas pontas também saem",
+          "codigo": "_verificar(limpar_prompts(['\\tOi \\n']), ['oi'])"
         }
       ],
       "dicas": [
@@ -439,6 +443,14 @@
         {
           "nome": "retorna booleano de verdade",
           "codigo": "assert lote_valido([]) is True, 'Retorne True/False de verdade (o all já devolve isso)'"
+        },
+        {
+          "nome": "cada papel permitido passa sozinho",
+          "codigo": "for papel in ('system', 'user', 'assistant'):\n    _verificar(lote_valido([{'role': papel, 'content': 'x'}]), True)"
+        },
+        {
+          "nome": "content só de tab e quebra de linha reprova",
+          "codigo": "_verificar(lote_valido([{'role': 'user', 'content': '\\t\\n'}]), False)"
         }
       ],
       "dicas": [
@@ -658,6 +670,10 @@
         {
           "nome": "float em texto não é int",
           "codigo": "_verificar(para_inteiro('3.14', 99), 99)"
+        },
+        {
+          "nome": "só ValueError vira o padrão",
+          "codigo": "try:\n    r = para_inteiro(None, 0)\nexcept Exception:\n    r = 'propagou'\nassert r == 'propagou', 'int(None) levanta TypeError, que não é o erro pedido: capture só ValueError'"
         }
       ],
       "dicas": [
@@ -705,6 +721,10 @@
         {
           "nome": "chave errada em dict cheio",
           "codigo": "_verificar(campo_resposta({'a': 1, 'b': 2}, 'c'), '<ausente>')"
+        },
+        {
+          "nome": "só KeyError vira <ausente>",
+          "codigo": "try:\n    r = campo_resposta(None, 'texto')\nexcept Exception:\n    r = 'propagou'\nassert r == 'propagou', 'Se a resposta nem é um dict, o erro é outro: capture só KeyError'"
         }
       ],
       "dicas": [
@@ -846,6 +866,10 @@
         {
           "nome": "total zero com tráfego",
           "codigo": "_verificar(custo_medio(0, 5), 0.0)"
+        },
+        {
+          "nome": "só ZeroDivisionError vira 0.0",
+          "codigo": "try:\n    r = custo_medio('x', 2)\nexcept Exception:\n    r = 'propagou'\nassert r == 'propagou', 'Total que não é número é outro erro: capture só ZeroDivisionError'"
         }
       ],
       "dicas": [
@@ -898,6 +922,10 @@
         {
           "nome": "200 exatos ainda passa",
           "codigo": "_verificar(validar_prompt('a' * 200), 'a' * 200)"
+        },
+        {
+          "nome": "tab e quebra de linha nas pontas também saem",
+          "codigo": "_verificar(validar_prompt('\\tResuma\\n'), 'Resuma')\ntry:\n    validar_prompt('\\t\\n')\n    assert False, 'Prompt só de tab e quebra de linha deveria levantar EntradaInvalida'\nexcept EntradaInvalida as e:\n    _verificar(str(e), 'prompt vazio')"
         }
       ],
       "dicas": [
@@ -946,6 +974,10 @@
         {
           "nome": "ordem preservada nas duas listas",
           "codigo": "_verificar(converter_lote(['b', '3', 'a', '4']), ([3.0, 4.0], ['b', 'a']))"
+        },
+        {
+          "nome": "só ValueError vira falha",
+          "codigo": "try:\n    r = converter_lote(['1', None])\nexcept Exception:\n    r = 'propagou'\nassert r == 'propagou', 'float(None) levanta TypeError, que não é o erro pedido: capture só ValueError'"
         }
       ],
       "dicas": [
@@ -1755,6 +1787,10 @@
         {
           "nome": "os padrões devolvidos são uma cópia, não o objeto compartilhado",
           "codigo": "_c = carregar_config('nao_existe.json')\n_c['temperatura'] = 99\n_verificar(carregar_config('nao_existe.json'), {'modelo': 'mock-mini', 'temperatura': 0.7, 'max_tokens': 256})"
+        },
+        {
+          "nome": "só arquivo ausente vira padrões",
+          "codigo": "try:\n    r = carregar_config('.')\nexcept Exception:\n    r = 'propagou'\nassert r == 'propagou', 'Um diretório existe, mas não abre: só o arquivo ausente vira padrões, capture FileNotFoundError'"
         }
       ],
       "dicas": [
@@ -2103,6 +2139,10 @@
         {
           "nome": "retorna só o nome, sem o resto da linha",
           "codigo": "_verificar(achar_modelo('x mock-7 y'), 'mock-7')"
+        },
+        {
+          "nome": "mock- sem nome depois não é modelo",
+          "codigo": "_verificar(achar_modelo('erro mock- depois mock-4'), 'mock-4')"
         }
       ],
       "dicas": [
@@ -2159,6 +2199,10 @@
         {
           "nome": "outro /10 antes não rouba a nota (precisa da âncora Nota:)",
           "codigo": "_verificar(extrair_nota('Usou 3/10 exemplos. Nota: 6/10'), 6)"
+        },
+        {
+          "nome": "campo sem número não é a nota",
+          "codigo": "_verificar(extrair_nota('Nota: /10 cortada. Nota: 7/10'), 7)"
         }
       ],
       "dicas": [
@@ -2210,6 +2254,10 @@
         {
           "nome": "o valor para no primeiro espaço (\\S+, não .+)",
           "codigo": "_verificar(extrair_campos('modelo: mini turbo'), {'modelo': 'mini'})"
+        },
+        {
+          "nome": "linha sem chave ou sem valor fica de fora",
+          "codigo": "_verificar(extrair_campos(': solto\\nmodelo: mini\\nvazio:'), {'modelo': 'mini'})"
         }
       ],
       "dicas": [
@@ -2305,6 +2353,10 @@
         {
           "nome": "texto em volta não atrapalha",
           "codigo": "_verificar(extrair_veredito('Análise concluída. Veredito: reprovado. Fim.'), 'reprovado')"
+        },
+        {
+          "nome": "campo sem palavra não é o veredito",
+          "codigo": "_verificar(extrair_veredito('Veredito: ... Veredito: aprovado'), 'aprovado')"
         }
       ],
       "dicas": [
@@ -2429,6 +2481,10 @@
         {
           "nome": "sem dígito antes do ponto (.5) é corrompido",
           "codigo": "_verificar(extrair_custos('custo=.5 custo=2.0'), [2.0])"
+        },
+        {
+          "nome": "vários dígitos antes do ponto",
+          "codigo": "_verificar(extrair_custos('custo=12.5 custo=100.25'), [12.5, 100.25])"
         }
       ],
       "dicas": [
@@ -3023,6 +3079,10 @@
         {
           "nome": "from_dict respeita temperatura 0.0 explícita",
           "codigo": "_verificar(ConfigGeracao.from_dict({'modelo': 'm', 'temperatura': 0.0}).temperatura, 0.0)"
+        },
+        {
+          "nome": "max_tokens = 1 é válido",
+          "codigo": "_verificar(ConfigGeracao('m', 1.0, 1).max_tokens, 1)"
         }
       ],
       "dicas": [

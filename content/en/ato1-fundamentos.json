@@ -1322,6 +1322,10 @@
         {
           "nome": "without a period, the last character counts",
           "codigo": "_check(first_sentence('Without period'), 'Without period')"
+        },
+        {
+          "nome": "tabs and newlines at the ends come off too",
+          "codigo": "_check(first_sentence('\\tHi\\n. rest'), 'Hi')\n_check(first_sentence('\\tNo period\\n'), 'No period')"
         }
       ],
       "dicas": [
