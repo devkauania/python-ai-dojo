@@ -86,7 +86,7 @@ nothing).
 | Schema, content rules, solution passes, starter fails, named wrong answers fail and correct alternatives pass (`tools/mutantes.py`) (CPython 3.12) | `python -X utf8 tools/verify.py --lang pt` / `--lang en` | **273/273** in each language |
 | The same check inside real Pyodide in Chrome | `DOJO_LANG=pt npm run parity` / `DOJO_LANG=en npm run parity` | **273/273** in each language |
 | Web Lab: solution passes, starter fails (real browser) | `DOJO_LANG=pt npm run weblab` / `DOJO_LANG=en npm run weblab` | **30/30** in each language |
-| Same two browser checks against the live deploy | `DOJO_URL=https://python-ai-dojo.vercel.app npm run parity` | **273/273** and **30/30** on 2026-10-28, against the build live that day. As of 2026-11-02 the live site still serves a build older than this repository, without the hidden tests, mocks and mutation gate added on 2026-11-01 and 2026-11-02, until the next deploy |
+| Same two browser checks against the live deploy | `DOJO_URL=https://python-ai-dojo.vercel.app npm run parity` | **273/273** and **30/30** on 2026-11-02, against the live build (`?v=67`, which includes the hidden tests, mocks and mutation gate added on 2026-11-01 and 2026-11-02) |
 | Markdown rendering of every statement, both languages | `npm run md` | **0 broken fields** |
 | English content mirrors the Portuguese structure; no Portuguese left in it | `python -X utf8 tools/i18n_check.py --estrito` | **0 structural diffs, 0 leftovers** |
 
