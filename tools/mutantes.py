@@ -204,6 +204,9 @@ _BASE_400 = [
     (f"except da classe base {b} repete o erro 400", [(r"from openai import RateLimitError", f"from openai import {b} as RateLimitError")])
     for b in ("APIError", "APIStatusError", "OpenAIError")
 ]
+_TODO_5XX = ("repete em todo 5xx", [(r"if resp\.status_code != 500:", "if resp.status_code < 500:")])
+_TODO_5XX_E_429 = ("repete em todo 5xx", [(r"if resp\.status_code not in \(429, 500\):",
+                                           "if resp.status_code != 429 and resp.status_code < 500:")])
 
 _MAIS = {
     # média de verdade: até 2 valores por grupo, média e mediana dão o mesmo
@@ -306,6 +309,29 @@ _MAIS = {
     "ato1-boss1-t3-02": [("break na stopword larga o resto do prompt", [(r"(if \w+ in stop:\n\s+)continue", r"\1break")])],
     # o exemplo mostra array([2., 4., 6.])
     "ato3-numpy-t1-02": [("array de int, não de float", [(r", dtype=float", "")])],
+    # retry: só o 500 (e o 429, onde o enunciado diz) volta; 503 e companhia retornam na hora
+    "ato3-resiliencia-t1-01": [_TODO_5XX],
+    "ato3-resiliencia-t1-02": [_TODO_5XX],
+    "ato3-resiliencia-t1-03": [("repete em todo 5xx", [(r"while resp\.status_code == 500", "while resp.status_code >= 500")])],
+    "ato3-resiliencia-t1-04": [("todo 5xx é recuperável", [(r"return status in \(429, 500\)", "return status == 429 or status >= 500")])],
+    "ato3-resiliencia-t1-05": [_TODO_5XX],
+    "ato3-resiliencia-t2-01": [_TODO_5XX],
+    "ato3-resiliencia-t2-03": [_TODO_5XX],
+    "ato3-resiliencia-t2-04": [
+        _TODO_5XX_E_429,
+        ("429 dorme o maior entre Retry-After e o backoff", [(
+            r'time\.sleep\(int\(resp\.headers\["Retry-After"\]\)\)(\n\s+else:\n\s+time\.sleep\((base \* \(2 \*\* \w+\))\))',
+            r'time.sleep(max(int(resp.headers["Retry-After"]), \2))\1',
+        )]),
+    ],
+    "ato3-resiliencia-t3-01": [_TODO_5XX_E_429],
+    "ato3-resiliencia-t3-03": [
+        _TODO_5XX_E_429,
+        ("429 dorme o maior entre Retry-After e a fórmula", [(
+            r"(\n(\s+)(\w+) = base \* \(2 \*\* (\w+)\) \+ 0\.1 \* \4)",
+            r'\1\n\2if resp.status_code == 429:\n\2    \3 = max(\3, int(resp.headers["Retry-After"]))',
+        )]),
+    ],
 }
 # Sem entrada de except largo: ato2-arquivos-t3-03, ato2-boss2-t3-01 e ato3-http-t3-01.
 # O try só envolve json.loads (ou resp.json) de um texto, e dali só sai erro de JSON.

@@ -671,6 +671,10 @@
         {
           "nome": "404 não é 500: para na primeira",
           "codigo": "r = buscar_com_retry('/produtos/99', 4)\n_verificar(r.status_code, 404)\n_verificar(len(_mocks.historico_http), 1)"
+        },
+        {
+          "nome": "503 não é 500: devolve na hora",
+          "codigo": "_mocks.roteirizar_falhas('/status', [503])\nr = buscar_com_retry('/status', 4)\n_verificar(r.status_code, 503)\n_verificar(len(_mocks.historico_http), 1)"
         }
       ],
       "dicas": [
@@ -728,6 +732,10 @@
         {
           "nome": "404 não é 500: encerra e conta também",
           "codigo": "_verificar(tentativas_ate_ok('/produtos/99', 4), 1)\n_verificar(len(_mocks.historico_http), 1)"
+        },
+        {
+          "nome": "503 não é 500: encerra e conta também",
+          "codigo": "_mocks.roteirizar_falhas('/status', [503])\n_verificar(tentativas_ate_ok('/status', 4), 1)\n_verificar(len(_mocks.historico_http), 1)"
         }
       ],
       "dicas": [
@@ -777,6 +785,10 @@
         {
           "nome": "só o 500 provoca espera",
           "codigo": "r = retry_com_pausa('/produtos/99', 5, 3)\n_verificar(r.status_code, 404)\n_verificar(_mocks.relogio(), 0.0)\n_verificar(len(_mocks.historico_http), 1)"
+        },
+        {
+          "nome": "503 não é 500: sem espera, sem nova chamada",
+          "codigo": "_mocks.roteirizar_falhas('/status', [503])\nr = retry_com_pausa('/status', 4, 2)\n_verificar(r.status_code, 503)\n_verificar(_mocks.relogio(), 0.0)\n_verificar(len(_mocks.historico_http), 1)"
         }
       ],
       "dicas": [
@@ -829,6 +841,10 @@
         {
           "nome": "retorna booleano de verdade",
           "codigo": "assert eh_recuperavel(429) is True and eh_recuperavel(404) is False, 'Retorne True/False de verdade, não outro valor'"
+        },
+        {
+          "nome": "503 não está no par: False",
+          "codigo": "_verificar(eh_recuperavel(503), False)\n_verificar(eh_recuperavel(502), False)"
         }
       ],
       "dicas": [
@@ -876,6 +892,10 @@
         {
           "nome": "orçamento respeitado à risca",
           "codigo": "_mocks.roteirizar_falhas('/status', [500, 500, 500, 500, 500])\n_verificar(buscar_json_ou_none('/status', 2), None)\n_verificar(len(_mocks.historico_http), 2)"
+        },
+        {
+          "nome": "503 não é 500: None sem insistência",
+          "codigo": "_mocks.roteirizar_falhas('/status', [503])\n_verificar(buscar_json_ou_none('/status', 4), None)\n_verificar(len(_mocks.historico_http), 1)"
         }
       ],
       "dicas": [
@@ -925,6 +945,10 @@
         {
           "nome": "404 não dispara backoff",
           "codigo": "r = retry_exponencial('/produtos/99', 5, 1)\n_verificar(r.status_code, 404)\n_verificar(_mocks.relogio(), 0.0)\n_verificar(len(_mocks.historico_http), 1)"
+        },
+        {
+          "nome": "503 não é 500: não dispara backoff",
+          "codigo": "_mocks.roteirizar_falhas('/status', [503])\nr = retry_exponencial('/status', 4, 1)\n_verificar(r.status_code, 503)\n_verificar(_mocks.relogio(), 0.0)\n_verificar(len(_mocks.historico_http), 1)"
         }
       ],
       "dicas": [
@@ -1028,6 +1052,10 @@
         {
           "nome": "404 sai na hora sem gastar o plano",
           "codigo": "r = retry_ate_ok('/produtos/99', [3, 3])\n_verificar(r.status_code, 404)\n_verificar(_mocks.relogio(), 0.0)\n_verificar(len(_mocks.historico_http), 1)"
+        },
+        {
+          "nome": "503 não é 500: sai sem gastar o plano",
+          "codigo": "_mocks.roteirizar_falhas('/status', [503])\nr = retry_ate_ok('/status', [1, 2])\n_verificar(r.status_code, 503)\n_verificar(_mocks.relogio(), 0.0)\n_verificar(len(_mocks.historico_http), 1)"
         }
       ],
       "dicas": [
@@ -1086,6 +1114,14 @@
         {
           "nome": "500 depois de 429: o expoente é o índice da chamada",
           "codigo": "_mocks.roteirizar_falhas('/status', [429, 500, 200], retry_after=3)\nr = retry_inteligente('/status', 5, 1)\n_verificar(r.status_code, 200)\n_verificar(_mocks.relogio(), 5.0)"
+        },
+        {
+          "nome": "503 está fora de {429, 500}: devolve na hora",
+          "codigo": "_mocks.roteirizar_falhas('/status', [503])\nr = retry_inteligente('/status', 4, 1)\n_verificar(r.status_code, 503)\n_verificar(_mocks.relogio(), 0.0)\n_verificar(len(_mocks.historico_http), 1)"
+        },
+        {
+          "nome": "429 dorme o Retry-After, mesmo menor que o backoff",
+          "codigo": "_mocks.roteirizar_falhas('/status', [500, 429, 200], retry_after=1)\nr = retry_inteligente('/status', 5, 4)\n_verificar(r.status_code, 200)\n_verificar(_mocks.relogio(), 5.0)"
         }
       ],
       "dicas": [
@@ -1140,6 +1176,10 @@
         {
           "nome": "a exceção é uma Exception de verdade",
           "codigo": "assert issubclass(ErroPermanente, Exception), 'ErroPermanente deve herdar de Exception'\ne = ErroPermanente(401)\n_verificar(e.status, 401)"
+        },
+        {
+          "nome": "503 não é 429 nem 500: é permanente",
+          "codigo": "_mocks.roteirizar_falhas('/status', [503])\ntry:\n    buscar_resiliente('/status', 4)\n    assert False, 'Com 503, a função deveria levantar ErroPermanente'\nexcept ErroPermanente as e:\n    _verificar(e.status, 503)\n_verificar(len(_mocks.historico_http), 1)"
         }
       ],
       "dicas": [
@@ -1256,6 +1296,14 @@
         {
           "nome": "o orçamento conta o tempo já gasto, não só a próxima espera",
           "codigo": "_mocks.roteirizar_falhas('/status', [500, 500, 500, 200])\n_verificar(retry_com_orcamento('/status', 5, 1), None)\n_verificar(_mocks.relogio(), 3.1)\n_verificar(len(_mocks.historico_http), 3)"
+        },
+        {
+          "nome": "503 está fora de {429, 500}: None na hora",
+          "codigo": "_mocks.roteirizar_falhas('/status', [503, 200])\n_verificar(retry_com_orcamento('/status', 10, 1), None)\n_verificar(len(_mocks.historico_http), 1)\n_verificar(_mocks.relogio(), 0.0)"
+        },
+        {
+          "nome": "429 segue a fórmula, não o Retry-After",
+          "codigo": "_mocks.roteirizar_falhas('/status', [429, 200], retry_after=5)\n_verificar(retry_com_orcamento('/status', 10, 1), {'status': 'ok'})\n_verificar(_mocks.relogio(), 1.0)"
         }
       ],
       "dicas": [

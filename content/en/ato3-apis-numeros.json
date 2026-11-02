@@ -671,6 +671,10 @@
         {
           "nome": "a 404 isn't a 500: stops at the first one",
           "codigo": "r = fetch_with_retry('/products/99', 4)\n_check(r.status_code, 404)\n_check(len(_mocks.http_history), 1)"
+        },
+        {
+          "nome": "a 503 isn't a 500: returned right away",
+          "codigo": "_mocks.script_failures('/status', [503])\nr = fetch_with_retry('/status', 4)\n_check(r.status_code, 503)\n_check(len(_mocks.http_history), 1)"
         }
       ],
       "dicas": [
@@ -728,6 +732,10 @@
         {
           "nome": "a 404 isn't a 500: it ends and counts too",
           "codigo": "_check(attempts_until_ok('/products/99', 4), 1)\n_check(len(_mocks.http_history), 1)"
+        },
+        {
+          "nome": "a 503 isn't a 500: it ends and counts too",
+          "codigo": "_mocks.script_failures('/status', [503])\n_check(attempts_until_ok('/status', 4), 1)\n_check(len(_mocks.http_history), 1)"
         }
       ],
       "dicas": [
@@ -777,6 +785,10 @@
         {
           "nome": "only a 500 triggers a wait",
           "codigo": "r = retry_with_pause('/products/99', 5, 3)\n_check(r.status_code, 404)\n_check(_mocks.clock(), 0.0)\n_check(len(_mocks.http_history), 1)"
+        },
+        {
+          "nome": "a 503 isn't a 500: no wait, no new call",
+          "codigo": "_mocks.script_failures('/status', [503])\nr = retry_with_pause('/status', 4, 2)\n_check(r.status_code, 503)\n_check(_mocks.clock(), 0.0)\n_check(len(_mocks.http_history), 1)"
         }
       ],
       "dicas": [
@@ -829,6 +841,10 @@
         {
           "nome": "returns a real boolean",
           "codigo": "assert is_recoverable(429) is True and is_recoverable(404) is False, 'Return a real True/False, not some other value'"
+        },
+        {
+          "nome": "a 503 isn't in the pair: False",
+          "codigo": "_check(is_recoverable(503), False)\n_check(is_recoverable(502), False)"
         }
       ],
       "dicas": [
@@ -876,6 +892,10 @@
         {
           "nome": "budget respected to the letter",
           "codigo": "_mocks.script_failures('/status', [500, 500, 500, 500, 500])\n_check(fetch_json_or_none('/status', 2), None)\n_check(len(_mocks.http_history), 2)"
+        },
+        {
+          "nome": "a 503 isn't a 500: None without a retry",
+          "codigo": "_mocks.script_failures('/status', [503])\n_check(fetch_json_or_none('/status', 4), None)\n_check(len(_mocks.http_history), 1)"
         }
       ],
       "dicas": [
@@ -925,6 +945,10 @@
         {
           "nome": "a 404 doesn't trigger backoff",
           "codigo": "r = exponential_retry('/products/99', 5, 1)\n_check(r.status_code, 404)\n_check(_mocks.clock(), 0.0)\n_check(len(_mocks.http_history), 1)"
+        },
+        {
+          "nome": "a 503 isn't a 500: no backoff",
+          "codigo": "_mocks.script_failures('/status', [503])\nr = exponential_retry('/status', 4, 1)\n_check(r.status_code, 503)\n_check(_mocks.clock(), 0.0)\n_check(len(_mocks.http_history), 1)"
         }
       ],
       "dicas": [
@@ -1028,6 +1052,10 @@
         {
           "nome": "a 404 leaves right away without spending the plan",
           "codigo": "r = retry_until_ok('/products/99', [3, 3])\n_check(r.status_code, 404)\n_check(_mocks.clock(), 0.0)\n_check(len(_mocks.http_history), 1)"
+        },
+        {
+          "nome": "a 503 isn't a 500: leaves without spending the plan",
+          "codigo": "_mocks.script_failures('/status', [503])\nr = retry_until_ok('/status', [1, 2])\n_check(r.status_code, 503)\n_check(_mocks.clock(), 0.0)\n_check(len(_mocks.http_history), 1)"
         }
       ],
       "dicas": [
@@ -1086,6 +1114,14 @@
         {
           "nome": "a 500 after a 429: the exponent is the call index",
           "codigo": "_mocks.script_failures('/status', [429, 500, 200], retry_after=3)\nr = smart_retry('/status', 5, 1)\n_check(r.status_code, 200)\n_check(_mocks.clock(), 5.0)"
+        },
+        {
+          "nome": "a 503 is outside {429, 500}: returned right away",
+          "codigo": "_mocks.script_failures('/status', [503])\nr = smart_retry('/status', 4, 1)\n_check(r.status_code, 503)\n_check(_mocks.clock(), 0.0)\n_check(len(_mocks.http_history), 1)"
+        },
+        {
+          "nome": "a 429 sleeps the Retry-After, even when it is shorter than the backoff",
+          "codigo": "_mocks.script_failures('/status', [500, 429, 200], retry_after=1)\nr = smart_retry('/status', 5, 4)\n_check(r.status_code, 200)\n_check(_mocks.clock(), 5.0)"
         }
       ],
       "dicas": [
@@ -1140,6 +1176,10 @@
         {
           "nome": "the exception is a real Exception",
           "codigo": "assert issubclass(PermanentError, Exception), 'PermanentError must inherit from Exception'\ne = PermanentError(401)\n_check(e.status, 401)"
+        },
+        {
+          "nome": "a 503 is neither 429 nor 500: it's permanent",
+          "codigo": "_mocks.script_failures('/status', [503])\ntry:\n    resilient_fetch('/status', 4)\n    assert False, 'With a 503, the function should raise PermanentError'\nexcept PermanentError as e:\n    _check(e.status, 503)\n_check(len(_mocks.http_history), 1)"
         }
       ],
       "dicas": [
@@ -1256,6 +1296,14 @@
         {
           "nome": "the budget counts the time already spent, not just the next wait",
           "codigo": "_mocks.script_failures('/status', [500, 500, 500, 200])\n_check(retry_with_budget('/status', 5, 1), None)\n_check(_mocks.clock(), 3.1)\n_check(len(_mocks.http_history), 3)"
+        },
+        {
+          "nome": "a 503 is outside {429, 500}: None right away",
+          "codigo": "_mocks.script_failures('/status', [503, 200])\n_check(retry_with_budget('/status', 10, 1), None)\n_check(len(_mocks.http_history), 1)\n_check(_mocks.clock(), 0.0)"
+        },
+        {
+          "nome": "a 429 follows the formula, not the Retry-After",
+          "codigo": "_mocks.script_failures('/status', [429, 200], retry_after=5)\n_check(retry_with_budget('/status', 10, 1), {'status': 'ok'})\n_check(_mocks.clock(), 1.0)"
         }
       ],
       "dicas": [
